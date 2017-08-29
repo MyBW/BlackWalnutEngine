@@ -1672,7 +1672,7 @@ bool GLRenderSystem::InitRendererResource()
 
 
 
-
+		 // 可以考虑将以下函数进行封装
 
 		BWQuaternion Quaterniton;
 		BWMatrix4 ViewMatrixs[6];
