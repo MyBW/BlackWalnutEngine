@@ -1,0 +1,84 @@
+	gpu_program  Ogre/Earring/gpu_program    GLSL
+	{	   
+		vertex_shader_ref    CommnonBaseVertexShader
+		fragment_shader_ref CommnonBaseFragmentShader
+	}
+	gpu_program  Ogre/Earring/deffer_gpu_program    GLSL
+	{	   
+		vertex_shader_ref    DefferCommnonBaseVertexShader
+		fragment_shader_ref DefferCommnonBaseFragmentShader
+	}
+	
+	gpu_program  RenderSystem_DefferRendering GLSL
+	{
+	  vertex_shader_ref    DefferRenderingVertexShader
+	  fragment_shader_ref  DefferRenderingFragmentShader
+	}
+	
+	gpu_program  RenderSystem_PointLightDefferLighting GLSL
+	{
+	  vertex_shader_ref    PointLightDefferLightingVertexShader
+	  fragment_shader_ref  PointLightDefferLightingFragmentShader
+	}
+	
+	gpu_program RenderSystem_DirectLightShadowMap  GLSL
+	{
+	  vertex_shader_ref    DirectionalLightShadowMapVertexShader
+	  fragment_shader_ref  DirectionalLightShadowMapFragmentShader
+	}
+	
+	gpu_program RenderSystem_SkyBoxRendering  GLSL
+	{
+	  vertex_shader_ref    SkyBoxVertexShader
+	  fragment_shader_ref  SkyBoxFragmentShader
+	}
+	
+	
+	gpu_program RenderSystem_EnvironmentMap  GLSL
+	{
+	  vertex_shader_ref    EnvironmentMapVertexShader
+	  fragment_shader_ref  EnvironmentMapFragmentShader
+	}
+
+	gpu_program RenderSystem_DefferDataProcess GLSL
+	{
+	  vertex_shader_ref    DefferDataProcessVertex
+	  fragment_shader_ref  DefferDataProcessFragment
+	}
+	
+	gpu_program RenderSystem_DefferDataProcessWihtTextureInput GLSL
+	{
+	  vertex_shader_ref   DefferDataProcessVertex
+	  fragment_shader_ref DefferDataProcessFragmentWithTexture
+	}
+
+	gpu_program RenderSystem_DefferDirectLighting GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref  DefferDirectLightingFragment
+	}
+
+	gpu_program RenderSystem_PreprocessEvnMap GLSL
+	{
+	  vertex_shader_ref   PreprocessEvnMapVertex
+	  fragment_shader_ref PreprocessEvnMapFragment
+	}
+
+	gpu_program RenderSystem_PreprocessEvnMapForSpecular GLSL
+	{
+	  vertex_shader_ref   PreprocessEvnMapForSpecularVertex
+	  fragment_shader_ref PreprocessEvnMapForSpecularFragment
+	}
+
+	gpu_program RenderSystem_PreprocessEvnMapLUT GLSL
+	{
+	  vertex_shader_ref   PreprocessEvnMapLUTVertex
+	  fragment_shader_ref PreprocessEvnMapLUTFragment
+	}
+
+	gpu_program RenderSystem_ConvertEquirectangularToCubeMap GLSL
+	{
+	  vertex_shader_ref   ConvertEquirectangularToCubeMapVertex
+	  fragment_shader_ref ConvertEquirectangularToCubeMapFragment
+	}
+	

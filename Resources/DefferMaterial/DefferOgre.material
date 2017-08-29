@@ -1,0 +1,392 @@
+material Ogre/Earring
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture spheremap.png
+			}
+			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+material Ogre/Skin
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture GreenSkin.jpg
+			}
+			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+
+material Ogre/Sphere
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture GreenSkin.jpg
+			}
+			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+material Ogre/Cube
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture tusk.jpg
+			}
+			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+material Ogre/Tusks
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture tusk.jpg
+			}
+			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+material Ogre/Eyes
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture tusk.jpg
+			}
+			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+
+material SkyBox
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture cubic SkyBox.jpg
+			}
+			gpu_program_ref   RenderSystem_SkyBoxRendering    GLSL
+			{
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto CameraPosition camera_position
+			}
+		}
+	}
+}
+
+material EnvironmentMap
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture cubic lake1.jpg
+			}
+			texture_unit
+			{
+				texture GreenSkin.jpg
+			}
+			texture_unit
+			{
+				texture GreenSkin.jpg
+			}
+			gpu_program_ref   RenderSystem_EnvironmentMap    GLSL
+			{
+			   param_named tex1 int 1
+			   param_named CubeMapTexture int 0
+			   param_named tex2 int 2
+			   param_named CubeMapTexture2 int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+
+material DirectLightDefferRendering
+{
+	technique
+	{
+		pass
+		{
+            
+			gpu_program_ref   RenderSystem_DefferRendering   GLSL
+			{
+			   param_named BaseColorMap int 0
+			   param_named NormalMap int 1
+			   param_named PositionMap int 2
+			}
+		}
+	}
+}
+
+
+material PointLightDefferLightting
+{
+	technique
+	{
+		pass
+		{
+            
+			gpu_program_ref   RenderSystem_PointLightDefferLighting   GLSL
+			{
+			   param_named BaseColorMap int 0
+			   param_named NormalMap int 1
+			   param_named PositionMap int 2
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+material DirectLightShadowMap
+{
+	technique
+	{
+		pass
+		{
+            
+			gpu_program_ref   RenderSystem_DirectLightShadowMap   GLSL
+			{
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+
+material Ogre/BaseMaterial
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture GreenSkin.jpg
+			}
+			gpu_program_ref   RenderSystem_DefferDataProcess    GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+material SphereWithTextureInput
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma SK_Mannequin_M_UE4Man_Body_BaseColor.png
+			}
+			texture_unit
+			{
+				texture SK_Mannequin_M_UE4Man_Body_Metallic.png
+			}
+			texture_unit
+			{
+				texture SK_Mannequin_M_UE4Man_Body_Normal.png
+			}
+			texture_unit
+			{
+				texture SK_Mannequin_M_UE4Man_Body_Roughness.png
+			}
+			gpu_program_ref RenderSystem_DefferDataProcessWihtTextureInput GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Metalic int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+material Ogre/BaseDirectLightingMaterial
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   RenderSystem_DefferDirectLighting    GLSL
+			{
+			   param_named BaseColorMap int 0
+			   param_named NormalMap int 1
+			   param_named PositionMap int 2
+			   param_named IBL_Diffuse_Light int 3
+			   param_named IBL_Specular_Light int 4
+			   param_named IBL_LUT int 5
+			   param_named_auto ViewInversMatrix inverse_view_matrix
+			   param_named_auto ViewPositionWorldSpace camera_position
+			   param_named_auto FoV fov
+			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
+			   param_named_auto NearFar far_and_near_clip_distance
+			   param_named_auto ScreenWH viewport_width_and_height
+			}
+		}
+	}
+}
+
+
+material ProcessEnvMap
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture cubic SkyBox.jpg
+			}
+			gpu_program_ref   RenderSystem_PreprocessEvnMap    GLSL
+			{
+			   param_named EvnMap int 0
+			}
+		}
+	}
+}
+
+material ProcessEnvMapForSpecular
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture cubic SkyBox.jpg
+			}
+			gpu_program_ref   RenderSystem_PreprocessEvnMapForSpecular    GLSL
+			{
+			   param_named EvnMap int 0
+			}
+		}
+	}
+}
+
+material PreprocessEvnMapLUT
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   RenderSystem_PreprocessEvnMapLUT   GLSL
+			{
+			}
+		}
+	}
+}
+material ConvertEquirectangularToCubeMap
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture Blank.hdr
+			}
+			gpu_program_ref   RenderSystem_ConvertEquirectangularToCubeMap   GLSL
+			{
+				param_named EquirectangularMap int 0
+			}
+		}
+	}
+}

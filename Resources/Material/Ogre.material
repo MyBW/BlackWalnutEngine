@@ -1,0 +1,160 @@
+material Ogre/Earring
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.7 0.7 0
+			diffuse 0.7 0.7 0
+
+			texture_unit
+			{
+			    texture GreenSkin.jpg
+				
+				colour_op_ex add src_texture src_current
+				colour_op_multipass_fallback one one
+				env_map spherical
+			}
+			gpu_program_ref   Ogre/Earring/gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named  tmpColor float4  0.4 0.4 0.0 0.0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+material Ogre/Skin
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.3 0.8 0.3
+
+			texture_unit
+			{
+				texture spheremap.png
+				tex_address_mode mirror
+			}
+			gpu_program_ref   Ogre/Earring/gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named  tmpColor float4  0.4 0.4 0.0 0.0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+material Ogre/Tusks
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.7 0.7 0.6
+
+			texture_unit
+			{
+				texture GreenSkin.jpg
+				scale 0.2 0.2
+			}
+			gpu_program_ref   Ogre/Earring/gpu_program    GLSL
+			{
+			   param_named tex1 int 0
+			   param_named  tmpColor float4  0.4 0.4 0.0 0.0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+material Ogre/Eyes
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 0.4 0.4
+			diffuse 1 0.7 0
+			emissive 0.3 0.1 0
+		}
+		gpu_program_ref   Ogre/Earring/gpu_program    GLSL
+		{
+			param_named tex1 int 0
+			param_named  tmpColor float4  0.4 0.4 0.0 0.0
+			param_named_auto ModelMatrix    world_matrix
+			param_named_auto ViewMatrix     view_matrix
+			param_named_auto ProjectMatrix  projection_matrix
+		}
+	}
+}
+
+
+
+material DirectLightDefferRendering
+{
+	technique
+	{
+		pass
+		{
+            
+			gpu_program_ref   RenderSystem_DefferRendering   GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Normal int 1
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+material PointLightDefferLightting
+{
+	technique
+	{
+		pass
+		{
+            
+			gpu_program_ref   RenderSystem_PointLightDefferLighting   GLSL
+			{
+			   param_named BaseColorMap int 0
+			   param_named NormalMap int 1
+			   param_named PositionMap int 2
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+material DirectLightShadowMap
+{
+	technique
+	{
+		pass
+		{
+            
+			gpu_program_ref   RenderSystem_DirectLightShadowMap   GLSL
+			{
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
