@@ -9,6 +9,7 @@
 #include "BWGpuProgramUsage.h"
 #include "BWDirectionalLight.h"
 #include"BWMesh.h"
+#include "BWRenderState.h"
 
 
 
@@ -69,7 +70,19 @@ public:
 	BWMeshPrt GetCubeMesh() { return mCubeMesh; }
 	
 	void SetGlobalDataSet(BWAutoParamDataSource *GlobalData) { this->GlobalData = GlobalData; }
-	
+////////////////////////////////////////// The New Interface
+	struct RSRenderTarget
+	{
+		BWTexturePtr RenderTargetTexture;
+		BWTexturePtr ShaderableTexture;
+		BWHardwareDepthBufferPtr DepthAndStencil;
+	};
+
+
+	void SetRenderTarget(RSRenderTarget& RenderTarget);
+	void SetGrphicsPipelineState();
+	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitialzer& Initializer) { return NULL; }
+//////////////////////////////////////////
 protected:
 	// 全局数据
 	BWAutoParamDataSource *GlobalData{ nullptr };
