@@ -1,0 +1,4 @@
+#在unreal中 上层的RenderTarge并不是一个包含GPU资源的一个类别（也就是说并不是使用glGenFrameBuffer产生的）更多是一个概念上的东西。
+这样的好处是可以分配很多的RenderTarger  当要使用它们的时候可以将该RenderTarget“绑定”到真正的RenderTarget上
+
+#Static State 这个技巧非常强大 首先将状态分组 通过使用模板来将这些状态组缓存起来 然后每次切换状态的之前进行判定 减少了生成状态以及切换状态的开销 是一种以时间换空间的策略
