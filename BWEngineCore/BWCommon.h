@@ -11,7 +11,7 @@ enum CompareFunction
 	CMPF_ALWAYS_FAIL,
 	CMPF_ALWAYS_PASS,
 	CMPF_LESS ,
-	CMPF_LESS_EQUAL,
+	CMPF_LESS_EQUAL, //这里要根据不同的API去判断 例如OpenGL 和 Directx 是不同 可以看看Unreal
 	CMPF_EQUAL,
 	CMPF_NOT_EQUAL,
 	CMPF_GREATER_EQUAL,

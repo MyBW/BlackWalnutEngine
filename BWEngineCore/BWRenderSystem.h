@@ -81,7 +81,8 @@ public:
 
 	void SetRenderTarget(RSRenderTarget& RenderTarget);
 	void SetGrphicsPipelineState();
-	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitialzer& Initializer) { return NULL; }
+	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) { return nullptr; }
+	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
 //////////////////////////////////////////
 protected:
 	// 全局数据

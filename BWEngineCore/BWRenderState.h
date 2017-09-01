@@ -5,7 +5,7 @@ template<typename InitializerType, typename HITypeRef, typename HITypeP>
 class TStaticStateHI
 {
 public:
-	static HIType GetStateHI()
+	static HITypeRef GetStateHI()
 	{
 		static StaticStateResource* StaticState;
 		if (!StaticState)
@@ -30,7 +30,7 @@ private:
 class RasterizerStateHI;
 using RasterizerStateHIP = RasterizerStateHI*;
 using RasterizerStateHIRef = SmartPointer<RasterizerStateHI>;
-struct RasterStateInitialzer
+struct RasterStateInitializer
 {
 	PolygonMode FillMode;
 	CullingMode CullMode;
@@ -42,7 +42,31 @@ class TStaticRasterizerState : public TStaticStateHI<TStaticRasterizerState<Fill
 {
 	static RasterizerStateHIP CreateHI()
 	{
-		RasterStateInitialzer Initializer = { FillMode , CullMode , IsEnableLineAA , IsEnableMSAA };
+		RasterStateInitializer Initializer = { FillMode , CullMode , IsEnableLineAA , IsEnableMSAA };
 		// 使用RenderSystem::CreateRasterizerStateHI 
 	}
 };
+
+// 暂时不包含模板测试
+class DepthAndStencilStateHI;
+using DepthAndStencilStateHIP = DepthAndStencilStateHI*;
+using DepthAndStencilStateHIRef = SmartPointer<DepthAndStencilStateHI>;
+struct DepthAndStencilInitializer
+{
+	bool IsEnableDepthTest;
+	bool IsEnableDepthWrite;
+	CompareFunction DepthTestFun;
+}; 
+template<bool IsEnableDepthTest = true, 
+	    bool IsEnbaleDepthWrite = true, 
+		CompareFunction DepthTestFun = CMPF_LESS_EQUAL
+	    >
+class TStaticDepthAndStencilState :public TStaticStateHI< TStaticDepthAndStencilState<IsEnableDepthTest, IsEnbaleDepthWrite, DepthTestFun>, DepthAndStencilStateHIRef, DepthAndStencilStateHIP>
+{
+	static DepthAndStencilStateHIP CreateHI()
+	{
+		DepthAndStencilInitializer Initializer = { IsEnableDepthTest , IsEnableDepthWrite , DepthTestFun };
+		//RenderSystem::CreateDepthAndStencilHI();
+	}
+};
+
