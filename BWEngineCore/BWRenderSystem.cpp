@@ -407,6 +407,17 @@ bool BWRenderSystem::InitRendererResource()
 	}
 	return true;
 }
+///////////////////New Interface
+void BWRenderSystem::SetRenderTarget(RSRenderTarget& RenderTarget)
+{
+	  
+}
+
+void BWRenderSystem::SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState)
+{
+	
+}
+//////////////////New Interface End;
 void BWRenderSystem::RenderLightsShadowMaps()
 {
 	DirectionalLightMap* DirectLightMap = GlobalData->GetActiveLightMap<DirectionalLightMap>();

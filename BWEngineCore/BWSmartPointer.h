@@ -151,6 +151,10 @@ public:
 	{
 		return counter;
 	}
+	bool operator!=(const SmartPointer<T>& _Ref)
+	{
+		return mPointer != _Ref.mPointer;
+	}
 protected:
 	T* mPointer;
     unsigned int *counter;

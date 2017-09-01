@@ -1894,6 +1894,108 @@ bool GLRenderSystem::InitRendererResource()
 	return false;
 }
 
+void GLRenderSystem::SetRenderTarget(RSRenderTarget& InRenderTarget)
+{
+	if (InRenderTarget.RenderTargetTexture.Get() &&
+		InRenderTarget.DepthAndStencil.Get())
+	{
+		GLint CurrentFrameBuffer;
+		GLTexture* RenderTexuture = dynamic_cast<GLTexture*>(InRenderTarget.RenderTargetTexture.Get());
+		glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &CurrentFrameBuffer);
+		if (!CurrentFrameBuffer)
+		{
+			GLuint OldFrameBuffer = GLuint(CurrentFrameBuffer);
+			glDeleteFramebuffers(1, &OldFrameBuffer);
+		}
+
+		GLuint NewFrameBuffer = 0;
+		glGenFramebuffers(1, &NewFrameBuffer);
+		CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, NewFrameBuffer));
+		GLint TextureID = RenderTexuture->GetHIID();
+		TextureType RenderTextureType = RenderTexuture->getTextureType();
+		int Width = RenderTexuture->getWidth();
+		int Hight = RenderTexuture->getHeight();
+		int Index = InRenderTarget.Index;
+		int MipLevel = InRenderTarget.MipmapLevel;
+		if (RenderTextureType == TEX_TYPE_2D)
+		{
+			//// 不这样处理 2D纹理都不对
+			glBindTexture(GL_TEXTURE_2D, TextureID);
+			CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Width, Hight, 0, GL_RGBA, GL_FLOAT, NULL));
+			CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TextureID, MipLevel));  //暂时使用2D纹理
+		}
+		if (RenderTextureType == TEX_TYPE_CUBE_MAP)
+		{
+			/*std::vector<std::string> Dir{ "+X" , "-X", "+Y", "-Y" , "+Z" , "-Z" };
+			GLenum Attachment = frameBuffer->getColorAttachment();
+			*/
+			CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Index, TextureID, MipLevel));
+		}
+		GLHardwareDepthBuffer* DepthBuffer = dynamic_cast<GLHardwareDepthBuffer*>(InRenderTarget.DepthAndStencil.Get());
+		GLint DepthID = DepthBuffer->GetHIID();
+		GLenum DepthAttachment = DepthBuffer->GetAttachment();
+		bool IsWithStencil = DepthBuffer->GetIsWithStencil();
+		GLenum InternalFormat = DepthBuffer->GetInternalFormat();
+		glFramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachment, GL_TEXTURE_2D, DepthID, 0);
+		glBindTexture(GL_TEXTURE_2D, DepthID);
+		if (IsWithStencil)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, InternalFormat, Width, Hight, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, NULL);
+		}
+		else
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, InternalFormat, Width, Hight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		}
+		GLenum statues = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (statues != GL_FRAMEBUFFER_COMPLETE)//某个绑定到attachment上的元素无效
+		{
+			Log::GetInstance()->logMessage("GLTexture::attachToRenderTarget() : Error");
+		}
+	}
+}
+
+void GLRenderSystem::SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState)
+{
+	if (CachedPipelineState.RasterizerState != InPipelineState.RasterizerState)
+	{
+		CachedPipelineState.RasterizerState = InPipelineState.RasterizerState;
+		GLStaticRasterizerState* RasterizerState = dynamic_cast<GLStaticRasterizerState*>(InPipelineState.RasterizerState.Get());
+		glPolygonMode(GL_FRONT_AND_BACK, RasterizerState->FillMode);
+		Helper::SetIsEnableState(RasterizerState->IsEnableMSAA, GL_MULTISAMPLE);
+		glEnable(GL_CULL_FACE);
+		if (RasterizerState->CullMode != GL_CULL_FACE)
+		{
+			glCullFace(RasterizerState->CullMode);
+		}
+	}
+    if (CachedPipelineState.DepthAndStencilState != InPipelineState.DepthAndStencilState)
+    {
+		CachedPipelineState.DepthAndStencilState = InPipelineState.DepthAndStencilState;
+		GLStaticDepthAndStencilState* DepthAndStencilState = dynamic_cast<GLStaticRasterizerState*>(InPipelineState.DepthAndStencilState.Get());
+		Check(RasterizerState);
+		Helper::SetIsEnableState(DepthAndStencilState->IsEnableDepthTest, GL_DEPTH_TEST);
+		glDepthMask(DepthAndStencilState->IsEnableDepthWrite);
+    }
+}
+
+RasterizerStateHIRef GLRenderSystem::CreateRasterizerStateHI(RasterStateInitializer& Initializer)
+{
+	GLStaticRasterizerState* RenderState = new GLStaticRasterizerState();
+	RenderState->CullMode = Helper::GetCullMode(Initializer.CullMode);
+	RenderState->FillMode = Helper::GetFillMode(Initializer.FillMode);
+	RenderState->IsEbaleLineAA = Helper::GetBool(Initializer.IsEnableLineAA);
+	RenderState->IsEnableMSAA = Helper::GetBool(Initializer.IsEnableMSAA);
+	return RenderState;
+}
+
+DepthAndStencilStateHIRef GLRenderSystem::CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer)
+{
+	GLStaticDepthAndStencilState* RenderState = new GLStaticDepthAndStencilState();
+	RenderState->IsEnableDepthTest = Helper::GetBool(Initializer.IsEnableDepthTest);
+	RenderState->IsEnableDepthWrite = Helper::GetBool(Initializer.IsEnableDepthWrite);
+	return RenderState;
+}
+
 void GLRenderSystem::BeginDeferLight()
 {
 	CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, GLGBuffer->getID()));

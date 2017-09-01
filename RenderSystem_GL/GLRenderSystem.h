@@ -58,6 +58,17 @@ public:
 	static void GLtranspose(GpuConstantType type, void *data);
 
 	bool InitRendererResource() override;
+
+	//////////////////////////////New Interface
+public:
+	void SetRenderTarget(RSRenderTarget& InRenderTarget) override;
+	void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
+	RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) override;
+	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
+public:
+	//////////////////////////////New Interface End
+
+
 protected:
 	BWRenderWindow* _initialise(bool autoCreateWindow, const std::string &windowTitle);
 	void _oneTimeContextInitialization();

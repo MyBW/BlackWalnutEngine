@@ -8,11 +8,13 @@ public:
 	GLHardwareDepthBuffer(const std::string &name, size_t width, size_t height, size_t depth,
 		BWRenderTarget* renderTarget, BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer);
 	~GLHardwareDepthBuffer();
+
 	virtual bool attachToRenderTarget(BWRenderTarget* renderTarget) override;
 	void RemoveFromRenderTarget() override;
 	GLenum GetAttachment() { return mAttachment; }
 	void SetIsWithStencil(bool IsWithStencil) override;
-	GLuint getGLID() { return mDepthBufferID; }
+	GLuint GetHIID() { return mDepthBufferID; }
+	FORCEINLINE GLenum GetInternalFormat() { return mInternalFormat; }
 protected:
 	virtual void* lockImp(size_t offset, size_t length, BWHardwareBuffer::LockOptions option) override;
 	virtual void  unLockImp() override;

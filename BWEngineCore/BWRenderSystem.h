@@ -10,9 +10,21 @@
 #include "BWDirectionalLight.h"
 #include"BWMesh.h"
 #include "BWRenderState.h"
-
-
-
+/////////////////////////// New Interface
+struct RSRenderTarget
+{
+	int Index;
+	int MipmapLevel;
+	BWTexturePtr RenderTargetTexture;
+	BWTexturePtr ShaderableTexture;
+	BWHardwareDepthBufferPtr DepthAndStencil;
+};
+struct RSGraphicPipelineState
+{
+	RasterizerStateHIRef RasterizerState;
+	DepthAndStencilStateHIRef DepthAndStencilState;
+};
+///////////////////////////////New Interface End
 class BWRenderWindow;
 class BWViewport;
 enum TexCoordCalcMethod
@@ -71,18 +83,14 @@ public:
 	
 	void SetGlobalDataSet(BWAutoParamDataSource *GlobalData) { this->GlobalData = GlobalData; }
 ////////////////////////////////////////// The New Interface
-	struct RSRenderTarget
-	{
-		BWTexturePtr RenderTargetTexture;
-		BWTexturePtr ShaderableTexture;
-		BWHardwareDepthBufferPtr DepthAndStencil;
-	};
-
-
-	void SetRenderTarget(RSRenderTarget& RenderTarget);
-	void SetGrphicsPipelineState();
+	virtual void SetRenderTarget(RSRenderTarget& InRenderTarget);
+	virtual void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState);
 	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) { return nullptr; }
 	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
+protected:
+	RSGraphicPipelineState CachedPipelineState;
+
+public:
 //////////////////////////////////////////
 protected:
 	// 全局数据

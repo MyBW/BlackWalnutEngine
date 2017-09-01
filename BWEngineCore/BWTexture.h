@@ -275,6 +275,7 @@ protected:
 	size_t mHeight;
 	size_t mWidth;
 	size_t mDepth;  //这个参数的意义是 如果是3D纹理 它表示有该纹理由多少张2D纹理组成
+	size_t mIndex;
 	BWRenderTarget* mRenderTarget;
 
 	size_t mNumRequestedMipmaps;

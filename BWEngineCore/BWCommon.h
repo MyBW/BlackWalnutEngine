@@ -6,6 +6,7 @@
 typedef std::map<std::string, std::string> AliasTextureNamePairList;
 const std::string DEFAULT_RESOURCE_GROUP = "DEFAULT_RESOURCE_GROUP";
 #define  BWLOG(Msg) Log::GetInstance()->logMessage(Msg)
+#define  Check(Value) assert(Value) 
 enum CompareFunction
 {
 	CMPF_ALWAYS_FAIL,

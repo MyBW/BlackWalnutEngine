@@ -12,11 +12,12 @@ class BWHardwareDepthBuffer: public BWHardwareBuffer
 public:
 	BWHardwareDepthBuffer(size_t width, size_t height, size_t depth,
 		BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer);
-	virtual bool attachToRenderTarget(BWRenderTarget*) = 0;
+
+	FORCEINLINE bool GetIsWithStencil() { return IsWithStencil; }
+	FORCEINLINE void SetRenderTarget(BWRenderTarget* RenderTarget) { mRenderTarget = RenderTarget; }
 	virtual void SetIsWithStencil(bool IsWithStencil) { this->IsWithStencil = IsWithStencil; }
-	void SetRenderTarget(BWRenderTarget* RenderTarget) { mRenderTarget = RenderTarget; }
-	void SetHardwareBufferSize(int Width, int Height);
 	virtual void RemoveFromRenderTarget() { };
+	void SetHardwareBufferSize(int Width, int Height);
 protected:
 	virtual void SetBufferSizeImp(int Width , int Heigh) {  };
 	BWRenderTarget *mRenderTarget;

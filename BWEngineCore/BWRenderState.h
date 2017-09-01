@@ -27,7 +27,9 @@ private:
 };
 
 
-class RasterizerStateHI;
+class RasterizerStateHI
+{
+};
 using RasterizerStateHIP = RasterizerStateHI*;
 using RasterizerStateHIRef = SmartPointer<RasterizerStateHI>;
 struct RasterStateInitializer
@@ -43,12 +45,14 @@ class TStaticRasterizerState : public TStaticStateHI<TStaticRasterizerState<Fill
 	static RasterizerStateHIP CreateHI()
 	{
 		RasterStateInitializer Initializer = { FillMode , CullMode , IsEnableLineAA , IsEnableMSAA };
-		// 使用RenderSystem::CreateRasterizerStateHI 
+		return BWRoot::GetInstance()->mActiveRenderSystem->CreateRasterizerStateHI(Initializer);
 	}
 };
 
 // 暂时不包含模板测试
-class DepthAndStencilStateHI;
+class DepthAndStencilStateHI
+{
+};
 using DepthAndStencilStateHIP = DepthAndStencilStateHI*;
 using DepthAndStencilStateHIRef = SmartPointer<DepthAndStencilStateHI>;
 struct DepthAndStencilInitializer
@@ -66,7 +70,7 @@ class TStaticDepthAndStencilState :public TStaticStateHI< TStaticDepthAndStencil
 	static DepthAndStencilStateHIP CreateHI()
 	{
 		DepthAndStencilInitializer Initializer = { IsEnableDepthTest , IsEnableDepthWrite , DepthTestFun };
-		//RenderSystem::CreateDepthAndStencilHI();
+		return BWRoot::GetInstance()->mActiveRenderSystem->CreateDepthAndStencilHI(Initializer);
 	}
 };
 
