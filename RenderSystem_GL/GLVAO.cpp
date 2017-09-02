@@ -91,7 +91,7 @@ void GLVAO::init(GLSLGpuProgram *program , IndexDataPrt indexData , VertexDataPr
 	}
 }
 
-GLint GLVAO::getGLID()
+GLint GLVAO::GetGLID()
 {
 	return mID;
 }

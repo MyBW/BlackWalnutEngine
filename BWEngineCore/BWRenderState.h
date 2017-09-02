@@ -74,3 +74,30 @@ class TStaticDepthAndStencilState :public TStaticStateHI< TStaticDepthAndStencil
 	}
 };
 
+class StaticSamplerStateHI
+{
+};
+using StaticSamplerStateHIP = StaticSamplerStateHI*;
+using StaticSamplerStateHIPtr = SmartPointer<StaticSamplerStateHI>;
+struct StaticSamplerStateInitializer 
+{
+	FilterOptions Filter;
+	SamplerAddressMode UAdd_Mode;
+	SamplerAddressMode VAdd_Mode;
+	SamplerAddressMode WAdd_Mode;
+	int MipBias;
+};
+template<FilterOptions Filter = FO_POINT,
+		SamplerAddressMode UAdd_Mode = SAM_CLAMP,
+		SamplerAddressMode VAdd_Mode = SAM_CLAMP,
+	    SamplerAddressMode WAdd_Mode = SAM_CLAMP,
+		int MipBias = 0
+		>
+class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<Filter, UAdd_Mode, VAdd_Mode, WAdd_Mode>, StaticSamplerStateHIPtr, StaticSamplerStateHIP>
+{
+	static StaticSamplerStateP CreateHI()
+	{
+		StaticSamplerStateInitializer Initializer = {Filter, UAdd_Mode, VAdd_Mode, WAdd_Mode, MipBias};
+		return BWRoot::GetInstance()->mActiveRenderSystem->CreateSamplerStateHI(Initializer);
+	}
+};

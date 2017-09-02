@@ -404,6 +404,7 @@ void BWPass::AddTextureUnitState(BWTextureUnitState *textureUnitState)
 				size_t idx = mTextureUnitStates.size() - 1;
 				textureUnitState->setName(StringConverter::ToString((int)idx));
 				textureUnitState->setTextureNameAlias(StringUtil::BLANK);
+				textureUnitState->SetIndex(idx);
 			}
 		}
 		else

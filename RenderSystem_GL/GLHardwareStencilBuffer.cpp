@@ -15,7 +15,7 @@ GLHardwareStencilBuffer::GLHardwareStencilBuffer(const std::string &name , size_
 		mRenderTarget->createDepthBuffer(mName);
 	}
 	GLHardwareDepthBuffer *DepthBuffer = dynamic_cast<GLHardwareDepthBuffer*>( mRenderTarget->getDepthRenderBuffer(mName).Get());
-	mStencilBufferID = DepthBuffer->getGLID();
+	mStencilBufferID = DepthBuffer->GetGLID();
 	CHECK_GL_ERROR(glBindRenderbuffer(GL_RENDERBUFFER, mStencilBufferID));
 	mInternalFormat = GL_DEPTH24_STENCIL8; // 这里的格式需要更换
 	CHECK_GL_ERROR(glRenderbufferStorage(GL_RENDERBUFFER, mInternalFormat, width, height));

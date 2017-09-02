@@ -45,7 +45,7 @@ bool BWTexture::hasAlpha() const
 
 size_t BWTexture::getNumFaces() const
 {
-	return getTextureType() == TEX_TYPE_CUBE_MAP ? 6 : 1;
+	return GetTextureType() == TEX_TYPE_CUBE_MAP ? 6 : 1;
 }
 unsigned short BWTexture::getDesiredFloatBitDepth() const 
 {
@@ -246,7 +246,7 @@ std::string  BWTexture::getSourceFileType() const
 	   {
 		   BWDataStreamPrt daStream;
 		   daStream = BWResourceGroupManager::GetInstance()->OpenResource(name, groupName);
-		   if (daStream.IsNull() && getTextureType() == TEX_TYPE_CUBE_MAP)
+		   if (daStream.IsNull() && GetTextureType() == TEX_TYPE_CUBE_MAP)
 		   {
 			   daStream = BWResourceGroupManager::GetInstance()->OpenResource(name + "_rt", groupName);
 		   }

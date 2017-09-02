@@ -1,6 +1,6 @@
 #pragma once
 #include "BWRenderState.h"
-
+#include "GL/GL.h"
 class GLStaticRasterizerState : public RasterizerStateHI
 {
 	GLenum FillMode;

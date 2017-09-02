@@ -211,7 +211,7 @@ void GLTexture::attachToRenderTarget(BWRenderTarget* renderTarget, int Index, in
 	 }
 	 glBindFramebuffer(GL_FRAMEBUFFER, CurrentBindFrameBuffer);
 }
-GLenum GLTexture::getGLTextureTarget()
+GLenum GLTexture::GetGLTextureTarget()
 {
 	//纹理数组怎么办
 	switch (mTextureType)
@@ -244,21 +244,21 @@ void GLTexture::createInternalResourcesWithImageImpl(const ConstImagePtrList& im
 			mNumMipmaps = maxMipmaps;
 		}
 		glGenTextures(1, &mTextureID);
-		glBindTexture(getGLTextureTarget(), mTextureID);
+		glBindTexture(GetGLTextureTarget(), mTextureID);
 
 		//  这里使用glTextureParamter的 是为了提前准备各种mipmap等 而不是纹理针对某一个纹理单元
 		if (GLEW_VERSION_1_2)
 		{
-			//glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps);
+			//glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps);
 		}
 
-		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		if (GLEW_VERSION_1_2)
 		{
-			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		}
 
 		// 发现使用GLPixelUtil得到的数据不正确
@@ -335,18 +335,18 @@ void GLTexture::createInternalResourcesWithImageImpl(const ConstImagePtrList& im
 			GL_TEXTURE_CUBE_MAP_NEGATIVE_Z 
 		 };
 		glGenTextures(1, &mTextureID);
-		glBindTexture(getGLTextureTarget(), mTextureID);
+		glBindTexture(GetGLTextureTarget(), mTextureID);
 		GLenum InternalFormat;
 		isHardwareGammaEnabled() ? InternalFormat = GL_SRGB : InternalFormat = GL_RGB;
 		for (int i = 0; i < 6; i++)
 		{
 			glTexImage2D(types[i], 0, InternalFormat, images[i]->getWidth(), images[i]->getHeight(),
 				0, GL_RGB, GL_UNSIGNED_BYTE, images[i]->getData());
-			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		}
 	}
 }
@@ -380,14 +380,14 @@ void GLTexture::createInternalResourcesImpl()
 	glGetIntegerv(CurrentTextureType, &CurrentBindTextureID);
 
 	glGenTextures(1, &mTextureID);
-	glBindTexture(getGLTextureTarget(), mTextureID);
+	glBindTexture(GetGLTextureTarget(), mTextureID);
 	
 	if (mTextureType == TEX_TYPE_2D)
 	{
 		//  这里使用glTextureParamter的 是为了提前准备各种mipmap等 而不是纹理针对某一个纹理单元
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, NULL);
-		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
 	}
 	
@@ -401,14 +401,14 @@ void GLTexture::createInternalResourcesImpl()
 		}
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	}
-	glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	CHECK_GL_ERROR(glTexParameteri(getGLTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
-	CHECK_GL_ERROR(glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps - 1));//从0开始计数//开启这一项后会导致绑定到framebuffer上出现问题
-	glGenerateMipmap(getGLTextureTarget());
+	glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
+	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps - 1));//从0开始计数//开启这一项后会导致绑定到framebuffer上出现问题
+	glGenerateMipmap(GetGLTextureTarget());
 
-	glBindTexture(getGLTextureTarget(), CurrentBindTextureID);
+	glBindTexture(GetGLTextureTarget(), CurrentBindTextureID);
 	//glPopAttrib();
 	/*AUX_RGBImageRec *textureImage[1];
 	memset(textureImage, 0, sizeof(void*)* 1);
@@ -432,7 +432,7 @@ void GLTexture::createInternalResourcesImpl()
 	if ((mUsage & TU_AUTOMIPMAP) &&
 		mNumRequestedMipmaps && mMipmapsHardwareGenerated)
 	{
-		glTexParameteri(getGLTextureTarget(), GL_GENERATE_MIPMAP, GL_TRUE);
+		glTexParameteri(GetGLTextureTarget(), GL_GENERATE_MIPMAP, GL_TRUE);
 	}
 	GLenum format = GLPixelUtil::getClosestGLInternalFormat(mFormat, mHwGamma);
 	size_t width = mWidth;
@@ -526,7 +526,7 @@ void GLTexture::_createSurfaceList()
 	{
 		for (size_t mip = 0; mip <= getNumMipmaps(); mip++)
 		{
-			GLHardwarePixelBuffer *buf = new GLTextureBuffer(name, getGLTextureTarget(), mTextureID, face, mip,
+			GLHardwarePixelBuffer *buf = new GLTextureBuffer(name, GetGLTextureTarget(), mTextureID, face, mip,
 				static_cast<BWHardwareBuffer::Usage>(mUsage), dosoftware && mip == 0, mHwGamma, mFSAA);
 			mSurfaceList.push_back(buf);
 			if (buf->getWidth() == 0 || buf->getHeight() == 0|| buf->getWidth() == 0)
@@ -540,20 +540,20 @@ void GLTexture::_createSurfaceList()
 void GLTexture::createRenderTexture()
 {
 	glGenTextures(1, &mTextureID);
-	glBindTexture(getGLTextureTarget(), mTextureID);
+	glBindTexture(GetGLTextureTarget(), mTextureID);
 
 	//  这里使用glTextureParamter的 是为了提前准备各种mipmap等 而不是纹理针对某一个纹理单元
 	if (GLEW_VERSION_1_2)
 	{
-		//glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps);
+		//glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps);
 	}
 
-	glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	if (GLEW_VERSION_1_2)
 	{
-		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 }

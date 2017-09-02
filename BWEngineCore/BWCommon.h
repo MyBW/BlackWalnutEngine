@@ -124,6 +124,13 @@ enum FilterOptions
 	FO_POINT,
 	FO_LINEAR
 };
+enum SamplerAddressMode
+{
+	SAM_WRAP,
+	SAM_CLAMP,
+	SAM_MIRROR,
+	SAM_BORDER
+};
 enum ClipResult
 {
 	CLIPPED_NONE = 0 ,

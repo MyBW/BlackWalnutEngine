@@ -105,7 +105,7 @@ public:
 	ContentType getContentType();
 	bool isCubic();
 	bool is3D();
-	TextureType getTextureType();
+	TextureType GetTextureType();
 	void setDesiredFormat(PixelFormat desiredFormat);
 	PixelFormat getDesiredFormat();
 	void setNumMipmaps(int num){ mTextureSrcMipmap = num; }
@@ -171,6 +171,8 @@ public:
 	const std::string & getReferencedTextureName() const;
 	size_t getReferencedMRTIndex() const;
 	BWPass * getParent();
+	FORCEINLINE int GetIndex() const { return mIndex; }
+	FORCEINLINE void SetIndex(int Index) { mIndex = Index; }
 
 	void _prepare();
 	void _unprepare();
@@ -234,7 +236,7 @@ protected:
 	std::string mCompositorRefTextureName;
 	bool mHardwareGama;
 	BWPass *mParent;
-
+	int mIndex; // ÔÚPassÖÐµÄIndex
 	void recalcTextureMatrix();
 	void createAnimContorller();
 	void createEffectContorller(TextureEffect &effect);

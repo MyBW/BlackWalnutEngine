@@ -52,12 +52,12 @@ enum TextureMipmap
 
 class BWTexturePtr;
 
-class BWTexture : public BWResource 
+class BWTexture : public BWResource
 {
 public:
-	BWTexture(BWResourceManager* creator, const std::string &name,const std::string &groupName);
+	BWTexture(BWResourceManager* creator, const std::string &name, const std::string &groupName);
 	virtual void setTextureType(TextureType ttype) { mTextureType = ttype; }
-	virtual TextureType getTextureType(void) const { return mTextureType; }
+	virtual TextureType GetTextureType(void) const { return mTextureType; }
 	virtual size_t getNumMipmaps(void) const { return mNumMipmaps; }
 	virtual void setNumMipmaps(size_t num) { mNumRequestedMipmaps = mNumMipmaps = num; }
 	virtual bool getMipmapsHardwareGenerated(void) const { return mMipmapsHardwareGenerated; }
@@ -66,15 +66,15 @@ public:
 	virtual void setHardwareGammaEnabled(bool enabled) { mHwGamma = enabled; }
 	virtual bool isHardwareGammaEnabled() const { return mHwGamma; }
 	virtual void setFSAA(unsigned int  fsaa, const std::string &fsaaHint) { mFSAA = fsaa; mFSAAHint = fsaaHint; }
-	
+
 	virtual unsigned int getFSAA() const { return mFSAA; }
 
 	virtual const std::string& getFSAAHint() const { return mFSAAHint; }
 
-	
+
 	virtual size_t getHeight(void) const { return mHeight; }
 
-	
+
 	virtual size_t getWidth(void) const { return mWidth; }
 
 	/** Returns the depth of the texture (only applicable for 3D textures).
@@ -104,7 +104,7 @@ public:
 	/** Set the depth of the texture (only applicable for 3D textures);
 	can only do this before load();
 	*/
-	virtual void setDepth(size_t d)  { mDepth = mSrcDepth = d; }
+	virtual void setDepth(size_t d) { mDepth = mSrcDepth = d; }
 
 	/** Returns the TextureUsage identifier for this Texture
 	*/
@@ -265,17 +265,18 @@ public:
 	@param pData Pointer to memory matching the type of data you want to retrieve.
 	*/
 	virtual void getCustomAttribute(const std::string& name, void* pData) {}
-
-
-	virtual void attachToRenderTarget(BWRenderTarget* renderTarget, int Num , int MipLevel = 0) = 0;
+	virtual void attachToRenderTarget(BWRenderTarget* renderTarget, int Num, int MipLevel = 0) = 0;
 	virtual void RemoveFromRenderTarget();
-	bool isAttachToRenderTarget() const { return mRenderTarget != NULL; }
+	int SetIndex(int Index) { mIndex = Index; }
+	FORCEINLINE bool isAttachToRenderTarget() const { return mRenderTarget != NULL; }
+	FORCEINLINE int GetIndex() const { return mIndex };
+	
 
 protected:
 	size_t mHeight;
 	size_t mWidth;
 	size_t mDepth;  //这个参数的意义是 如果是3D纹理 它表示有该纹理由多少张2D纹理组成
-	size_t mIndex;
+	size_t mIndex;   // 所属的纹理单元在Pass中的坐标
 	BWRenderTarget* mRenderTarget;
 
 	size_t mNumRequestedMipmaps;

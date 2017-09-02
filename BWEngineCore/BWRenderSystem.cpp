@@ -417,6 +417,12 @@ void BWRenderSystem::SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineS
 {
 	
 }
+
+void BWRenderSystem::SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIPtr Sampler)
+{
+	
+}
+
 //////////////////New Interface End;
 void BWRenderSystem::RenderLightsShadowMaps()
 {

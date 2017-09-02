@@ -30,5 +30,20 @@ namespace Helper
 		case CULL_ANTICLOCKWISE: return CL_BACK;
 		}
 	}
-
+	GLenum GetGLTextureType(TextureType _TextureType)
+	{
+		//纹理数组怎么办
+		switch (_TextureType)
+		{
+		case TEX_TYPE_1D:
+			return GL_TEXTURE_1D;
+		case TEX_TYPE_2D:
+			return GL_TEXTURE_2D;
+		case TEX_TYPE_3D:
+			return GL_TEXTURE_3D;
+		case TEX_TYPE_CUBE_MAP:
+			return GL_TEXTURE_CUBE_MAP;
+		}
+	}
+	Check(0);
 }

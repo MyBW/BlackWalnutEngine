@@ -13,7 +13,7 @@
 /////////////////////////// New Interface
 struct RSRenderTarget
 {
-	int Index;
+	int Index;  // 如果是纹理数组 或者 立方体纹理  表示的位置
 	int MipmapLevel;
 	BWTexturePtr RenderTargetTexture;
 	BWTexturePtr ShaderableTexture;
@@ -85,8 +85,10 @@ public:
 ////////////////////////////////////////// The New Interface
 	virtual void SetRenderTarget(RSRenderTarget& InRenderTarget);
 	virtual void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState);
+	virtual void SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIPtr Sampler);
 	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) { return nullptr; }
 	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
+	virtual StaticSamplerStateHIPtr CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
 protected:
 	RSGraphicPipelineState CachedPipelineState;
 

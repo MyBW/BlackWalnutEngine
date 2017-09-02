@@ -31,7 +31,7 @@
 //		mInternalFormat = GLPixelUtil::getClosestGLInternalFormat(format);
 //	}
 //	GLTexturePtr glTexture = mTexture;
-//	CHECK_GL_ERROR(glBindTexture(glTexture->getGLTextureTarget(), glTexture->GetID()));
+//	CHECK_GL_ERROR(glBindTexture(glTexture->GetGLTextureTarget(), glTexture->GetID()));
 //
 //	CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0,
 //		mInternalFormat, 

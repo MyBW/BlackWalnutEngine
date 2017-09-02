@@ -17,6 +17,7 @@ public:
 		mGLSupport = new GLWin32Support();
 		mWorldMatrix = BWMatrix4::IDENTITY;
 		mViewMatrix = BWMatrix4::IDENTITY;
+		
 		initConfigOptions();
 		mColourWrite[0] = mColourWrite[1] = mColourWrite[2] = mColourWrite[3] = true;
 		for (int i = 0; i < OGRE_MAX_TEXTURE_LAYERS; i++)
@@ -63,6 +64,7 @@ public:
 public:
 	void SetRenderTarget(RSRenderTarget& InRenderTarget) override;
 	void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
+	void SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIPtr Sampler) override;
 	RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) override;
 	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
 public:
@@ -126,6 +128,7 @@ protected:
 private:
 	GLenum mTextureType[OGRE_MAX_TEXTURE_LAYERS];
 	size_t mTextureCoordIndex[OGRE_MAX_TEXTURE_LAYERS];
+	int MaxActiveTexteureNum{ 8 };
 	GLSupport *mGLSupport;
 	GLContext *mMainContext;
 	GLContext *mCurrentContext;

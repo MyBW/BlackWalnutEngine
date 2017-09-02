@@ -12,9 +12,9 @@ public:
 	~GLTexture();
 	virtual BWHardwarePixelBufferPtr getBuffer(size_t face = 0, size_t mipmap = 0) override;
 	size_t calculateSize() { return 0; }
-	GLenum getGLTextureTarget();
+	GLenum GetGLTextureTarget();
 	GLenum getTextureBufferAttachment() const;
-	GLuint getGLID(){ return mTextureID; }
+	GLuint GetGLID(){ return mTextureID; }
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget ,int Index , int MipLevel = 0) override;
 	static void do_image_io(std::string &name, std::string &groupName, std::string &ext, ImageVectorPtr &images, BWTexture *texture);
 	void RemoveFromRenderTarget() override;

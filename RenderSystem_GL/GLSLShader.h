@@ -20,7 +20,7 @@ public:
 	UBOInforMap  getUBOInfor()  ;
     NameLocation getInConstant() ;
 	NameLocation GetFragmentOutConstant();
-	GLuint getGLID() { return mID; }
+	GLuint GetGLID() { return mID; }
 protected:
 	virtual void prepareImpl(){ }
 	virtual void preLoadImpl();
