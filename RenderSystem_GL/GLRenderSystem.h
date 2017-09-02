@@ -62,9 +62,10 @@ public:
 
 	//////////////////////////////New Interface
 public:
+	void SetViewport(int x, int y, int Width, int Hight) override;
 	void SetRenderTarget(RSRenderTarget& InRenderTarget) override;
 	void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
-	void SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIPtr Sampler) override;
+	void SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIRef Sampler) override;
 	RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) override;
 	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
 public:

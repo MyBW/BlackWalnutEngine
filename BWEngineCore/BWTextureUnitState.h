@@ -172,7 +172,7 @@ public:
 	size_t getReferencedMRTIndex() const;
 	BWPass * getParent();
 	FORCEINLINE int GetIndex() const { return mIndex; }
-	FORCEINLINE void SetIndex(int Index) { mIndex = Index; }
+	void SetIndex(int Index);
 
 	void _prepare();
 	void _unprepare();

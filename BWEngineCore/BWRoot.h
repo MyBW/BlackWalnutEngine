@@ -22,6 +22,7 @@ public:
 	BWRenderWindow* getFinalWindow();
 	bool  InitRenderWindow();
 	static BWRoot *GetInstance();
+	BWRenderSystem *mActiveRenderSystem;
 private:
 	bool _fireFrameStarted();// 一帧渲染开始前
 	bool _fireFrameEnded();  // 一帧渲染结束后
@@ -30,7 +31,7 @@ private:
 
 	bool mQuit;
 	bool mIsInitialised;
-	BWRenderSystem *mActiveRenderSystem;
+	
 	BWRenderWindow *mRenderWindow;
 	BWSceneManager *mSceneManager;
 };

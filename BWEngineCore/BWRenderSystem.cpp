@@ -407,6 +407,12 @@ bool BWRenderSystem::InitRendererResource()
 	}
 	return true;
 }
+
+void BWRenderSystem::SetViewport(int x, int y, int Width, int Hight)
+{
+
+}
+
 ///////////////////New Interface
 void BWRenderSystem::SetRenderTarget(RSRenderTarget& RenderTarget)
 {
@@ -418,7 +424,7 @@ void BWRenderSystem::SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineS
 	
 }
 
-void BWRenderSystem::SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIPtr Sampler)
+void BWRenderSystem::SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIRef Sampler)
 {
 	
 }

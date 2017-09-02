@@ -83,12 +83,13 @@ public:
 	
 	void SetGlobalDataSet(BWAutoParamDataSource *GlobalData) { this->GlobalData = GlobalData; }
 ////////////////////////////////////////// The New Interface
+	virtual void SetViewport(int x , int y , int Width, int Hight);
 	virtual void SetRenderTarget(RSRenderTarget& InRenderTarget);
 	virtual void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState);
-	virtual void SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIPtr Sampler);
+	virtual void SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIRef Sampler);
 	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) { return nullptr; }
 	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
-	virtual StaticSamplerStateHIPtr CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
+	virtual StaticSamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
 protected:
 	RSGraphicPipelineState CachedPipelineState;
 

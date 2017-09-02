@@ -15,14 +15,14 @@ GLHardwareDepthBuffer::GLHardwareDepthBuffer(const std::string &name, size_t wid
 	if (IsWithStencil)
 	{
 		mInternalFormat = GL_DEPTH32F_STENCIL8;
-		mAttachment = GL_DEPTH_STENCIL_ATTACHMENT;
-		
+		mAttachment = GL_DEPTH_STENCIL_ATTACHMENT;		
+		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, NULL);
 	}
 	else
 	{
 		mInternalFormat = GL_DEPTH_COMPONENT32F;
 		mAttachment = GL_DEPTH_ATTACHMENT;
-		
+		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	}
 	//∑¿÷π»Àπ§∫€º£
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -33,7 +33,7 @@ GLHardwareDepthBuffer::GLHardwareDepthBuffer(const std::string &name, size_t wid
 
 GLHardwareDepthBuffer::~GLHardwareDepthBuffer()
 {
-	//glDeleteRenderbuffers(1, &mDepthBufferID);
+	glDeleteRenderbuffers(1, &mDepthBufferID);
 	glDeleteTextures(1, &mDepthBufferID);
 }
 
@@ -93,7 +93,7 @@ void GLHardwareDepthBuffer::SetIsWithStencil(bool IsWithStencil)
 		{
 			mInternalFormat = GL_DEPTH32F_STENCIL8;
 			mAttachment = GL_DEPTH_STENCIL_ATTACHMENT;
-			glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, 1024, 768, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, NULL);
 		}
 		else
 		{

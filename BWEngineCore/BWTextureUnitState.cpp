@@ -61,6 +61,19 @@ BWPass *BWTextureUnitState::getParent()
 {
 	return mParent;
 }
+
+void BWTextureUnitState::SetIndex(int Index)
+{
+	mIndex = Index;
+	for (int i = 0; i < mFramePtrs.size(); i++)
+	{
+		if (mFramePtrs[i].Get())
+		{
+			mFramePtrs[i]->SetIndex(Index);
+		}
+	}
+}
+
 void BWTextureUnitState::_prepare()
 {
 	for (unsigned int i = 0; i < mFrame.size(); i++)

@@ -268,7 +268,7 @@ public:
 	virtual void getCustomAttribute(const std::string& name, void* pData) {}
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget, int Num, int MipLevel = 0) = 0;
 	virtual void RemoveFromRenderTarget();
-	FORCEINLINE int SetIndex(int Index) { mIndex = Index; }
+	FORCEINLINE void SetIndex(int Index) { mIndex = Index; }
 	FORCEINLINE bool isAttachToRenderTarget() const { return mRenderTarget != NULL; }
 	FORCEINLINE int GetIndex() const { return mIndex; }
 	
@@ -277,7 +277,7 @@ protected:
 	size_t mHeight;
 	size_t mWidth;
 	size_t mDepth;  //这个参数的意义是 如果是3D纹理 它表示有该纹理由多少张2D纹理组成
-	size_t mIndex;   // 所属的纹理单元在Pass中的坐标
+	int mIndex{ 0 };   // 所属的纹理单元在Pass中的index  因为我们在.material 中制定了纹理单元和shader的绑定关系 所以该Index也表明了Texture和Shader之间的关系
 	BWRenderTarget* mRenderTarget;
 
 	size_t mNumRequestedMipmaps;

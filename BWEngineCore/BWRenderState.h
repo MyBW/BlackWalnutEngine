@@ -48,7 +48,7 @@ template<PolygonMode FillMode = PM_SOLID, CullingMode CullMode = CULL_NONE, bool
 class TStaticRasterizerState : public TStaticStateHI<TStaticRasterizerState<FillMode, CullMode, IsEnableLineAA, IsEnableMSAA>, RasterizerStateHIRef, RasterizerStateHIP>
 {
 public:
-	static RasterizerStateHIP CreateHI();
+	static RasterizerStateHIRef CreateHI();
 };
 
 // 暂时不包含模板测试
@@ -65,20 +65,20 @@ struct DepthAndStencilInitializer
 	CompareFunction DepthTestFun;
 }; 
 template<bool IsEnableDepthTest = true, 
-	    bool IsEnbaleDepthWrite = true, 
+	    bool IsEnableDepthWrite = true, 
 		CompareFunction DepthTestFun = CMPF_LESS_EQUAL
 	    >
-class TStaticDepthAndStencilState :public TStaticStateHI< TStaticDepthAndStencilState<IsEnableDepthTest, IsEnbaleDepthWrite, DepthTestFun>, DepthAndStencilStateHIRef, DepthAndStencilStateHIP>
+class TStaticDepthAndStencilState :public TStaticStateHI< TStaticDepthAndStencilState<IsEnableDepthTest, IsEnableDepthWrite, DepthTestFun>, DepthAndStencilStateHIRef, DepthAndStencilStateHIP>
 {
 public:
-	static DepthAndStencilStateHIP CreateHI();
+	static DepthAndStencilStateHIRef CreateHI();
 };
 
 class StaticSamplerStateHI : public StateHI
 {
 };
 using StaticSamplerStateHIP = StaticSamplerStateHI*;
-using StaticSamplerStateHIPtr = SmartPointer<StaticSamplerStateHI>;
+using StaticSamplerStateHIRef = SmartPointer<StaticSamplerStateHI>;
 struct StaticSamplerStateInitializer 
 {
 	FilterOptions Filter;
@@ -93,9 +93,10 @@ template<FilterOptions Filter = FO_POINT,
 	    SamplerAddressMode WAdd_Mode = SAM_CLAMP,
 		int MipBias = 0
 		>
-class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<Filter, UAdd_Mode, VAdd_Mode, WAdd_Mode>, StaticSamplerStateHIPtr, StaticSamplerStateHIP>
+class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<Filter, UAdd_Mode, VAdd_Mode, WAdd_Mode>, StaticSamplerStateHIRef, StaticSamplerStateHIP>
 {
 public:
-	static StaticSamplerStateHIP CreateHI();
+	static StaticSamplerStateHIRef CreateHI();
 };
 
+#include "BWRenderState.inl"
