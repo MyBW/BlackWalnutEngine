@@ -4,6 +4,7 @@
 #include "BWHardwareBuffer.h"
 #include "BWImage.h"
 #include "BWHardwarePixelBuffer.h"
+#include "BWCommon.h"
 enum TextureUsage
 {
 	/// @copydoc HardwareBuffer::Usage
@@ -267,9 +268,9 @@ public:
 	virtual void getCustomAttribute(const std::string& name, void* pData) {}
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget, int Num, int MipLevel = 0) = 0;
 	virtual void RemoveFromRenderTarget();
-	int SetIndex(int Index) { mIndex = Index; }
+	FORCEINLINE int SetIndex(int Index) { mIndex = Index; }
 	FORCEINLINE bool isAttachToRenderTarget() const { return mRenderTarget != NULL; }
-	FORCEINLINE int GetIndex() const { return mIndex };
+	FORCEINLINE int GetIndex() const { return mIndex; }
 	
 
 protected:

@@ -14,7 +14,7 @@ public:
 	size_t calculateSize() { return 0; }
 	GLenum GetGLTextureTarget();
 	GLenum getTextureBufferAttachment() const;
-	GLuint GetGLID(){ return mTextureID; }
+	GLuint GetHIID(){ return mTextureID; }
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget ,int Index , int MipLevel = 0) override;
 	static void do_image_io(std::string &name, std::string &groupName, std::string &ext, ImageVectorPtr &images, BWTexture *texture);
 	void RemoveFromRenderTarget() override;

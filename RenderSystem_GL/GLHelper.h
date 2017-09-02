@@ -1,4 +1,5 @@
 #pragma once
+#include "..\BWEngineCore\BWCommon.h"
 namespace Helper
 {
 	FORCEINLINE void SetIsEnableState(GLenum IsEnable, GLenum State)
@@ -10,12 +11,13 @@ namespace Helper
 	}
 	FORCEINLINE GLenum GetFillMode(PolygonMode Mode)
 	{
-		switch (polygonMode)
+		switch (Mode)
 		{
 		case PM_SOLID:     return GL_FILL;
 		case PM_POINTS:    return GL_POINT;
 		case PM_WIREFRAME: return GL_LINE;
 		}
+		Check(0);
 	}
 	FORCEINLINE GLenum GetBool(bool IsTrue)
 	{
@@ -27,8 +29,9 @@ namespace Helper
 		{
 		case CULL_NONE:          return GL_CULL_FACE;
 		case CULL_CLOCKWISE:     return GL_FRONT;
-		case CULL_ANTICLOCKWISE: return CL_BACK;
+		case CULL_ANTICLOCKWISE: return GL_BACK;
 		}
+		Check(0);
 	}
 	GLenum GetGLTextureType(TextureType _TextureType)
 	{
@@ -44,6 +47,7 @@ namespace Helper
 		case TEX_TYPE_CUBE_MAP:
 			return GL_TEXTURE_CUBE_MAP;
 		}
+		Check(0);
 	}
-	Check(0);
+	
 }

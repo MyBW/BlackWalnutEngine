@@ -270,7 +270,7 @@ void GLSLGpuProgram::preLoadImpl()
 			mergeNamedConstants(namedConstants);
 			UBOInforMap inforMap = shader->getUBOInfor();
 			mergeUBOInforMap(inforMap);
-			CHECK_GL_ERROR(glAttachShader(mID, shader->GetGLID()));
+			CHECK_GL_ERROR(glAttachShader(mID, shader->GetHIID()));
 			itor++;
 		}
 		mUniformIsReload = false;

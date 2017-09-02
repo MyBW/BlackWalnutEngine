@@ -11,7 +11,7 @@ public:
 	GLVAO();
 	~GLVAO();
 	void           init(GLSLGpuProgram *program , IndexDataPrt indexData , VertexDataPrt vertexData);
-	GLint          GetGLID();
+	GLint          GetHIID();
 	void           bind();
 protected:
 	void           relaseGLBuffer();

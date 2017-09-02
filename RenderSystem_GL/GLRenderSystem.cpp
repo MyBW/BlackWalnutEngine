@@ -29,6 +29,8 @@
 
 // 纯粹是为了测试纹理 
 #include "GL/include/GLAUX.H"
+#include "GLRenderState.h"
+#include "GLHelper.h"
 
 
 #define  VBO_BUFFER_OFFSET(i) ((char*)NULL + (i))
@@ -181,7 +183,7 @@ void GLRenderSystem::_setTexture(size_t texUnit, bool enable, const BWTexturePtr
 		}
 		if (!tex.IsNull())
 		{
-			glBindTexture(mTextureType[texUnit], tex->GetGLID());
+			glBindTexture(mTextureType[texUnit], tex->GetHIID());
 		}
 		else
 		{
@@ -1745,7 +1747,7 @@ bool GLRenderSystem::InitRendererResource()
 			glBindFramebuffer(GL_FRAMEBUFFER, TempRenderTarget->getID());
 			HDRCubeMap->createInternalResources();
 			CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-			CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, dynamic_cast<GLTexture*>(BeConveredMap->_getTexturePtr().Get())->GetGLID()));
+			CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, dynamic_cast<GLTexture*>(BeConveredMap->_getTexturePtr().Get())->GetHIID()));
 			for (int i = 0; i < 6; i++)
 			{
 				TempRenderTarget->addTextureBuffer(HDRCubeMap, i);
@@ -1790,8 +1792,8 @@ bool GLRenderSystem::InitRendererResource()
 		dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapProgram.Get())->bind();
 		glBindFramebuffer(GL_FRAMEBUFFER, TempRenderTarget->getID());
 		CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-		//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, dynamic_cast<GLTexture*>(mProcessEvnMapTexture.Get())->GetGLID()));
-		CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, dynamic_cast<GLTexture*>(HDRCubeMap.Get())->GetGLID()));
+		//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, dynamic_cast<GLTexture*>(mProcessEvnMapTexture.Get())->GetHIID()));
+		CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, dynamic_cast<GLTexture*>(HDRCubeMap.Get())->GetHIID()));
 		for (int i = 0; i < 6; i++)
 		{
 			TempRenderTarget->addTextureBuffer(IBL_Diffuse_Cube_Map, i);
@@ -1830,10 +1832,10 @@ bool GLRenderSystem::InitRendererResource()
 		CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));// 上面的函数在调用时  可能调用GLBindTexture函数 所以这里统一绑定输入shader的纹理
 
 		//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP,
-		//	dynamic_cast<GLTexture*>(mProcessEvnMapTexture.Get())->GetGLID()));
+		//	dynamic_cast<GLTexture*>(mProcessEvnMapTexture.Get())->GetHIID()));
 
 		CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP,
-			dynamic_cast<GLTexture*>(HDRCubeMap.Get())->GetGLID()));
+			dynamic_cast<GLTexture*>(HDRCubeMap.Get())->GetHIID()));
 
 		for (int mip = 0 ; mip < RoughnessLevel ; mip++)
 		{
@@ -1969,8 +1971,8 @@ void GLRenderSystem::SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineS
     if (CachedPipelineState.DepthAndStencilState != InPipelineState.DepthAndStencilState)
     {
 		CachedPipelineState.DepthAndStencilState = InPipelineState.DepthAndStencilState;
-		GLStaticDepthAndStencilState* DepthAndStencilState = dynamic_cast<GLStaticRasterizerState*>(InPipelineState.DepthAndStencilState.Get());
-		Check(RasterizerState);
+		GLStaticDepthAndStencilState* DepthAndStencilState = dynamic_cast<GLStaticDepthAndStencilState*>(InPipelineState.DepthAndStencilState.Get());
+		Check(DepthAndStencilState);
 		Helper::SetIsEnableState(DepthAndStencilState->IsEnableDepthTest, GL_DEPTH_TEST);
 		glDepthMask(DepthAndStencilState->IsEnableDepthWrite);
     }
@@ -1983,7 +1985,7 @@ void GLRenderSystem::SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr T
 	if (TextureHI)
 	{
 		int Index = TextureHI->GetIndex();
-		GLint ID = TextureHI->GetGLID(); 
+		GLint ID = TextureHI->GetHIID(); 
 		TextureType Type = TextureHI->GetTextureType();
 		Check(Index < MaxActiveTexteureNum);
 		glActiveTexture(GL_TEXTURE0 + Index);
@@ -2030,26 +2032,26 @@ void GLRenderSystem::DirectLightPass()
 	);
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLBaseColorTexture->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLBaseColorTexture->GetHIID()));
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE1));
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLNormalTexture->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLNormalTexture->GetHIID()));
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLPositionTexture->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLPositionTexture->GetHIID()));
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE3));
 	GLTexture* IBL = dynamic_cast<GLTexture* >(IBL_Diffuse_Cube_Map.Get());
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, IBL->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, IBL->GetHIID()));
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE4));
 	IBL = dynamic_cast<GLTexture*>(IBL_Specular_Cube_Map.Get());
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, IBL->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, IBL->GetHIID()));
 
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE5));
 	IBL = dynamic_cast<GLTexture*>(IBL_LUT.Get());
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, IBL->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, IBL->GetHIID()));
 
 
 	//GLint ShadowIndexLocation = glGetUniformLocation(DirectLightGLSLProgram->getID(), "ShadowIndex");
@@ -2110,7 +2112,7 @@ void GLRenderSystem::DirectLightPass()
 
 			GLHardwareDepthBuffer * ShadowMap = dynamic_cast<GLHardwareDepthBuffer*>(DirLight->GetShadowMapProjectedInfor(i).ShadowTexture.Get());
 			CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE3));
-			CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ShadowMap->GetGLID()));*/
+			CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ShadowMap->GetHIID()));*/
 			DirectLightGLSLProgram->SetGPUProgramParameters(DirectLightGLSLPrgramUsage->GetGpuProgramParameter());
 			RenderRenderOperation(CubeMeshRenderOperation, LightViewMatrix);
 		}
@@ -2237,13 +2239,13 @@ void GLRenderSystem::PointLightPass()
 */
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLBaseColorTexture->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLBaseColorTexture->GetHIID()));
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE1));
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLNormalTexture->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLNormalTexture->GetHIID()));
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLPositionTexture->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLPositionTexture->GetHIID()));
 
 	// 这里设置光源的独有参数
 
@@ -2312,12 +2314,12 @@ void GLRenderSystem::RenderSkyBox()
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(GpuProgramParameter);
 	mSkyBoxGLSLProgram->bind();
 	//CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-	//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, GLSkyBoxTexture->GetGLID()));
+	//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, GLSkyBoxTexture->GetHIID()));
 
 	
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
     GLTexture* IBL = dynamic_cast<GLTexture* >(HDRCubeMap.Get());
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, IBL->GetGLID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, IBL->GetHIID()));
 
 	mSkyBoxGLSLProgram->SetGPUProgramParameters(mSkyBoxGpuPrgramUsage->GetGpuProgramParameter());
 
@@ -2338,14 +2340,14 @@ void GLRenderSystem::RenderAmbientOcclusion()
 	//GLTexture* AmbientOcclusion =  dynamic_cast<GLTexture*>(AmbientOcclusionTexture.Get());
 	//CHECK_GL_ERROR(glDrawBuffer(AmbientOcclusion->getTextureBufferAttachment()));
 	//CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-	//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLPositionTexture->GetGLID()));
+	//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLPositionTexture->GetHIID()));
 	//RenderOperation(CubeMeshRenderOperation, AmbientOcclusionProgram);
 
 	//// filter
 	//CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, GLGBuffer->getID()));
 	//CHECK_GL_ERROR(glDrawBuffer(GLPositionTexture->getTextureBufferAttachment()));
 	//CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-	//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, AmbientOcclusion->GetGLID()));
+	//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, AmbientOcclusion->GetHIID()));
 	//RenderOperation(CubeMeshRenderOperation, AmbientOcclusionFilterProgram);
 
 }

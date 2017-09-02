@@ -16,15 +16,15 @@ BWEle3DD::BWEle3DD(const BWEle4DD& ele4)
 	y = ele4.y;
 	z = ele4.z;
 }
-BWEle3DD::BWEle3DD(double _x, double _y, double _z) :x(_x), y(_y), z(_z)
+BWEle3DD::BWEle3DD(float _x, float _y, float _z) :x(_x), y(_y), z(_z)
 {
 
 }
-const BWEle3DD BWEle3DD::operator/(double k) const
+const BWEle3DD BWEle3DD::operator/(float k) const
 {
 	return BWEle3DD(x / k, y / k, z / k);
 }
-const BWEle3DD BWEle3DD::operator/(double k)
+const BWEle3DD BWEle3DD::operator/(float k)
 {
 	return BWEle3DD(x / k, y / k, z / k);
 }
@@ -32,11 +32,11 @@ const BWEle3DD BWEle3DD::operator/(const BWEle3DD & vector) const
 {
 	return BWEle3DD(x / vector.x, y / vector.y, z / vector.z);
 }
-const BWEle3DD BWEle3DD::operator*(double k) const
+const BWEle3DD BWEle3DD::operator*(float k) const
 {
 	return BWEle3DD(x * k, y * k, z * k);
 }
-const BWEle3DD BWEle3DD::operator*(double k)
+const BWEle3DD BWEle3DD::operator*(float k)
 {
 	return BWEle3DD(x * k, y * k, z * k);
 }

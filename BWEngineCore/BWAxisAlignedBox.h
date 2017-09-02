@@ -729,18 +729,18 @@ public:
 			float maxDist = (std::numeric_limits<float>::min)();
 
 			if (v.x < mMinimum.x)
-				maxDist = (std::max)(double(maxDist), mMinimum.x - v.x);
+				maxDist = std::max<float>(maxDist, mMinimum.x - v.x);
 			if (v.y < mMinimum.y)
-				maxDist = (std::max)(double(maxDist), mMinimum.y - v.y);
+				maxDist = std::max<float>(maxDist, mMinimum.y - v.y);
 			if (v.z < mMinimum.z)
-				maxDist = (std::max)(double(maxDist), mMinimum.z - v.z);
+				maxDist = std::max<float>(maxDist, mMinimum.z - v.z);
 
 			if (v.x > mMaximum.x)
-				maxDist = (std::max)(double(maxDist), v.x - mMaximum.x);
+				maxDist = std::max<float>(maxDist, v.x - mMaximum.x);
 			if (v.y > mMaximum.y)
-				maxDist = (std::max)(double(maxDist), v.y - mMaximum.y);
+				maxDist = std::max<float>(maxDist, v.y - mMaximum.y);
 			if (v.z > mMaximum.z)
-				maxDist = (std::max)(double(maxDist), v.z - mMaximum.z);
+				maxDist = std::max<float>(maxDist, v.z - mMaximum.z);
 
 			return maxDist;
 		}

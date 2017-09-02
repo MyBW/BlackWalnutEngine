@@ -26,8 +26,13 @@ private:
 	};
 };
 
+class StateHI
+{
+public:
+	virtual int GetMemSize() { return 0; } 
+};
 
-class RasterizerStateHI
+class RasterizerStateHI : public StateHI
 {
 };
 using RasterizerStateHIP = RasterizerStateHI*;
@@ -42,16 +47,14 @@ struct RasterStateInitializer
 template<PolygonMode FillMode = PM_SOLID, CullingMode CullMode = CULL_NONE, bool IsEnableLineAA = false, bool IsEnableMSAA = false>
 class TStaticRasterizerState : public TStaticStateHI<TStaticRasterizerState<FillMode, CullMode, IsEnableLineAA, IsEnableMSAA>, RasterizerStateHIRef, RasterizerStateHIP>
 {
-	static RasterizerStateHIP CreateHI()
-	{
-		RasterStateInitializer Initializer = { FillMode , CullMode , IsEnableLineAA , IsEnableMSAA };
-		return BWRoot::GetInstance()->mActiveRenderSystem->CreateRasterizerStateHI(Initializer);
-	}
+public:
+	static RasterizerStateHIP CreateHI();
 };
 
 // 暂时不包含模板测试
-class DepthAndStencilStateHI
+class DepthAndStencilStateHI : public StateHI
 {
+
 };
 using DepthAndStencilStateHIP = DepthAndStencilStateHI*;
 using DepthAndStencilStateHIRef = SmartPointer<DepthAndStencilStateHI>;
@@ -67,14 +70,11 @@ template<bool IsEnableDepthTest = true,
 	    >
 class TStaticDepthAndStencilState :public TStaticStateHI< TStaticDepthAndStencilState<IsEnableDepthTest, IsEnbaleDepthWrite, DepthTestFun>, DepthAndStencilStateHIRef, DepthAndStencilStateHIP>
 {
-	static DepthAndStencilStateHIP CreateHI()
-	{
-		DepthAndStencilInitializer Initializer = { IsEnableDepthTest , IsEnableDepthWrite , DepthTestFun };
-		return BWRoot::GetInstance()->mActiveRenderSystem->CreateDepthAndStencilHI(Initializer);
-	}
+public:
+	static DepthAndStencilStateHIP CreateHI();
 };
 
-class StaticSamplerStateHI
+class StaticSamplerStateHI : public StateHI
 {
 };
 using StaticSamplerStateHIP = StaticSamplerStateHI*;
@@ -95,9 +95,7 @@ template<FilterOptions Filter = FO_POINT,
 		>
 class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<Filter, UAdd_Mode, VAdd_Mode, WAdd_Mode>, StaticSamplerStateHIPtr, StaticSamplerStateHIP>
 {
-	static StaticSamplerStateP CreateHI()
-	{
-		StaticSamplerStateInitializer Initializer = {Filter, UAdd_Mode, VAdd_Mode, WAdd_Mode, MipBias};
-		return BWRoot::GetInstance()->mActiveRenderSystem->CreateSamplerStateHI(Initializer);
-	}
+public:
+	static StaticSamplerStateHIP CreateHI();
 };
+

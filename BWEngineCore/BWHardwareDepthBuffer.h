@@ -3,6 +3,7 @@
 #include "BWSmartPointer.h"
 #include "BWHardwareBuffer.h"
 #include "BWPrimitive.h"
+#include "BWCommon.h"
 class BWHardwareDepthBuffer;
 class BWRenderTarget;
 
@@ -12,7 +13,7 @@ class BWHardwareDepthBuffer: public BWHardwareBuffer
 public:
 	BWHardwareDepthBuffer(size_t width, size_t height, size_t depth,
 		BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer);
-
+	virtual bool attachToRenderTarget(BWRenderTarget* renderTarget) = 0;
 	FORCEINLINE bool GetIsWithStencil() { return IsWithStencil; }
 	FORCEINLINE void SetRenderTarget(BWRenderTarget* RenderTarget) { mRenderTarget = RenderTarget; }
 	virtual void SetIsWithStencil(bool IsWithStencil) { this->IsWithStencil = IsWithStencil; }

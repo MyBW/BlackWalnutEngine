@@ -80,7 +80,7 @@ struct BWMatrix4
 	const BWEle3DD operator*(const BWEle3DD &vector) const
 	{
 		BWEle3DD r;
-		double invw = 1.0f / (M30*vector.x + M31*vector.y + M32*vector.z + M33);
+		float invw = 1.0f / (M30*vector.x + M31*vector.y + M32*vector.z + M33);
 		r.x = (M00 * vector.x + M01 * vector.y + M02 * vector.z + M03) * invw;
 		r.y = (M10 * vector.x + M11 * vector.y + M12 * vector.z + M13) * invw;
 		r.z = (M20 * vector.x + M21 * vector.y + M22 * vector.z + M23) * invw;

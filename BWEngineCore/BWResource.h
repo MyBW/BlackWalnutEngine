@@ -46,7 +46,7 @@ public:
 	virtual void Load(); //Ä£°å·½·¨
 	virtual void unLoad();
 	bool isLoad();
-	int  GetHIID();
+	int  GetID();
 	void Prepare(bool backthread = false);
 	virtual void touch();
 	virtual size_t calculateSize() = 0;

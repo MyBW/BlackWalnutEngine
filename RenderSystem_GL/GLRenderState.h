@@ -1,8 +1,9 @@
 #pragma once
-#include "BWRenderState.h"
+#include "..\BWEngineCore\BWRenderState.h"
 #include "GL/GL.h"
 class GLStaticRasterizerState : public RasterizerStateHI
 {
+public:
 	GLenum FillMode;
 	GLenum CullMode;
 	GLenum IsEbaleLineAA;
@@ -11,6 +12,7 @@ class GLStaticRasterizerState : public RasterizerStateHI
 
 class GLStaticDepthAndStencilState :public DepthAndStencilStateHI
 {
+public:
 	GLenum IsEnableDepthTest;
 	GLenum IsEnableDepthWrite;
 	GLenum DepthTestFun;

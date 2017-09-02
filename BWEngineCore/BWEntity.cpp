@@ -19,7 +19,7 @@ void BWEntity::_initialse()
 	if (mMesh->isLodManual())
 	{
 		unsigned short numLod;
-		numLod = mMesh->getNumLodLevel();
+		numLod = unsigned short(mMesh->getNumLodLevel());
 		for (int i = 0; i < numLod; i++)
 		{
 			assert(0);

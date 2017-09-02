@@ -6,13 +6,13 @@ class BWMatrix4;
 class BWQuaternion;
 struct BWEle2DD
 {
-	double x;
-	double y;
+	float x;
+	float y;
 	BWEle2DD() : x(0), y(0)
 	{
 
 	}
-	BWEle2DD(double _x, double _y) :x(_x), y(_y)
+	BWEle2DD(float _x, float _y) :x(_x), y(_y)
 	{
 
 	}
@@ -86,23 +86,23 @@ struct BWEle3DD
 	{
 		struct
 		{
-			double x;
-			double y;
-			double z;
+			float x;
+			float y;
+			float z;
 		};
 		struct
 		{
-			double r;
-			double g;
-			double b;
+			float r;
+			float g;
+			float b;
 		};
-		double M[3];
+		float M[3];
 	};
 	BWEle3DD() :x(0.0), y(0.0), z(0.0)
 	{
 
 	}
-	BWEle3DD(double x, double y, double z);
+	BWEle3DD(float x, float y, float z);
 	BWEle3DD(const BWEle4DD& ele4);
 	BWEle3DD(const BWEle3DD& ele)
 	{
@@ -135,16 +135,16 @@ struct BWEle3DD
 		return true;
 	}
 	
-	const BWEle3DD operator/(double k) const;
-	const BWEle3DD operator/(double k) ;
+	const BWEle3DD operator/(float k) const;
+	const BWEle3DD operator/(float k) ;
 	const BWEle3DD operator/(const BWEle3DD& vect) const;
 
 	const BWEle3DD operator+(const BWEle3DD& ele);
 	const BWEle3DD operator+(const BWEle3DD& ele) const;
 	const BWEle3DD operator-(const BWEle3DD& ele);
 	const BWEle3DD operator-(const BWEle3DD& ele) const;
-	const BWEle3DD operator*(double k) const;
-	const BWEle3DD operator*(double k) ;
+	const BWEle3DD operator*(float k) const;
+	const BWEle3DD operator*(float k) ;
 	const BWEle3DD operator*(BWEle3DD& vector) const ;
 	const BWEle3DD operator*(const BWEle3DD& vector) const;
 	const BWEle3DD& operator+=(const BWEle3DD& ele);
@@ -152,15 +152,15 @@ struct BWEle3DD
 	{
 		return !(*this != vector);
 	}
-	double dotProduct(const BWEle3DD& vector) const
+	float dotProduct(const BWEle3DD& vector) const
 	{
 		 return M[0] * vector.x + M[1] * vector.y + M[2] * vector.z;
 	}
-	const double operator[](int k) const
+	const float operator[](int k) const
 	{
 		return M[k];
 	}
-	double& operator[](int k)
+	float& operator[](int k)
 	{
 		return M[k];
 	}
@@ -184,13 +184,13 @@ struct BWEle3DD
 			x * rkVector.y - y * rkVector.x
 			);
 	}
-	inline double lenth() const
+	inline float lenth() const
 	{
 		return sqrt(x*x + y*y + z*z);
 	}
 	bool isZeroLength()
 	{
-		double sqlen = (x*x) + (y*y) + (z*z);
+		float sqlen = (x*x) + (y*y) + (z*z);
 		return (sqlen < (1e-6 * 1e-6));
 	}
 	void normalize()
@@ -381,19 +381,19 @@ struct BWEle4DD
 	{
 		struct
 		{
-			double x;
-			double y;
-			double z;
-			double w;
+			float x;
+			float y;
+			float z;
+			float w;
 		};
 		struct
 		{
-			double r;
-			double g;
-			double b;
-			double a;
+			float r;
+			float g;
+			float b;
+			float a;
 		};
-		double M[4];
+		float M[4];
 	};
 
 	BWEle4DD() :x(0.0), y(0.0), z(0.0), w(1.0)
@@ -404,7 +404,7 @@ struct BWEle4DD
 	{
 	
 	}
-	BWEle4DD(double _x, double _y, double _z, double _w) :x(_x), y(_y), z(_z), w(_w)
+	BWEle4DD(float _x, float _y, float _z, float _w) :x(_x), y(_y), z(_z), w(_w)
 	{
 
 	}
@@ -419,7 +419,7 @@ struct BWEle4DD
 		z = ele.z;
 		w = ele.w;
 	}
-	const BWEle4DD operator*(double w) const
+	const BWEle4DD operator*(float w) const
 	{
 		BWEle4DD tmp;
 		tmp.x = w * x;
@@ -445,7 +445,7 @@ struct BWEle4DD
 		tmp.w = 1.0;
 		return tmp;
 	}
-	BWEle4DD operator*(double w)
+	BWEle4DD operator*(float w)
 	{
 		BWEle4DD tmp;
 		tmp.x = w * x;
@@ -453,7 +453,7 @@ struct BWEle4DD
 		tmp.z = w * z;
 		return tmp;
 	}
-	const BWEle4DD operator/(double w)
+	const BWEle4DD operator/(float w)
 	{
 		BWEle4DD tmp;
 		tmp.x = x / w;
@@ -461,7 +461,7 @@ struct BWEle4DD
 		tmp.z = z / w;
 		return tmp;
 	}
-	const BWEle4DD operator/(double w) const
+	const BWEle4DD operator/(float w) const
 	{
 		BWEle4DD tmp;
 		tmp.x = x / w;
@@ -533,11 +533,11 @@ struct BWEle4DD
 	 w = 0.0;
 	 return *this;
  }
- double operator[](int i) const
+ float operator[](int i) const
  {
 	 return M[i];
  }
- double& operator[](int i)
+ float& operator[](int i)
  {
 	 return M[i];
  }
@@ -594,10 +594,10 @@ public:
 	}
 	inline BWQuaternion Inverse() const
 	{
-		double fNorm = w*w + x*x + y*y + z*z;
+		float fNorm = w*w + x*x + y*y + z*z;
 		if (fNorm > 0.0f)
 		{
-			double fInvNorm = 1.0 / fNorm;
+			float fInvNorm = 1.0f / fNorm;
 			return BWQuaternion(w*fInvNorm, -x*fInvNorm, -y*fInvNorm, -z*fInvNorm);
 		}
 		{
@@ -610,8 +610,8 @@ public:
 	}
 	float normalize()
 	{
-		double fNorm = Norm();
-		double factor = 1.0 / sqrt(fNorm);
+		float fNorm = Norm();
+		float factor = 1.0f / sqrt(fNorm);
 		*this = (*this) * factor;
 		return fNorm;
 	}
