@@ -17,3 +17,13 @@ public:
 	GLenum IsEnableDepthWrite;
 	GLenum DepthTestFun;
 };
+
+class GLStaticSamplerState : public SamplerStateHI
+{
+public:
+	GLenum Fileter;
+	GLenum RAdd_Mode;
+	GLenum SAdd_Mode;
+	GLenum TAdd_Mode;
+	int MipBias;
+};

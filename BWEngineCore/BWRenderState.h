@@ -74,29 +74,29 @@ public:
 	static DepthAndStencilStateHIRef CreateHI();
 };
 
-class StaticSamplerStateHI : public StateHI
+class SamplerStateHI : public StateHI
 {
 };
-using StaticSamplerStateHIP = StaticSamplerStateHI*;
-using StaticSamplerStateHIRef = SmartPointer<StaticSamplerStateHI>;
+using SamplerStateHIP = SamplerStateHI*;
+using SamplerStateHIRef = SmartPointer<SamplerStateHI>;
 struct StaticSamplerStateInitializer 
 {
 	FilterOptions Filter;
-	SamplerAddressMode UAdd_Mode;
-	SamplerAddressMode VAdd_Mode;
-	SamplerAddressMode WAdd_Mode;
+	SamplerAddressMode RAdd_Mode;
+	SamplerAddressMode SAdd_Mode;
+	SamplerAddressMode TAdd_Mode;
 	int MipBias;
 };
 template<FilterOptions Filter = FO_POINT,
-		SamplerAddressMode UAdd_Mode = SAM_CLAMP,
-		SamplerAddressMode VAdd_Mode = SAM_CLAMP,
-	    SamplerAddressMode WAdd_Mode = SAM_CLAMP,
-		int MipBias = 0
+		SamplerAddressMode RAdd_Mode = SAM_CLAMP,
+		SamplerAddressMode SAdd_Mode = SAM_CLAMP,
+	    SamplerAddressMode TAdd_Mode = SAM_CLAMP,
+	     int MipBias = 0
 		>
-class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<Filter, UAdd_Mode, VAdd_Mode, WAdd_Mode>, StaticSamplerStateHIRef, StaticSamplerStateHIP>
+class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<Filter, RAdd_Mode, SAdd_Mode, TAdd_Mode>, SamplerStateHIRef, SamplerStateHIP>
 {
 public:
-	static StaticSamplerStateHIRef CreateHI();
+	static SamplerStateHIRef CreateHI();
 };
 
 #include "BWRenderState.inl"

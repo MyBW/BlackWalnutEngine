@@ -23,6 +23,7 @@ struct RSGraphicPipelineState
 {
 	RasterizerStateHIRef RasterizerState;
 	DepthAndStencilStateHIRef DepthAndStencilState;
+	BWHighLevelGpuProgramPtr GPUProgram;
 };
 ///////////////////////////////New Interface End
 class BWRenderWindow;
@@ -86,12 +87,14 @@ public:
 	virtual void SetViewport(int x , int y , int Width, int Hight);
 	virtual void SetRenderTarget(RSRenderTarget& InRenderTarget);
 	virtual void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState);
-	virtual void SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIRef Sampler);
+	virtual void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler);
+	virtual void ClearRenderTarget(unsigned int buffers, const ColourValue &color = ColourValue::Black, float depth = 1.0, unsigned short stencil = 0);
 	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) { return nullptr; }
 	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
-	virtual StaticSamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
+	virtual SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
 protected:
 	RSGraphicPipelineState CachedPipelineState;
+	SamplerStateHIRef CacheSamplerState;
 
 public:
 //////////////////////////////////////////
@@ -238,17 +241,17 @@ protected:
 	BWMaterialPtr mProcessEvnMap;
 	BWTexturePtr mProcessEvnMapTexture;
 	class BWGpuProgramUsage*  mProcessEvnMapGpuPrgramUsage;
-	BWGpuProgramPtr mProcessEvnMapProgram;
+	BWHighLevelGpuProgramPtr mProcessEvnMapProgram;
 	BWTexturePtr IBL_Diffuse_Cube_Map;
 
 	BWMaterialPtr mPreprocessEvnMapForSpecular;
 	class BWGpuProgramUsage*  mProcessEvnMapForSpecularGpuPrgramUsage;
-	BWGpuProgramPtr mProcessEvnMapForSpecularProgram;
+	BWHighLevelGpuProgramPtr mProcessEvnMapForSpecularProgram;
 	BWTexturePtr IBL_Specular_Cube_Map;
 
 	BWMaterialPtr mPreprocessEvnMapLUT;
 	class BWGpuProgramUsage*  mProcessEvnMapLUTGpuPrgramUsage;
-	BWGpuProgramPtr mProcessEvnMapLUTProgram;
+	BWHighLevelGpuProgramPtr mProcessEvnMapLUTProgram;
 	BWTexturePtr IBL_LUT;
 
 	BWMaterialPtr mConverEquirectangularToCubeMap;

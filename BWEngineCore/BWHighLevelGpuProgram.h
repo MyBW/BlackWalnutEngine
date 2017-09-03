@@ -22,12 +22,12 @@ public:
 	virtual BWGpuProgramParametersPtr CreateParameter();
 	GpuNamedConstantsPtr GetNamedConstantsDefinition();
 	virtual void PopulateParameter(BWGpuProgramParametersPtr programParameter);
-	virtual void SetGPUProgramParameters(BWGpuProgramParametersPtr ProgramParameters) { };
+	virtual void SetGPUProgramParameters(BWGpuProgramParametersPtr ProgramParameters);
 	virtual void InitNamedConstantes();
 	size_t calculateSize(){ return 0; }
 
 	virtual bool  addShader(BWShaderPtr shader) ;
-	virtual bool  SetParameter(const std::string &name, void *value) { return false; }
+	virtual bool  SetParameter(const std::string &name, void *value , GpuConstantType ConstantType) { return false; }
 protected:
 	void prepareImpl(){ }
 	void preLoadImpl(){ }

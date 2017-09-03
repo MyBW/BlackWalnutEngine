@@ -282,50 +282,61 @@ const NameLocation& GLSLGpuProgram::getFragmentOutNameLocation() const
 	return mFragmentOutNameLocation;
 }
 
-void GLSLGpuProgram::SetGPUProgramParameters(BWGpuProgramParametersPtr ProgramParameters)
-{
-	GpuNamedConstantsPtr namedConstant = ProgramParameters->getNamedConstants();
-	if (namedConstant.IsNull())
-	{
-		namedConstant = GetDefaultParameters()->getNamedConstants();
-	}
-	//设置各种unifomr参数
-	GpuConstantDefinitionMap::iterator itor = namedConstant->map.begin();
-	while (itor != namedConstant->map.end())
-	{
-		GpuConstantDefinition *def = &(itor->second);
-		int size = def->arraySize * itor->second.getElementSize(def->constType, false);
-		void *data = NULL;
-		int index = def->physicalIndex;
-		if (def->isFloat())
-		{
-			data = ProgramParameters->GetFloatPointer(def->physicalIndex);
-		}
-		else
-		{
-			data = ProgramParameters->GetIntPointer(def->physicalIndex);
-		}
-		if (itor->second.getElementSize(def->constType, false) > 4)
-		{
-			float* tmpdata = (float*)data;
-			float finaldata[16];
-			for (int i = 0; i < 16; i++)
-			{
-				finaldata[i] = tmpdata[i];
-			}
-			GLRenderSystem::GLtranspose(def->constType, finaldata);
-			SetParameter(itor->first, finaldata);
-		}
-		else
-		{
-			SetParameter(itor->first, data);
-		}
-		itor++;
-	}
-}
+//void GLSLGpuProgram::SetGPUProgramParameters(BWGpuProgramParametersPtr ProgramParameters)
+//{
+//	GpuNamedConstantsPtr namedConstant = ProgramParameters->getNamedConstants();
+//	if (namedConstant.IsNull())
+//	{
+//		namedConstant = GetDefaultParameters()->getNamedConstants();
+//	}
+//	//设置各种unifomr参数
+//	GpuConstantDefinitionMap::iterator itor = namedConstant->map.begin();
+//	while (itor != namedConstant->map.end())
+//	{
+//		GpuConstantDefinition *def = &(itor->second);
+//		int size = def->arraySize * itor->second.getElementSize(def->constType, false);
+//		void *data = NULL;
+//		int index = def->physicalIndex;
+//		if (def->isFloat())
+//		{
+//			data = ProgramParameters->GetFloatPointer(def->physicalIndex);
+//		}
+//		else
+//		{
+//			data = ProgramParameters->GetIntPointer(def->physicalIndex);
+//		}
+//		if (itor->second.getElementSize(def->constType, false) > 4)
+//		{
+//			float* tmpdata = (float*)data;
+//			float finaldata[16];
+//			for (int i = 0; i < 16; i++)
+//			{
+//				finaldata[i] = tmpdata[i];
+//			}
+//			GLRenderSystem::GLtranspose(def->constType, finaldata);
+//			SetParameter(itor->first, finaldata);
+//		}
+//		else
+//		{
+//			SetParameter(itor->first, data);
+//		}
+//		itor++;
+//	}
+//}
 
-bool GLSLGpuProgram::SetParameter(const std::string &name, void *value)
+bool GLSLGpuProgram::SetParameter(const std::string &name, void *value, GpuConstantType ConstantType)
 {
+	float finaldata[16];
+	if (GpuConstantDefinition::getElementSize(ConstantType , false) > 4)
+	{
+		float* tmpdata = (float*)value;
+		for (int i = 0; i < 16; i++)
+		{
+			finaldata[i] = tmpdata[i];
+		}
+		GLRenderSystem::GLtranspose(ConstantType, finaldata);
+		value = (void*)(finaldata);
+	}
 	UBOMap::iterator itor = mUBOMap.begin();
 	while (itor != mUBOMap.end())
 	{

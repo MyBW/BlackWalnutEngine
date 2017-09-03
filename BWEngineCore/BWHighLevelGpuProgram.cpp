@@ -30,6 +30,36 @@ void BWHighLevelGpuProgram::PopulateParameter(BWGpuProgramParametersPtr programP
 	programParameter->SetNamedConstants(namedConstantes);
 	programParameter->SetLogicalIndexes(intLogicalToPhysical, floatLogicalToPhysical);
 }
+
+void BWHighLevelGpuProgram::SetGPUProgramParameters(BWGpuProgramParametersPtr ProgramParameters)
+{
+	GpuNamedConstantsPtr namedConstant = ProgramParameters->getNamedConstants();
+	if (namedConstant.IsNull())
+	{
+		namedConstant = GetDefaultParameters()->getNamedConstants();
+	}
+	//设置各种unifomr参数
+	GpuConstantDefinitionMap::iterator itor = namedConstant->map.begin();
+	while (itor != namedConstant->map.end())
+	{
+		GpuConstantDefinition *def = &(itor->second);
+		int size = def->arraySize * itor->second.getElementSize(def->constType, false);
+		void *data = NULL;
+		int index = def->physicalIndex;
+		if (def->isFloat())
+		{
+			data = ProgramParameters->GetFloatPointer(def->physicalIndex);
+		}
+		else
+		{
+			data = ProgramParameters->GetIntPointer(def->physicalIndex);
+		}
+		SetParameter(itor->first, data, def->constType);
+		itor++;
+	}
+
+}
+
 void BWHighLevelGpuProgram::InitNamedConstantes()
 {
 

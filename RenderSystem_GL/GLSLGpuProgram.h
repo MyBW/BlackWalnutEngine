@@ -18,13 +18,13 @@ public:
 	bool Compile(bool checkError  =  true);
 	size_t calculateSize() { return 0; }
 	bool getPassTransformStates(){ return true; }
-	virtual bool SetParameter(const std::string &name, void *value) override;
+	virtual bool SetParameter(const std::string &name, void *value, GpuConstantType ConstantType) override;
 	virtual void Load() override;
 	void bind();
 	void bindingBuffer(IndexDataPrt indexData, VertexDataPrt vertexData);
 	const NameLocation& getFragmentOutNameLocation() const;
 	GLuint getID() { return mID; }
-	void SetGPUProgramParameters(BWGpuProgramParametersPtr ProgramParameters) override;
+	//void SetGPUProgramParameters(BWGpuProgramParametersPtr ProgramParameters) override;
 	// ‘› ±≤‚ ‘ π”√
 	NameLocation mNameLoaction;
 protected: 

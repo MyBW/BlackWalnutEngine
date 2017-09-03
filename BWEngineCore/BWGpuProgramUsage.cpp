@@ -63,6 +63,12 @@ BWGpuProgramPtr BWGpuProgramUsage::GetGpuProgram()
 {
 	return gpuProgram;
 }
+
+BWHighLevelGpuProgramPtr BWGpuProgramUsage::GetHighLevelGpuProgram()
+{
+	return dynamic_cast<BWHighLevelGpuProgram*>(gpuProgram.Get());
+}
+
 void BWGpuProgramUsage::setGPUProgram(const std::string &name , const std::string &language) // 这个GLSL已经失去意义
 {
 	if (!gpuProgram.IsNull())

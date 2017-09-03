@@ -49,5 +49,52 @@ namespace Helper
 		}
 		Check(0);
 	}
-	
+	GLenum GetGLTextureSwap(SamplerAddressMode AddMode)
+	{
+		switch (AddMode)
+		{
+		case SAM_WRAP:  return GL_WRAP_BORDER;
+		case SAM_CLAMP: return GL_CLAMP_TO_EDGE;
+		case SAM_MIRROR: return GL_MIRROR_CLAMP_EXT;
+		case SAM_BORDER: return GL_CLAMP_TO_BORDER;
+		}
+		Check(0);
+	}
+	GLenum GetGLFilterOptions(FilterOptions Filter)
+	{
+		switch (Filter)
+		{
+		case FO_ANISOTROPIC:
+		case FO_LINEAR:
+			switch (Filter)
+			{
+			case FO_ANISOTROPIC:
+			case FO_LINEAR:
+				return GL_LINEAR_MIPMAP_LINEAR;
+			case FO_NONE:
+				return GL_LINEAR;
+			case FO_POINT:
+				return GL_LINEAR_MIPMAP_NEAREST;
+			default:
+				break;
+			}
+			break;
+
+		case FO_NONE:
+		case FO_POINT:
+			switch (Filter)
+			{
+			case FO_ANISOTROPIC:
+			case FO_LINEAR:
+				return GL_LINEAR_MIPMAP_LINEAR;
+			case FO_NONE:
+				return GL_NEAREST;
+			case FO_POINT:
+				return GL_LINEAR_MIPMAP_NEAREST;
+			}
+			break;
+		}
+		Check(0);
+		return 0;
+	}
 }

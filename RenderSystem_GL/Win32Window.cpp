@@ -138,12 +138,12 @@ bool WIn32Window::InitWindow()
 		{
 			data = gpuPrgramUsage->GetGpuProgramParameter()->GetIntPointer(def->physicalIndex);
 		}
-		if (itor->second.getElementSize(def->constType, false) > 4)
-		{
-			// 说明是矩阵需要转置
-			GLRenderSystem::GLtranspose(def->constType, data);
-		}
-		glslProgram->SetParameter(itor->first, data);
+		//if (itor->second.getElementSize(def->constType, false) > 4)
+		//{
+		//	// 说明是矩阵需要转置
+		//	GLRenderSystem::GLtranspose(def->constType, data);
+		//}
+		glslProgram->SetParameter(itor->first, data , def->constType);
 		itor++;
 	}
 	CHECK_GL_ERROR(glGenBuffers(1, &BufferID));
@@ -244,12 +244,12 @@ bool WIn32Window::InitWindow()
 		{
 			data = mPointLightDefferLightingGpuPrgramUsage->GetGpuProgramParameter()->GetIntPointer(def->physicalIndex);
 		}
-		if (itor->second.getElementSize(def->constType, false) > 4)
-		{
-			// 说明是矩阵需要转置
-			GLRenderSystem::GLtranspose(def->constType, data);
-		}
-		mPointLightDefferLightingGLSLProgram->SetParameter(itor->first, data);
+		//if (itor->second.getElementSize(def->constType, false) > 4)
+		//{
+		//	// 说明是矩阵需要转置
+		//	GLRenderSystem::GLtranspose(def->constType, data);
+		//}
+		mPointLightDefferLightingGLSLProgram->SetParameter(itor->first, data, def->constType);
 		itor++;
 	}
 

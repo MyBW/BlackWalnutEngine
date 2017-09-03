@@ -1691,7 +1691,7 @@ bool GLRenderSystem::InitRendererResource()
 		ViewMatrixs[4] = BWMatrix4::makeViewMatrix(BWVector3D(0.0, 0.0, 0.0), Quaterniton, nullptr); // +Z
 		Quaterniton.fromAngleAxis(Radian(PI), BWVector3D(0.0, 1.0, 0.0));
 		ViewMatrixs[5] = BWMatrix4::makeViewMatrix(BWVector3D(0.0, 0.0, 0.0), Quaterniton, nullptr); //-Z
-		static std::vector<std::string> Dir{ "+X" , "-X" ,"+Y" , "-Y" , "+Z", "-Z" };
+		//static std::vector<std::string> Dir{ "+X" , "-X" ,"+Y" , "-Y" , "+Z", "-Z" };
 
         // 环境贴图的预处理
 		mProcessEvnMap = BWMaterialManager::GetInstance()->GetResource("ProcessEnvMap", "General");
@@ -1703,7 +1703,7 @@ bool GLRenderSystem::InitRendererResource()
 		mProcessEvnMap->Load();
 		mProcessEvnMapTexture = mProcessEvnMap->getTechnique(0)->GetPass(0)->getTextureUnitState(0)->_getTexturePtr();
 		mProcessEvnMapGpuPrgramUsage = mProcessEvnMap->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-		mProcessEvnMapProgram = mProcessEvnMapGpuPrgramUsage->GetGpuProgram();
+		mProcessEvnMapProgram = mProcessEvnMapGpuPrgramUsage->GetHighLevelGpuProgram();
 		mProcessEvnMapProgram->Load();
 
 
@@ -1721,83 +1721,76 @@ bool GLRenderSystem::InitRendererResource()
 		BeConveredMap->setTextureName("small_apartment.hdr");
 		mConverEquirectangularToCubeMap->Load();
 		BeConveredMap->SetIndex(0);
+		BeConveredMap->_getTexturePtr()->setNumMipmaps(0);
 		BWGpuProgramUsage* mConverEquirectangularToCubeMapUsage = mConverEquirectangularToCubeMap->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-		BWGpuProgramPtr mConverEquirectangularToCubeMapGPU = mConverEquirectangularToCubeMap->getTechnique(0)->GetPass(0)->getGPUProgramUsage()->GetGpuProgram();
+		BWHighLevelGpuProgramPtr mConverEquirectangularToCubeMapGPU = mConverEquirectangularToCubeMap->getTechnique(0)->GetPass(0)->getGPUProgramUsage()->GetHighLevelGpuProgram();
 		mConverEquirectangularToCubeMapGPU->Load();
-		{
-			HDRCubeMap = BWTextureManager::GetInstance()->Create("HDR_Cube_Map", "General");
-			HDRCubeMap->setTextureType(TEX_TYPE_CUBE_MAP);
-			HDRCubeMap->setFormat(PF_FLOAT32_RGB);
-			HDRCubeMap->setWidth(mProcessEvnMapTexture->getWidth());
-			HDRCubeMap->setHeight(mProcessEvnMapTexture->getHeight());
-			HDRCubeMap->setNumMipmaps(0);
-			HDRCubeMap->createInternalResources();
-			BWHardwareDepthBufferPtr DepthBuffer =
-				new GLHardwareDepthBuffer("TempRenderTarget", HDRCubeMap->getWidth(), HDRCubeMap->getHeight(), 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
-			DepthBuffer->SetIsWithStencil(false);
-
-
-			RSGraphicPipelineState PipeLineState;
-			RSRenderTarget RenderTarget;
-			PipeLineState.DepthAndStencilState = TStaticDepthAndStencilState<true, true, CMPF_LESS_EQUAL>::GetStateHI();
-			PipeLineState.RasterizerState = TStaticRasterizerState<PM_SOLID , CULL_CLOCKWISE>::GetStateHI();
-			SetGrphicsPipelineState(PipeLineState);
-			SetViewport(0, 0, HDRCubeMap->getWidth(), HDRCubeMap->getHeight());
-
-			RenderTarget.DepthAndStencil = DepthBuffer;
-			RenderTarget.RenderTargetTexture = HDRCubeMap;
-			dynamic_cast<GLSLGpuProgram*>(mConverEquirectangularToCubeMapGPU.Get())->bind();
-			for (int i = 0; i < 6; i++)
-			{
-				RenderTarget.Index = i;
-				RenderTarget.MipmapLevel = 0;
-				SetRenderTarget(RenderTarget);
-				SetShaderTexture(mConverEquirectangularToCubeMapGPU, BeConveredMap->_getTexturePtr(), TStaticSamplerState<>::GetStateHI());
-				mConverEquirectangularToCubeMapUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
-				dynamic_cast<GLSLGpuProgram*>(mConverEquirectangularToCubeMapGPU.Get())->SetGPUProgramParameters(mConverEquirectangularToCubeMapUsage->GetGpuProgramParameter());
-				glClear(GL_DEPTH_BUFFER_BIT);
-				RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(mConverEquirectangularToCubeMapGPU.Get()));
-			}
-		}
-
 		
+		HDRCubeMap = BWTextureManager::GetInstance()->Create("HDR_Cube_Map", "General");
+		HDRCubeMap->setTextureType(TEX_TYPE_CUBE_MAP);
+		HDRCubeMap->setFormat(PF_FLOAT32_RGB);
+		HDRCubeMap->setWidth(mProcessEvnMapTexture->getWidth());
+		HDRCubeMap->setHeight(mProcessEvnMapTexture->getHeight());
+		HDRCubeMap->setNumMipmaps(0);
+		HDRCubeMap->createInternalResources();
+		BWHardwareDepthBufferPtr TmpDepthBuffer =
+			new GLHardwareDepthBuffer("TempRenderTarget", HDRCubeMap->getWidth(), HDRCubeMap->getHeight(), 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
+		TmpDepthBuffer->SetIsWithStencil(false);
 
 
+		RSGraphicPipelineState PipeLineState;
+		RSRenderTarget RenderTarget;
+		PipeLineState.DepthAndStencilState = TStaticDepthAndStencilState<true, true, CMPF_LESS_EQUAL>::GetStateHI();
+		PipeLineState.RasterizerState = TStaticRasterizerState<PM_SOLID , CULL_CLOCKWISE>::GetStateHI();
+		PipeLineState.GPUProgram = mConverEquirectangularToCubeMapGPU;
+		RenderTarget.DepthAndStencil = TmpDepthBuffer;
+		RenderTarget.RenderTargetTexture = HDRCubeMap;
+
+		SetViewport(0, 0, HDRCubeMap->getWidth(), HDRCubeMap->getHeight());
+		SetGrphicsPipelineState(PipeLineState);
+		SetShaderTexture(mConverEquirectangularToCubeMapGPU, BeConveredMap->_getTexturePtr(), TStaticSamplerState<FO_LINEAR>::GetStateHI());
+		for (int i = 0; i < 6; i++)
+		{
+			RenderTarget.Index = i;
+			RenderTarget.MipmapLevel = 0;
+			SetRenderTarget(RenderTarget);
+			mConverEquirectangularToCubeMapUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
+			mConverEquirectangularToCubeMapGPU->SetGPUProgramParameters(mConverEquirectangularToCubeMapUsage->GetGpuProgramParameter());
+			ClearRenderTarget(FBT_DEPTH);
+			RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(mConverEquirectangularToCubeMapGPU.Get()));
+		}
 		// 从Equirectangular HRD 产生 CubeMap环境贴图 End
 
 		IBL_Diffuse_Cube_Map = BWTextureManager::GetInstance()->Create("IBL_Diffuse_Cube_Map", "General");
 		IBL_Diffuse_Cube_Map->setTextureType(TEX_TYPE_CUBE_MAP);
+		IBL_Diffuse_Cube_Map->setFormat(PF_FLOAT32_RGB);
 		IBL_Diffuse_Cube_Map->setWidth(mProcessEvnMapTexture->getWidth());
 		IBL_Diffuse_Cube_Map->setHeight(mProcessEvnMapTexture->getHeight());
 		IBL_Diffuse_Cube_Map->setNumMipmaps(0);
-	
-		std::map <std::string, GLenum> *CubeMapTextureBufferAttachment =
-		&(dynamic_cast<GLTexture*>(IBL_Diffuse_Cube_Map.Get())->CubeMapTextureBufferAttachment);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-		GLRenderTarget* TempRenderTarget = dynamic_cast<GLRenderTarget*>(createRenderTarget("TempRenderTarget"));
-		TempRenderTarget->setWidth(IBL_Diffuse_Cube_Map->getWidth());
-		TempRenderTarget->setHeight(IBL_Diffuse_Cube_Map->getHeight());
-		BWHardwareDepthBufferPtr DepthBuffer = TempRenderTarget->createDepthBuffer(std::string("TmpDepthBuffer"));
-		glViewport(0, 0, TempRenderTarget->getWidth(), TempRenderTarget->getHeight());
+		IBL_Diffuse_Cube_Map->createInternalResources();
+		HDRCubeMap->SetIndex(0);
+		BWHardwareDepthBufferPtr TmpDepthBuffer1 =
+			new GLHardwareDepthBuffer("TempRenderTarget1", IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight(), 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
+		TmpDepthBuffer1->SetIsWithStencil(false);
+		SetShaderTexture(mProcessEvnMapProgram, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
-		dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapProgram.Get())->bind();
-		glBindFramebuffer(GL_FRAMEBUFFER, TempRenderTarget->getID());
-		CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-		//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, dynamic_cast<GLTexture*>(mProcessEvnMapTexture.Get())->GetHIID()));
-		CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, dynamic_cast<GLTexture*>(HDRCubeMap.Get())->GetHIID()));
+		SetViewport(0, 0, IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight());
+		PipeLineState.GPUProgram = mProcessEvnMapProgram;
+		SetGrphicsPipelineState(PipeLineState);
+		
+		RenderTarget.DepthAndStencil = TmpDepthBuffer1;
+		RenderTarget.RenderTargetTexture = IBL_Diffuse_Cube_Map;
 		for (int i = 0; i < 6; i++)
 		{
-			TempRenderTarget->addTextureBuffer(IBL_Diffuse_Cube_Map, i);
-			glDrawBuffer((*CubeMapTextureBufferAttachment)[Dir[i]]);
+			RenderTarget.Index = i;
+			RenderTarget.MipmapLevel = 0;
+			SetRenderTarget(RenderTarget);
 			mProcessEvnMapGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
-			dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapProgram.Get())->SetGPUProgramParameters(mProcessEvnMapGpuPrgramUsage->GetGpuProgramParameter());
-			glClear(GL_DEPTH_BUFFER_BIT);
+			mProcessEvnMapProgram->SetGPUProgramParameters(mProcessEvnMapGpuPrgramUsage->GetGpuProgramParameter());
+			ClearRenderTarget(FBT_DEPTH);
 			RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapProgram.Get()));
 		}
-		TempRenderTarget->removeTextureBuffer(IBL_Diffuse_Cube_Map->getName());
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+		
 		//环境贴图对高光处理
 		mPreprocessEvnMapForSpecular = BWMaterialManager::GetInstance()->GetResource("ProcessEnvMapForSpecular", "General");
 		if (mPreprocessEvnMapForSpecular.IsNull())
@@ -1807,49 +1800,48 @@ bool GLRenderSystem::InitRendererResource()
 		}
 		mPreprocessEvnMapForSpecular->Load();
 		mProcessEvnMapForSpecularGpuPrgramUsage = mPreprocessEvnMapForSpecular->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-		mProcessEvnMapForSpecularProgram = mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgram();
+		mProcessEvnMapForSpecularProgram = mProcessEvnMapForSpecularGpuPrgramUsage->GetHighLevelGpuProgram();
 		mProcessEvnMapForSpecularProgram->Load();
 
 		const int RoughnessLevel = 7;
 		IBL_Specular_Cube_Map = BWTextureManager::GetInstance()->Create("IBL_Specular_Cube_Map", "General");
 		IBL_Specular_Cube_Map->setTextureType(TEX_TYPE_CUBE_MAP);
+		IBL_Specular_Cube_Map->setFormat(PF_FLOAT32_RGB);
 		IBL_Specular_Cube_Map->setWidth(mProcessEvnMapTexture->getWidth());
 		IBL_Specular_Cube_Map->setHeight(mProcessEvnMapTexture->getHeight());
 		IBL_Specular_Cube_Map->setNumMipmaps(RoughnessLevel);
-		GLTexture * GL_IBL_Specular_Cube_Map = dynamic_cast<GLTexture*>(IBL_Specular_Cube_Map.Get());
+		IBL_Specular_Cube_Map->createInternalResources();
+
+
 		int Width = mProcessEvnMapTexture->getWidth();
 		int Height = mProcessEvnMapTexture->getHeight();
-		dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapForSpecularProgram.Get())->bind();
-		CubeMapTextureBufferAttachment =&(dynamic_cast<GLTexture*>(IBL_Specular_Cube_Map.Get())->CubeMapTextureBufferAttachment);
-		CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));// 上面的函数在调用时  可能调用GLBindTexture函数 所以这里统一绑定输入shader的纹理
+		PipeLineState.GPUProgram = mProcessEvnMapForSpecularProgram;
+		SetGrphicsPipelineState(PipeLineState);
 
-		//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP,
-		//	dynamic_cast<GLTexture*>(mProcessEvnMapTexture.Get())->GetHIID()));
-
-		CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP,
-			dynamic_cast<GLTexture*>(HDRCubeMap.Get())->GetHIID()));
+		HDRCubeMap->SetIndex(0);
+	    SetShaderTexture(mProcessEvnMapForSpecularProgram, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+		RenderTarget.RenderTargetTexture = IBL_Specular_Cube_Map;
+		//RenderTarget.DepthAndStencil = TmpDepthBuffer1;
 
 		for (int mip = 0 ; mip < RoughnessLevel ; mip++)
 		{
 			int MipWidth = Width * std::pow(0.5, mip);
 			int MipHeight = Height  * std::pow(0.5, mip);
-			glViewport(0, 0, MipWidth, MipHeight);
-			glBindFramebuffer(GL_FRAMEBUFFER, TempRenderTarget->getID());
-			DepthBuffer->SetHardwareBufferSize(MipWidth, MipHeight);
+			SetViewport(0, 0, MipWidth, MipHeight);
+			RenderTarget.MipmapLevel = mip;			
 			float roughness =  mip / float(RoughnessLevel - 1);
 			for (int i = 0 ;i < 6 ; i++)
 			{
-				TempRenderTarget->addTextureBuffer(IBL_Specular_Cube_Map, i , mip);
-				glDrawBuffer((*CubeMapTextureBufferAttachment)[Dir[i]]);
+				RenderTarget.Index = i;
+				SetRenderTarget(RenderTarget);
 				mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
 				mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("roughness", &roughness, 1, 1);
-				dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapForSpecularProgram.Get())->SetGPUProgramParameters(mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter());
-				CHECK_GL_ERROR(glClear(GL_DEPTH_BUFFER_BIT));
+				mProcessEvnMapForSpecularProgram->SetGPUProgramParameters(mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter());
+				ClearRenderTarget(FBT_DEPTH);
 				RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapForSpecularProgram.Get()));
 			}
-			TempRenderTarget->removeTextureBuffer(IBL_Specular_Cube_Map->getName());
 		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
 
 
 		//计算LUT
@@ -1861,25 +1853,24 @@ bool GLRenderSystem::InitRendererResource()
 		}
 		mPreprocessEvnMapLUT->Load();
 		mProcessEvnMapLUTGpuPrgramUsage = mPreprocessEvnMapLUT->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-		mProcessEvnMapLUTProgram = mProcessEvnMapLUTGpuPrgramUsage->GetGpuProgram();
+		mProcessEvnMapLUTProgram = mProcessEvnMapLUTGpuPrgramUsage->GetHighLevelGpuProgram();
 		mProcessEvnMapLUTProgram->Load();
 
 		IBL_LUT = BWTextureManager::GetInstance()->Create("IBL_LUT", "General");
 		IBL_LUT->setTextureType(TEX_TYPE_2D);
 		IBL_LUT->setWidth(512);
 		IBL_LUT->setHeight(512);
-		IBL_LUT->setNumMipmaps(1);
-		TempRenderTarget->addTextureBuffer(IBL_LUT , 0);
-		CHECK_GL_ERROR(glViewport(0, 0, 512, 512));
-		GLTexture* GL_IBL_LUT = dynamic_cast<GLTexture*>(IBL_LUT.Get());
-		glBindFramebuffer(GL_FRAMEBUFFER, TempRenderTarget->getID());
-		DepthBuffer->SetHardwareBufferSize(512, 512);
-		dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapLUTProgram.Get())->bind();
-		glDrawBuffer(GL_IBL_LUT->getTextureBufferAttachment());
-		glClear(GL_DEPTH_BUFFER_BIT);
+		IBL_LUT->setNumMipmaps(0);
+		IBL_LUT->createInternalResources();
+		SetViewport(0, 0, 512, 512);
+		PipeLineState.GPUProgram = mProcessEvnMapLUTProgram;
+		SetGrphicsPipelineState(PipeLineState);
+		RenderTarget.Index = 0;
+		RenderTarget.MipmapLevel = 0;
+		RenderTarget.RenderTargetTexture = IBL_LUT;
+		SetRenderTarget(RenderTarget);
+		ClearRenderTarget(FBT_DEPTH);
 		RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapLUTProgram.Get()));
-
-	    delete TempRenderTarget; 
 		return true;
 	}
 	return false;
@@ -1910,8 +1901,6 @@ void GLRenderSystem::SetRenderTarget(RSRenderTarget& InRenderTarget)
 		CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, NewFrameBuffer));
 		GLint TextureID = RenderTexuture->GetHIID();
 		TextureType RenderTextureType = RenderTexuture->GetTextureType();
-		int Width = RenderTexuture->getWidth();
-		int Hight = RenderTexuture->getHeight();
 		int Index = InRenderTarget.Index;
 		int MipLevel = InRenderTarget.MipmapLevel;
 		if (RenderTextureType == TEX_TYPE_2D)
@@ -1920,29 +1909,14 @@ void GLRenderSystem::SetRenderTarget(RSRenderTarget& InRenderTarget)
 		}
 		if (RenderTextureType == TEX_TYPE_CUBE_MAP)
 		{
-			/*std::vector<std::string> Dir{ "+X" , "-X", "+Y", "-Y" , "+Z" , "-Z" };
-			GLenum Attachment = frameBuffer->getColorAttachment();
-			*/
 			CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Index, TextureID, MipLevel));
 		}
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 		GLHardwareDepthBuffer* DepthBuffer = dynamic_cast<GLHardwareDepthBuffer*>(InRenderTarget.DepthAndStencil.Get());
 		GLint DepthID = DepthBuffer->GetHIID();
-		GLenum DepthAttachment = DepthBuffer->GetAttachment();
-		bool IsWithStencil = DepthBuffer->GetIsWithStencil();
-		GLenum InternalFormat = DepthBuffer->GetInternalFormat();
+		GLenum DepthAttachment = DepthBuffer->GetAttachment();;
 		glFramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachment, GL_TEXTURE_2D, DepthID, 0);
-		/*glBindTexture(GL_TEXTURE_2D, DepthID);
-		if (IsWithStencil)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, InternalFormat, Width, Hight, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, NULL);
-		}
-		else
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, InternalFormat, Width, Hight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		}*/
-
 		GLenum statues = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (statues != GL_FRAMEBUFFER_COMPLETE)//某个绑定到attachment上的元素无效
 		{
@@ -1973,9 +1947,14 @@ void GLRenderSystem::SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineS
 		Helper::SetIsEnableState(DepthAndStencilState->IsEnableDepthTest, GL_DEPTH_TEST);
 		glDepthMask(DepthAndStencilState->IsEnableDepthWrite);
     }
+	if (CachedPipelineState.GPUProgram != InPipelineState.GPUProgram)
+	{
+		CachedPipelineState.GPUProgram = InPipelineState.GPUProgram;
+		dynamic_cast<GLSLGpuProgram*>(CachedPipelineState.GPUProgram.Get())->bind();
+	}
 }
 
-void GLRenderSystem::SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIRef Sampler)
+void GLRenderSystem::SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler)
 {
 	// Warning!!! glActiveTexture的使用有一定的要求 
 	// Warning!!! 所有的绑定的glBindTexture都会影响glActiveTexture的使用
@@ -1985,12 +1964,96 @@ void GLRenderSystem::SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr T
 	{
 		int Index = TextureHI->GetIndex();
 		GLint ID = TextureHI->GetHIID(); 
-		TextureType Type = TextureHI->GetTextureType();
+		GLenum Type = Helper::GetGLTextureType(TextureHI->GetTextureType());
 		Check(Index < MaxActiveTexteureNum);
 		CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0 + Index));
-		CHECK_GL_ERROR(glBindTexture(Helper::GetGLTextureType(Type), ID));
+		CHECK_GL_ERROR(glBindTexture(Type, ID));
+		
+		CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_BASE_LEVEL, 0));
+		if (TextureHI->getNumMipmaps() > 0)
+		{
+			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MAX_LEVEL, TextureHI->getNumMipmaps() - 1));
+		}
+		// 这里的这些状态可以考虑使用一个使用OpenGL中Sampler Object
+		if (CacheSamplerState != Sampler)
+		{
+			CacheSamplerState = Sampler;
+			GLStaticSamplerState* GLSampler = dynamic_cast<GLStaticSamplerState*>(Sampler.Get());
+			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_WRAP_R, GLSampler->RAdd_Mode));
+			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_WRAP_S, GLSampler->SAdd_Mode));
+			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_WRAP_T, GLSampler->TAdd_Mode));
+			//CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MIN_FILTER, GLSampler->Fileter)); 这种使用方式有问题
+			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		}
 	}
 	
+}
+
+void GLRenderSystem::ClearRenderTarget(unsigned int buffers, const ColourValue &color /*= ColourValue::Black */, float depth /*= 1.0 */, unsigned short stencil /*= 0 */)
+{
+	bool colourMaks = !mColourWrite[0] || !mColourWrite[1] || !mColourWrite[2] || !mColourWrite[3];
+	unsigned int flag = 0;
+	if (buffers & FBT_COLOUR)
+	{
+		flag |= GL_COLOR_BUFFER_BIT;
+		if (colourMaks)
+		{
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		}
+		glClearColor(color.r, color.g, color.b, color.a);
+	}
+	if (buffers & FBT_DEPTH)
+	{
+		flag |= GL_DEPTH_BUFFER_BIT;
+		if (!mDepthWrite)
+		{
+			glDepthMask(GL_TRUE);
+		}
+		glClearDepth(depth);
+	}
+	if (buffers & FBT_STENCIL)
+	{
+		flag |= GL_STENCIL_BUFFER_BIT;
+		glStencilMask(0xffffffff);
+		glClearStencil(stencil);
+	}
+	// 裁剪测试是否开启
+	GLboolean scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST);
+	if (!scissorTestEnabled)
+	{
+		glEnable(GL_SCISSOR_TEST);
+	}
+	GLint viewport[4], scissor[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
+	bool scissorboxDifference = viewport[0] != scissor[0] || viewport[1] != scissor[1] || viewport[2] != scissor[2] || viewport[3] != scissor[3];
+	if (scissorboxDifference)
+	{
+		glScissor(viewport[0], viewport[1], viewport[2], viewport[3]);
+	}
+
+	glClear(flag);
+	if (scissorboxDifference)
+	{
+		glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	}
+	if (!scissorTestEnabled)
+	{
+		glDisable(GL_SCISSOR_TEST);
+	}
+	if (!mDepthWrite && (buffers & FBT_DEPTH))
+	{
+		glDepthMask(GL_FALSE);
+	}
+	if (colourMaks && (buffers & FBT_COLOUR))
+	{
+		glColorMask(mColourWrite[0], mColourWrite[1], mColourWrite[2], mColourWrite[3]);
+	}
+	if (buffers & FBT_STENCIL)
+	{
+		glStencilMask(mStencilMask);
+	}
 }
 
 RasterizerStateHIRef GLRenderSystem::CreateRasterizerStateHI(RasterStateInitializer& Initializer)
@@ -2008,6 +2071,16 @@ DepthAndStencilStateHIRef GLRenderSystem::CreateDepthAndStencilHI(DepthAndStenci
 	GLStaticDepthAndStencilState* RenderState = new GLStaticDepthAndStencilState();
 	RenderState->IsEnableDepthTest = Helper::GetBool(Initializer.IsEnableDepthTest);
 	RenderState->IsEnableDepthWrite = Helper::GetBool(Initializer.IsEnableDepthWrite);
+	return RenderState;
+}
+
+SamplerStateHIRef GLRenderSystem::CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer)
+{
+	GLStaticSamplerState* RenderState = new GLStaticSamplerState();
+	RenderState->Fileter = Helper::GetGLFilterOptions(Initializer.Filter);
+	RenderState->RAdd_Mode = Helper::GetGLTextureSwap(Initializer.RAdd_Mode);
+	RenderState->SAdd_Mode = Helper::GetGLTextureSwap(Initializer.SAdd_Mode);
+	RenderState->TAdd_Mode = Helper::GetGLTextureSwap(Initializer.TAdd_Mode);
 	return RenderState;
 }
 
@@ -2437,22 +2510,23 @@ void GLRenderSystem::SetLightPreparForRenderShadow(BWDirectionalLight * Directio
 		{
 			data = DirectionalLightShadowMapGpuPrgramUsage->GetGpuProgramParameter()->GetIntPointer(def->physicalIndex);
 		}
-		if (itor->second.getElementSize(def->constType, false) > 4)
-		{
-			// 说明是矩阵需要转置
-			float tmpdata[16];
-			float *dataTest = (float*)data;
-			for (int i = 0; i < 16; i++)
-			{
-				tmpdata[i] = dataTest[i];
-			}
-			GLRenderSystem::GLtranspose(def->constType, tmpdata);
-			DirectionalLightShadowMapGLSLProgram->SetParameter(itor->first, tmpdata);
-		}
-		else
-		{
-			DirectionalLightShadowMapGLSLProgram->SetParameter(itor->first, data);
-		}
+		//if (itor->second.getElementSize(def->constType, false) > 4)
+		//{
+		//	//// 说明是矩阵需要转置
+		//	float tmpdata[16];
+		//	float *dataTest = (float*)data;
+		//	for (int i = 0; i < 16; i++)
+		//	{
+		//		tmpdata[i] = dataTest[i];
+		//	}
+		//	GLRenderSystem::GLtranspose(def->constType, tmpdata);
+		//	DirectionalLightShadowMapGLSLProgram->SetParameter(itor->first, tmpdata);
+		//}
+		//else
+		//{
+		//	DirectionalLightShadowMapGLSLProgram->SetParameter(itor->first, data);
+		//}
+		DirectionalLightShadowMapGLSLProgram->SetParameter(itor->first, data ,def->constType);
 		itor++;
 	}
 }
@@ -2733,22 +2807,7 @@ void GLRenderSystem::SetProjectedShadowInfoForRenderShadow(ShadowMapProjectInfo&
 		{
 			data = DirectionalLightShadowMapGpuPrgramUsage->GetGpuProgramParameter()->GetIntPointer(def->physicalIndex);
 		}
-		if (itor->second.getElementSize(def->constType, false) > 4)
-		{
-			// 说明是矩阵需要转置
-			float tmpdata[16];
-			float *dataTest = (float*)data;
-			for (int i = 0; i < 16; i++)
-			{
-				tmpdata[i] = dataTest[i];
-			}
-			GLRenderSystem::GLtranspose(def->constType, tmpdata);
-			DirectionalLightShadowMapGLSLProgram->SetParameter(itor->first, tmpdata);
-		}
-		else
-		{
-			DirectionalLightShadowMapGLSLProgram->SetParameter(itor->first, data);
-		}
+		DirectionalLightShadowMapGLSLProgram->SetParameter(itor->first, data, def->constType);
 		itor++;
 	}
 }

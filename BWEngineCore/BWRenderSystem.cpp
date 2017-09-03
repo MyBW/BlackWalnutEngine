@@ -424,7 +424,12 @@ void BWRenderSystem::SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineS
 	
 }
 
-void BWRenderSystem::SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIRef Sampler)
+void BWRenderSystem::SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler)
+{
+	
+}
+
+void BWRenderSystem::ClearRenderTarget(unsigned int buffers, const ColourValue &color /*= ColourValue::Black*/, float depth /*= 1.0*/, unsigned short stencil /*= 0*/)
 {
 	
 }

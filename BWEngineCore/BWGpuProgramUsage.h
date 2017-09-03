@@ -19,6 +19,7 @@ public:
 	}
 	BWGpuProgramParametersPtr GetGpuProgramParameter();
 	BWGpuProgramPtr GetGpuProgram();
+	BWHighLevelGpuProgramPtr GetHighLevelGpuProgram(); // 其实程序内部都是使用的HighLevel
 	const std::string& GetProgramName();
 	void SetGpuProgram(BWGpuProgramPtr gpuProgram);
 	void SetGpuProgram(const std::string &name, bool isHighLevelGpuProgram = true);

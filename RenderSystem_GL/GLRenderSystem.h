@@ -65,9 +65,11 @@ public:
 	void SetViewport(int x, int y, int Width, int Hight) override;
 	void SetRenderTarget(RSRenderTarget& InRenderTarget) override;
 	void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
-	void SetShaderTexture(BWGpuProgramPtr GPUProgram, BWTexturePtr Texture, StaticSamplerStateHIRef Sampler) override;
+	void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler) override;
+	void ClearRenderTarget(unsigned int buffers, const ColourValue &color  = ColourValue::Black , float depth  = 1.0 , unsigned short stencil = 0 );
 	RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) override;
 	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
+	SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) override;
 public:
 	//////////////////////////////New Interface End
 
