@@ -89,6 +89,7 @@ public:
 	virtual void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState);
 	virtual void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler);
 	virtual void ClearRenderTarget(unsigned int buffers, const ColourValue &color = ColourValue::Black, float depth = 1.0, unsigned short stencil = 0);
+	virtual void ReadSurfaceData(BWTexturePtr SourceInterface, int Index, int MipLevel, BWPixelBox& Destination) { };
 	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) { return nullptr; }
 	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
 	virtual SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }

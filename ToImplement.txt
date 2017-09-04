@@ -1,7 +1,32 @@
-#将Unreal中的环境贴图算法实现
+
 #整理代码 
 总体思路是：整个渲染模块可以看成是GPU操作命令和GPU资源的集合。所以下一步的方向是
 将RenderSystem看成是对底层渲染命令的抽象。定位类似于Unreal中RHICommandList，并且
 封装一些常用的操作。
 GPU资源中的会占用较大现存的资源，例如 纹理 渲染目标 等进行更加底层的管理（类似于
 纹理池）。
+
+后半年完成这些 不再做其他功能
+一周
+#将Unreal中的环境贴图算法实现       
+#管线整理 将IBL和DirectLight分离
+opengl sampler object
+
+一周
+#tonemap
+#ssao
+
+三周
+#屏幕空间反射
+#templore AA 
+
+
+一周
+#shadowmap 
+
+
+了解：（以上实现之后 可以选择下面一个实现 但是下面的都要了解）
+LightMass
+SDF
+VXGI
+vulkan

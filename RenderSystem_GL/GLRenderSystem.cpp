@@ -1670,10 +1670,6 @@ bool GLRenderSystem::InitRendererResource()
 		AmbientOcclusionFilterGpuPrgramUsage = pass->getGPUProgramUsage();
 		AmbientOcclusionFilterProgram = dynamic_cast<GLSLGpuProgram*>(AmbientOcclusionFilterGpuPrgramUsage->GetGpuProgram().Get());*/
 
-	
-
-
-
 		 // 可以考虑将以下函数进行封装
 
 		BWQuaternion Quaterniton;
@@ -1691,9 +1687,8 @@ bool GLRenderSystem::InitRendererResource()
 		ViewMatrixs[4] = BWMatrix4::makeViewMatrix(BWVector3D(0.0, 0.0, 0.0), Quaterniton, nullptr); // +Z
 		Quaterniton.fromAngleAxis(Radian(PI), BWVector3D(0.0, 1.0, 0.0));
 		ViewMatrixs[5] = BWMatrix4::makeViewMatrix(BWVector3D(0.0, 0.0, 0.0), Quaterniton, nullptr); //-Z
-		//static std::vector<std::string> Dir{ "+X" , "-X" ,"+Y" , "-Y" , "+Z", "-Z" };
-
-        // 环境贴图的预处理
+		
+																									 // 环境贴图的预处理
 		mProcessEvnMap = BWMaterialManager::GetInstance()->GetResource("ProcessEnvMap", "General");
 		if (mProcessEvnMap.IsNull())
 		{
@@ -1708,7 +1703,7 @@ bool GLRenderSystem::InitRendererResource()
 
 
 
-		 //从Equirectangular HRD 产生 CubeMap环境贴图
+		//从Equirectangular HRD 产生 CubeMap环境贴图
 		mConverEquirectangularToCubeMap = BWMaterialManager::GetInstance()->GetResource("ConvertEquirectangularToCubeMap", "General");
 		if (mConverEquirectangularToCubeMap.IsNull())
 		{
@@ -1725,7 +1720,7 @@ bool GLRenderSystem::InitRendererResource()
 		BWGpuProgramUsage* mConverEquirectangularToCubeMapUsage = mConverEquirectangularToCubeMap->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
 		BWHighLevelGpuProgramPtr mConverEquirectangularToCubeMapGPU = mConverEquirectangularToCubeMap->getTechnique(0)->GetPass(0)->getGPUProgramUsage()->GetHighLevelGpuProgram();
 		mConverEquirectangularToCubeMapGPU->Load();
-		
+
 		HDRCubeMap = BWTextureManager::GetInstance()->Create("HDR_Cube_Map", "General");
 		HDRCubeMap->setTextureType(TEX_TYPE_CUBE_MAP);
 		HDRCubeMap->setFormat(PF_FLOAT32_RGB);
@@ -1741,7 +1736,7 @@ bool GLRenderSystem::InitRendererResource()
 		RSGraphicPipelineState PipeLineState;
 		RSRenderTarget RenderTarget;
 		PipeLineState.DepthAndStencilState = TStaticDepthAndStencilState<true, true, CMPF_LESS_EQUAL>::GetStateHI();
-		PipeLineState.RasterizerState = TStaticRasterizerState<PM_SOLID , CULL_CLOCKWISE>::GetStateHI();
+		PipeLineState.RasterizerState = TStaticRasterizerState<PM_SOLID, CULL_CLOCKWISE>::GetStateHI();
 		PipeLineState.GPUProgram = mConverEquirectangularToCubeMapGPU;
 		RenderTarget.DepthAndStencil = TmpDepthBuffer;
 		RenderTarget.RenderTargetTexture = HDRCubeMap;
@@ -1760,6 +1755,105 @@ bool GLRenderSystem::InitRendererResource()
 			RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(mConverEquirectangularToCubeMapGPU.Get()));
 		}
 		// 从Equirectangular HRD 产生 CubeMap环境贴图 End
+
+		
+
+		//Use The SH To Convolution The EnvMap
+		BWHighLevelGpuProgramPtr SHConvolution;
+		BWHighLevelGpuProgramPtr AccumulateDiffuse;
+		BWHighLevelGpuProgramPtr AccumulateCubeFace;
+		BWGpuProgramUsage* SHConvolutonUsage;
+		BWGpuProgramUsage* AccumulateUsage;
+		BWGpuProgramUsage* AccumulateCubeFaceUsage;
+		TSHVector<3> SHVector;
+		BWTexturePtr AccumulationCubeMaps[2];
+		BWTexturePtr GatherSHReslut;
+		float Mask[SHVector.MaxBasis];
+		const int MipLevelNum = mProcessEvnMapTexture->getWidth();
+		int CurrentMipLevel = 0;
+		BWHardwareDepthBufferPtr SHDepthBuffer =
+			new GLHardwareDepthBuffer("TempRenderTarget", mProcessEvnMapTexture->getWidth(), mProcessEvnMapTexture->getHeight(), 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
+		SHDepthBuffer->SetIsWithStencil(false);
+		PipeLineState.GPUProgram = SHConvolution;
+		for (int TextureIndx = 0; TextureIndx < 2; TextureIndx++)
+		{
+			AccumulationCubeMaps[TextureIndx] = BWTextureManager::GetInstance()->Create("SH_Cube_Map", "General");
+			AccumulationCubeMaps[TextureIndx]->setTextureType(TEX_TYPE_CUBE_MAP);
+			AccumulationCubeMaps[TextureIndx]->setFormat(PF_FLOAT32_RGB);
+			AccumulationCubeMaps[TextureIndx]->setWidth(mProcessEvnMapTexture->getWidth());
+			AccumulationCubeMaps[TextureIndx]->setHeight(mProcessEvnMapTexture->getHeight());
+			AccumulationCubeMaps[TextureIndx]->setNumMipmaps(0);
+			AccumulationCubeMaps[TextureIndx]->createInternalResources();
+		}
+		 
+		RenderTarget.DepthAndStencil = TmpDepthBuffer;
+		
+		SetRenderTarget(RenderTarget);
+		SetShaderTexture(SHConvolution, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+		SetViewport(0, 0, AccumulationCubeMaps[0]->getWidth(), AccumulationCubeMaps[0]->getHeight());
+		
+		for (int i = 0; i < SHVector.MaxBasis; i++)
+		{
+			CurrentMipLevel = 0;
+			for (int k = 0; k < SHVector.MaxBasis; k++)
+			{
+				Mask[k] = i == k ? 1.0f : 0.0f;
+			}
+			RenderTarget.RenderTargetTexture = AccumulationCubeMaps[CurrentMipLevel % 2];
+			for (int j = 0; j < 6; j++)
+			{
+				RenderTarget.Index = i;
+				RenderTarget.MipmapLevel = CurrentMipLevel;
+				SetRenderTarget(RenderTarget);
+				SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("Mask", Mask, SHVector.MaxBasis);
+				SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
+				SHConvolution->SetGPUProgramParameters(SHConvolution);
+				ClearRenderTarget(FBT_DEPTH);
+				RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(SHConvolution.Get()));
+			}
+
+			
+			PipeLineState.GPUProgram = AccumulateDiffuse;
+			for (CurrentMipLevel = 1; CurrentMipLevel < MipLevelNum; CurrentMipLevel++)
+			{
+				float MipScale = std::pow<float>(0.5, CurrentMipLevel);
+				SetViewport(0, 0, AccumulationCubeMaps[0]->getWidth() * MipScale , AccumulationCubeMaps[0]->getHeight() * MipScale);
+
+				SetShaderTexture(AccumulateDiffuse, AccumulationCubeMaps[1 - CurrentMipLevel % 2], TStaticSamplerState<FO_LINEAR>::GetStateHI());
+				RenderTarget.MipmapLevel = CurrentMipLevel;
+				RenderTarget.RenderTargetTexture = AccumulationCubeMaps[CurrentMipLevel % 2];
+				SetGrphicsPipelineState(PipeLineState);
+
+				for (int CubeFace = 0; CubeFace < 6; CubeFace++)
+				{
+					RenderTarget.Index = CubeFace;
+					AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
+					AccumulateDiffuse->SetGPUProgramParameters(AccumulateUsage->GetGpuProgramParameter());
+					SetRenderTarget(RenderTarget);
+					ClearRenderTarget(FBT_DEPTH);
+					RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(AccumulateDiffuse.Get()));
+				}
+			}
+
+			PipeLineState.GPUProgram = AccumulateCubeFace;
+			SetViewport(0, 0, SHVector.MaxBasis, 1);
+			SetGrphicsPipelineState(PipeLineState);
+
+			RenderTarget.Index = 0;
+			RenderTarget.MipmapLevel = MipLevelNum - 1;
+			RenderTarget.RenderTargetTexture = GatherSHReslut;
+			SetRenderTarget(RenderTarget);
+			SetShaderTexture(AccumulateCubeFace, AccumulationCubeMaps[(CurrentMipLevel - 1)% 2], TStaticSamplerState<FO_LINEAR>::GetStateHI());
+			ClearRenderTarget(FBT_DEPTH);
+			AccumulateCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[0]);
+			AccumulateCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("SHBasisIndex", &i, 1);
+			AccumulateCubeFace->SetGPUProgramParameters(AccumulateCubeFaceUsage->GetGpuProgramParameter());
+			RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(AccumulateCubeFace.Get()));
+		}
+		BWPixelBox PixelBox(SHVector.MaxBasis, 1, 0, PixelFormat::PF_FLOAT32_RGBA, SHVector.V);
+		ReadSurfaceData(GatherSHReslut, 0, 0, PixelBox);
+
+        
 
 		IBL_Diffuse_Cube_Map = BWTextureManager::GetInstance()->Create("IBL_Diffuse_Cube_Map", "General");
 		IBL_Diffuse_Cube_Map->setTextureType(TEX_TYPE_CUBE_MAP);
@@ -2054,6 +2148,13 @@ void GLRenderSystem::ClearRenderTarget(unsigned int buffers, const ColourValue &
 	{
 		glStencilMask(mStencilMask);
 	}
+}
+
+void GLRenderSystem::ReadSurfaceData(BWTexturePtr SourceInterface, int Index, int MipLevel, BWPixelBox& Destination)
+{
+  // 从纹理读取数据两种方法 
+  // 一种是glTexSubImage2D 
+  // 另一种是转化成PBO 然后使用glGetBufferSubData  该函数只对Buffer Object 有用
 }
 
 RasterizerStateHIRef GLRenderSystem::CreateRasterizerStateHI(RasterStateInitializer& Initializer)

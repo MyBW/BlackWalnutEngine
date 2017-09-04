@@ -634,3 +634,11 @@ public:
 	float y;
 	float z;
 };
+
+template<int Order>
+struct TSHVector
+{
+	enum {MaxOrder = Order};
+	enum {MaxBasis = Order * Order};
+	float V[MaxBasis];
+};

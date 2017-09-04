@@ -67,6 +67,7 @@ public:
 	void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
 	void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler) override;
 	void ClearRenderTarget(unsigned int buffers, const ColourValue &color  = ColourValue::Black , float depth  = 1.0 , unsigned short stencil = 0 );
+	void ReadSurfaceData(BWTexturePtr SourceInterface, int Index, int MipLevel, BWPixelBox& Destination) override;
 	RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) override;
 	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
 	SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) override;
