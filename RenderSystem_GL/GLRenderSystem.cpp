@@ -31,6 +31,7 @@
 #include "GL/include/GLAUX.H"
 #include "GLRenderState.h"
 #include "GLHelper.h"
+#include "GLPixelUtil.h"
 
 
 #define  VBO_BUFFER_OFFSET(i) ((char*)NULL + (i))
@@ -1741,7 +1742,8 @@ bool GLRenderSystem::InitRendererResource()
 		RenderTarget.DepthAndStencil = TmpDepthBuffer;
 		RenderTarget.RenderTargetTexture = HDRCubeMap;
 
-		SetViewport(0, 0, HDRCubeMap->getWidth(), HDRCubeMap->getHeight());
+		SetViewport(0, 0, HDRCubeMap->getWidth(), HDRCubeMap->getHeight(),
+			0, 0, HDRCubeMap->getWidth(), HDRCubeMap->getHeight());
 		SetGrphicsPipelineState(PipeLineState);
 		SetShaderTexture(mConverEquirectangularToCubeMapGPU, BeConveredMap->_getTexturePtr(), TStaticSamplerState<FO_LINEAR>::GetStateHI());
 		for (int i = 0; i < 6; i++)
@@ -1758,13 +1760,13 @@ bool GLRenderSystem::InitRendererResource()
 
 		
 
-		//Use The SH To Convolution The EnvMap
+		//Use SH To Convolution The EnvMap
 		BWHighLevelGpuProgramPtr SHConvolution;
 		BWHighLevelGpuProgramPtr AccumulateDiffuse;
-		BWHighLevelGpuProgramPtr AccumulateCubeFace;
+		BWHighLevelGpuProgramPtr AccumulateReadCubeFace;
 		BWGpuProgramUsage* SHConvolutonUsage;
 		BWGpuProgramUsage* AccumulateUsage;
-		BWGpuProgramUsage* AccumulateCubeFaceUsage;
+		BWGpuProgramUsage* AccumulateReadCubeFaceUsage;
 		TSHVector<3> SHVector;
 		BWTexturePtr AccumulationCubeMaps[2];
 		BWTexturePtr GatherSHReslut;
@@ -1790,7 +1792,8 @@ bool GLRenderSystem::InitRendererResource()
 		
 		SetRenderTarget(RenderTarget);
 		SetShaderTexture(SHConvolution, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-		SetViewport(0, 0, AccumulationCubeMaps[0]->getWidth(), AccumulationCubeMaps[0]->getHeight());
+		SetViewport(0, 0, AccumulationCubeMaps[0]->getWidth(), AccumulationCubeMaps[0]->getHeight(),
+			0, 0, AccumulationCubeMaps[0]->getWidth(), AccumulationCubeMaps[0]->getHeight());
 		
 		for (int i = 0; i < SHVector.MaxBasis; i++)
 		{
@@ -1817,7 +1820,8 @@ bool GLRenderSystem::InitRendererResource()
 			for (CurrentMipLevel = 1; CurrentMipLevel < MipLevelNum; CurrentMipLevel++)
 			{
 				float MipScale = std::pow<float>(0.5, CurrentMipLevel);
-				SetViewport(0, 0, AccumulationCubeMaps[0]->getWidth() * MipScale , AccumulationCubeMaps[0]->getHeight() * MipScale);
+				SetViewport(0, 0, AccumulationCubeMaps[0]->getWidth() * MipScale , AccumulationCubeMaps[0]->getHeight() * MipScale ,
+					0, 0, AccumulationCubeMaps[0]->getWidth() * MipScale, AccumulationCubeMaps[0]->getHeight() * MipScale);
 
 				SetShaderTexture(AccumulateDiffuse, AccumulationCubeMaps[1 - CurrentMipLevel % 2], TStaticSamplerState<FO_LINEAR>::GetStateHI());
 				RenderTarget.MipmapLevel = CurrentMipLevel;
@@ -1835,20 +1839,20 @@ bool GLRenderSystem::InitRendererResource()
 				}
 			}
 
-			PipeLineState.GPUProgram = AccumulateCubeFace;
-			SetViewport(0, 0, SHVector.MaxBasis, 1);
+			PipeLineState.GPUProgram = AccumulateReadCubeFace;
+			SetViewport(0, 0, SHVector.MaxBasis, 1, i, 0, i + 1, 1);
 			SetGrphicsPipelineState(PipeLineState);
 
 			RenderTarget.Index = 0;
 			RenderTarget.MipmapLevel = MipLevelNum - 1;
 			RenderTarget.RenderTargetTexture = GatherSHReslut;
 			SetRenderTarget(RenderTarget);
-			SetShaderTexture(AccumulateCubeFace, AccumulationCubeMaps[(CurrentMipLevel - 1)% 2], TStaticSamplerState<FO_LINEAR>::GetStateHI());
+			SetShaderTexture(AccumulateReadCubeFace, AccumulationCubeMaps[(CurrentMipLevel - 1)% 2], TStaticSamplerState<FO_LINEAR>::GetStateHI());
 			ClearRenderTarget(FBT_DEPTH);
-			AccumulateCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[0]);
-			AccumulateCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("SHBasisIndex", &i, 1);
-			AccumulateCubeFace->SetGPUProgramParameters(AccumulateCubeFaceUsage->GetGpuProgramParameter());
-			RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(AccumulateCubeFace.Get()));
+			AccumulateReadCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[0]);
+			AccumulateReadCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("SHBasisIndex", &i, 1);
+			AccumulateReadCubeFace->SetGPUProgramParameters(AccumulateReadCubeFaceUsage->GetGpuProgramParameter());
+			RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(AccumulateReadCubeFace.Get()));
 		}
 		BWPixelBox PixelBox(SHVector.MaxBasis, 1, 0, PixelFormat::PF_FLOAT32_RGBA, SHVector.V);
 		ReadSurfaceData(GatherSHReslut, 0, 0, PixelBox);
@@ -1868,7 +1872,8 @@ bool GLRenderSystem::InitRendererResource()
 		TmpDepthBuffer1->SetIsWithStencil(false);
 		SetShaderTexture(mProcessEvnMapProgram, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
-		SetViewport(0, 0, IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight());
+		SetViewport(0, 0, IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight(),
+			0, 0, IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight());
 		PipeLineState.GPUProgram = mProcessEvnMapProgram;
 		SetGrphicsPipelineState(PipeLineState);
 		
@@ -1921,7 +1926,8 @@ bool GLRenderSystem::InitRendererResource()
 		{
 			int MipWidth = Width * std::pow(0.5, mip);
 			int MipHeight = Height  * std::pow(0.5, mip);
-			SetViewport(0, 0, MipWidth, MipHeight);
+			SetViewport(0, 0, MipWidth, MipHeight,
+				0, 0, MipWidth, MipHeight);
 			RenderTarget.MipmapLevel = mip;			
 			float roughness =  mip / float(RoughnessLevel - 1);
 			for (int i = 0 ;i < 6 ; i++)
@@ -1956,7 +1962,8 @@ bool GLRenderSystem::InitRendererResource()
 		IBL_LUT->setHeight(512);
 		IBL_LUT->setNumMipmaps(0);
 		IBL_LUT->createInternalResources();
-		SetViewport(0, 0, 512, 512);
+		SetViewport(0, 0, 512, 512,
+			0, 0, 512, 512);
 		PipeLineState.GPUProgram = mProcessEvnMapLUTProgram;
 		SetGrphicsPipelineState(PipeLineState);
 		RenderTarget.Index = 0;
@@ -1970,10 +1977,11 @@ bool GLRenderSystem::InitRendererResource()
 	return false;
 }
 
-void GLRenderSystem::SetViewport(int x, int y, int Width, int Hight)
+void GLRenderSystem::SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight, 
+	int ScissorX, int ScissorY, int ScissorWidth, int ScissorHigh)
 {
-	glViewport(x, y, Width, Hight);
-	glScissor(x, y, Width, Hight);
+	glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHight);
+	glScissor(ScissorX, ScissorY, ScissorWidth, ScissorHigh);
 }
 
 void GLRenderSystem::SetRenderTarget(RSRenderTarget& InRenderTarget)
@@ -2150,11 +2158,57 @@ void GLRenderSystem::ClearRenderTarget(unsigned int buffers, const ColourValue &
 	}
 }
 
-void GLRenderSystem::ReadSurfaceData(BWTexturePtr SourceInterface, int Index, int MipLevel, BWPixelBox& Destination)
+void GLRenderSystem::ReadSurfaceData(BWTexturePtr SourceTexture, int Index, int MipLevel, BWPixelBox& Destination)
 {
-  // 从纹理读取数据两种方法 
-  // 一种是glTexSubImage2D 
-  // 另一种是转化成PBO 然后使用glGetBufferSubData  该函数只对Buffer Object 有用
+	//可以看看Unreal中的RHIReadSurfaceFloatData 函数  看看Opengl是如何管理FBO的
+	// there is not exist glGetTexSubImage . So we complete this function with pbo
+	GLTexture* Texture = dynamic_cast<GLTexture*>(SourceTexture.Get());
+	if (Texture)
+	{
+		GLenum GLTexutreType = Helper::GetGLTextureType(Texture->GetTextureType());
+		GLint CurrentBindTexture = 0 ;
+		GLint CurrentFrameBuffer = 0;
+		GLenum DesFormat = GLPixelUtil::getGLOriginFormat(Destination.mPixelFormat);
+		GLenum DesDataType = GLPixelUtil::getGLOriginDataType(Destination.mPixelFormat);
+		switch (GLTexutreType)
+		{
+		case GL_TEXTURE_2D:
+			glGetIntegerv(GL_TEXTURE_BINDING_2D, &CurrentBindTexture);
+			break;
+		case GL_TEXTURE_CUBE_MAP:
+			glGetIntegerv(GL_TEXTURE_BINDING_CUBE_MAP, &CurrentBindTexture);
+			break;
+		}
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &CurrentFrameBuffer);
+
+
+		GLuint NewFrameBuffer;
+		glGenFramebuffers(1, &NewFrameBuffer);
+		CHECK_GL_ERROR(glBindFramebuffer(GL_READ_FRAMEBUFFER, NewFrameBuffer));
+		GLint TextureID = Texture->GetHIID();
+		TextureType RenderTextureType = Texture->GetTextureType();
+		GLenum OutputFormat = GLPixelUtil::getGLOriginFormat(Destination.mPixelFormat);
+		GLenum OutputDataType = GLPixelUtil::getGLOriginDataType(Destination.mPixelFormat);
+
+		if (RenderTextureType == TEX_TYPE_2D)
+		{
+			CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TextureID, MipLevel));  //暂时使用2D纹理
+		}
+		if (RenderTextureType == TEX_TYPE_CUBE_MAP)
+		{
+			CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Index, TextureID, MipLevel));
+		}
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+		glReadPixels(Destination.left ,Destination.bottom, Destination.right, Destination.top, OutputFormat, OutputDataType, Destination.mData);
+		glPixelStorei(GL_PACK_ALIGNMENT, 4);
+		glDeleteFramebuffers(1, &NewFrameBuffer);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, CurrentFrameBuffer);
+		glBindTexture(GLTexutreType, CurrentBindTexture);
+	}
+
 }
 
 RasterizerStateHIRef GLRenderSystem::CreateRasterizerStateHI(RasterStateInitializer& Initializer)
