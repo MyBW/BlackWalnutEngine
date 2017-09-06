@@ -82,3 +82,25 @@
 	  fragment_shader_ref ConvertEquirectangularToCubeMapFragment
 	}
 	
+	
+	gpu_program RenderSystem_SHConvolution GLSL
+	{
+	  vertex_shader_ref   SHConvolutionVertex
+	  fragment_shader_ref SHConvolutionFragment
+	}
+	
+	
+	gpu_program RenderSystem_AccumulateDiffuse GLSL
+	{
+	  vertex_shader_ref   AccumulateDiffuseVertex
+	  fragment_shader_ref AccumulateDiffuseFragment
+	}
+	
+	
+	gpu_program RenderSystem_AccumulateReadCubeMap GLSL
+	{
+	  vertex_shader_ref   AccumulateReadCubeMapVertex
+	  fragment_shader_ref AccumulateReadCubeMapFragment
+	}
+	
+	

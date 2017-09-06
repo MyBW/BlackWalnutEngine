@@ -640,5 +640,5 @@ struct TSHVector
 {
 	enum {MaxOrder = Order};
 	enum {MaxBasis = Order * Order};
-	float V[MaxBasis];
+	float V[MaxBasis * 4]; // 输出的是RGBA  A是权重
 };

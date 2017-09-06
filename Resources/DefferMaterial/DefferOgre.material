@@ -390,3 +390,52 @@ material ConvertEquirectangularToCubeMap
 		}
 	}
 }
+
+material SHConvolution
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   RenderSystem_SHConvolution   GLSL
+			{
+				param_named EvnCubeMap int 0
+			}
+		}
+	}
+}
+
+
+material AccumulateDiffuse
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   RenderSystem_AccumulateDiffuse  GLSL
+			{
+				param_named AccumulatedCubeMap int 0
+			}
+		}
+	}
+}
+
+
+material AccumulateReadCubeMap
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   RenderSystem_AccumulateReadCubeMap  GLSL
+			{
+				param_named EvnCubeMap int 0
+			}
+		}
+	}
+}
+
+
+
+
+

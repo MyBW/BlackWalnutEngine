@@ -1769,12 +1769,16 @@ bool GLRenderSystem::InitRendererResource()
 		BWGpuProgramUsage* AccumulateReadCubeFaceUsage;
 		TSHVector<3> SHVector;
 		BWTexturePtr AccumulationCubeMaps[2];
+		float Sampler01[4];
+		float Sampler23[4];
 		BWTexturePtr GatherSHReslut;
 		float Mask[SHVector.MaxBasis];
-		const int MipLevelNum = mProcessEvnMapTexture->getWidth();
+		const int CubeMapWidth = mProcessEvnMapTexture->getWidth();
+		const int CubeMapHigh = mProcessEvnMapProgram->getHeight();
+		const int MipLevelNum = GLPixelUtil::getMaxMipmaps(CubeMapWidth, CubeMapHigh, 0);
 		int CurrentMipLevel = 0;
 		BWHardwareDepthBufferPtr SHDepthBuffer =
-			new GLHardwareDepthBuffer("TempRenderTarget", mProcessEvnMapTexture->getWidth(), mProcessEvnMapTexture->getHeight(), 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
+			new GLHardwareDepthBuffer("TempRenderTarget", CubeMapWidth, CubeMapHigh, 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
 		SHDepthBuffer->SetIsWithStencil(false);
 		PipeLineState.GPUProgram = SHConvolution;
 		for (int TextureIndx = 0; TextureIndx < 2; TextureIndx++)
@@ -1782,9 +1786,9 @@ bool GLRenderSystem::InitRendererResource()
 			AccumulationCubeMaps[TextureIndx] = BWTextureManager::GetInstance()->Create("SH_Cube_Map", "General");
 			AccumulationCubeMaps[TextureIndx]->setTextureType(TEX_TYPE_CUBE_MAP);
 			AccumulationCubeMaps[TextureIndx]->setFormat(PF_FLOAT32_RGB);
-			AccumulationCubeMaps[TextureIndx]->setWidth(mProcessEvnMapTexture->getWidth());
-			AccumulationCubeMaps[TextureIndx]->setHeight(mProcessEvnMapTexture->getHeight());
-			AccumulationCubeMaps[TextureIndx]->setNumMipmaps(0);
+			AccumulationCubeMaps[TextureIndx]->setWidth(CubeMapWidth);
+			AccumulationCubeMaps[TextureIndx]->setHeight(CubeMapHigh);
+			AccumulationCubeMaps[TextureIndx]->setNumMipmaps(MipLevelNum);
 			AccumulationCubeMaps[TextureIndx]->createInternalResources();
 		}
 		 
@@ -1792,8 +1796,7 @@ bool GLRenderSystem::InitRendererResource()
 		
 		SetRenderTarget(RenderTarget);
 		SetShaderTexture(SHConvolution, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-		SetViewport(0, 0, AccumulationCubeMaps[0]->getWidth(), AccumulationCubeMaps[0]->getHeight(),
-			0, 0, AccumulationCubeMaps[0]->getWidth(), AccumulationCubeMaps[0]->getHeight());
+		SetViewport(0, 0, CubeMapWidth, CubeMapHigh, 0, 0, CubeMapWidth, CubeMapHigh);
 		
 		for (int i = 0; i < SHVector.MaxBasis; i++)
 		{
@@ -1808,9 +1811,11 @@ bool GLRenderSystem::InitRendererResource()
 				RenderTarget.Index = i;
 				RenderTarget.MipmapLevel = CurrentMipLevel;
 				SetRenderTarget(RenderTarget);
-				SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("Mask", Mask, SHVector.MaxBasis);
+				SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("Mask0", Mask,4);
+				SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("Mask1", Mask[4], 4);
+				SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("Mask2", Mask[8], 1);
 				SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
-				SHConvolution->SetGPUProgramParameters(SHConvolution);
+				SHConvolution->SetGPUProgramParameters(SHConvolutonUsage->GetGpuProgramParameter());
 				ClearRenderTarget(FBT_DEPTH);
 				RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(SHConvolution.Get()));
 			}
@@ -1820,18 +1825,20 @@ bool GLRenderSystem::InitRendererResource()
 			for (CurrentMipLevel = 1; CurrentMipLevel < MipLevelNum; CurrentMipLevel++)
 			{
 				float MipScale = std::pow<float>(0.5, CurrentMipLevel);
-				SetViewport(0, 0, AccumulationCubeMaps[0]->getWidth() * MipScale , AccumulationCubeMaps[0]->getHeight() * MipScale ,
-					0, 0, AccumulationCubeMaps[0]->getWidth() * MipScale, AccumulationCubeMaps[0]->getHeight() * MipScale);
-
-				SetShaderTexture(AccumulateDiffuse, AccumulationCubeMaps[1 - CurrentMipLevel % 2], TStaticSamplerState<FO_LINEAR>::GetStateHI());
 				RenderTarget.MipmapLevel = CurrentMipLevel;
 				RenderTarget.RenderTargetTexture = AccumulationCubeMaps[CurrentMipLevel % 2];
-				SetGrphicsPipelineState(PipeLineState);
 
+				SetViewport(0, 0, CubeMapWidth * MipScale , CubeMapHigh * MipScale, 0, 0, CubeMapWidth * MipScale, CubeMapHigh * MipScale);
+				SetShaderTexture(AccumulateDiffuse, AccumulationCubeMaps[1 - CurrentMipLevel % 2], TStaticSamplerState<FO_LINEAR>::GetStateHI());
+				SetGrphicsPipelineState(PipeLineState);
 				for (int CubeFace = 0; CubeFace < 6; CubeFace++)
 				{
 					RenderTarget.Index = CubeFace;
 					AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
+					AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("Sample01", Sampler01, 4);
+					AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("Sample23", Sampler23, 4);
+					AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("CubeFace", &CubeFace, 1);
+					AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("MipMapLevel", &CurrentMipLevel, 1);
 					AccumulateDiffuse->SetGPUProgramParameters(AccumulateUsage->GetGpuProgramParameter());
 					SetRenderTarget(RenderTarget);
 					ClearRenderTarget(FBT_DEPTH);
@@ -1850,7 +1857,7 @@ bool GLRenderSystem::InitRendererResource()
 			SetShaderTexture(AccumulateReadCubeFace, AccumulationCubeMaps[(CurrentMipLevel - 1)% 2], TStaticSamplerState<FO_LINEAR>::GetStateHI());
 			ClearRenderTarget(FBT_DEPTH);
 			AccumulateReadCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[0]);
-			AccumulateReadCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("SHBasisIndex", &i, 1);
+			AccumulateReadCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("MipMapLevel", &MipLevelNum, 1);
 			AccumulateReadCubeFace->SetGPUProgramParameters(AccumulateReadCubeFaceUsage->GetGpuProgramParameter());
 			RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(AccumulateReadCubeFace.Get()));
 		}
@@ -2200,7 +2207,6 @@ void GLRenderSystem::ReadSurfaceData(BWTexturePtr SourceTexture, int Index, int 
 		}
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
 		glReadPixels(Destination.left ,Destination.bottom, Destination.right, Destination.top, OutputFormat, OutputDataType, Destination.mData);
 		glPixelStorei(GL_PACK_ALIGNMENT, 4);
 		glDeleteFramebuffers(1, &NewFrameBuffer);

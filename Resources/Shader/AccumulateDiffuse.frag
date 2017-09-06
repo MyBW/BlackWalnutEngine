@@ -1,10 +1,11 @@
 #version 430 core
 in vec3 WorldPosition ;
 out vec4 FinalFragColor ;
-uniform sampler2D AccumulatedCubeMap ;
-uniform vec4 Sample01 ;
-uniform vec4 Sample23;
+uniform samplerCubeMap AccumulatedCubeMap ;
+uniform vec4 Sampler01 ;
+uniform vec4 Sampler23;
 uniform int CubeFace ;
+uniform int MipMapLevel;
 
 
 const vec2 invAtan = vec2(0.1591, 0.3183);
@@ -60,30 +61,30 @@ void main()
 
 	{	
 	
-	    float2 ScaledUVs = saturate(UV + Sample01.xy) * 2 - 1;
+	    float2 ScaledUVs = saturate(UV + Sampler01.xy) * 2 - 1;
 	    float3 CubeCoordinates = GetCubemapVector(ScaledUVs);
-	    AccumlationReslut += samplerCubeMap(AccumulatedCubeMap , CubeCoordinates);
+	    AccumlationReslut += textureLod(AccumulatedCubeMap , CubeCoordinates, MipMapLevel);
 	}
   
 	{	
 	
-	    float2 ScaledUVs = saturate(UV + Sample01.zw) * 2 - 1;
+	    float2 ScaledUVs = saturate(UV + Sampler01.zw) * 2 - 1;
 	    float3 CubeCoordinates = GetCubemapVector(ScaledUVs);
-	    AccumlationReslut += samplerCubeMap(AccumulatedCubeMap , CubeCoordinates);
+	    AccumlationReslut += textureLod(AccumulatedCubeMap , CubeCoordinates, MipMapLevel);
 	}
 	
 	{	
 	
-	    float2 ScaledUVs = saturate(UV + Sample23.xy) * 2 - 1;
+	    float2 ScaledUVs = saturate(UV + Sampler23.xy) * 2 - 1;
 	    float3 CubeCoordinates = GetCubemapVector(ScaledUVs);
-	    AccumlationReslut += samplerCubeMap(AccumulatedCubeMap , CubeCoordinates);
+	    AccumlationReslut += textureLod(AccumulatedCubeMap , CubeCoordinates, MipMapLevel);
 	}
 	
 	{	
 	
-	    float2 ScaledUVs = saturate(UV + Sample23.zw) * 2 - 1;
+	    float2 ScaledUVs = saturate(UV + Sampler23.zw) * 2 - 1;
 	    float3 CubeCoordinates = GetCubemapVector(ScaledUVs);
-	    AccumlationReslut += samplerCubeMap(AccumulatedCubeMap , CubeCoordinates);
+	    AccumlationReslut += textureLod(AccumulatedCubeMap , CubeCoordinates, MipMapLevel);
 	}
 	
 	FinalFragColor = AccumlationReslut ;

@@ -1,11 +1,11 @@
 #version 430 core
 in vec3 WorldPosition ;
-uniform sampler2D EvnCubeMap ;
-out vec4 FinalFragColor ;
-
+uniform samplerCube EvnCubeMap ;
 uniform vec4 Mask0;
 uniform vec4 Mask1;
 uniform float Mask2;
+out vec4 FinalFragColor ;
+
 const vec2 invAtan = vec2(0.1591, 0.3183);
 struct FThreeBandSHVector
 {
@@ -47,7 +47,7 @@ FThreeBandSHVector SHBasisFunction3( vec3  InputVector)
 void main()
 {
 	vec3 Dir = noramlize(WorldPosition);
-	vec3 Lighting = textureCubeMap(EvnCubeMap, Dir).xyz;
+	vec3 Lighting = texture(EvnCubeMap, Dir).xyz;
 	
     vec2 ScaledUVs = SampleSphericalMap(Dir) ;
 	float SquaredUVs = 1 + dot(ScaledUVs, ScaledUVs);

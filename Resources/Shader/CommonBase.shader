@@ -145,4 +145,34 @@ fragment_shader ConvertEquirectangularToCubeMapFragment glsl
   Source ConvertEquirectangularToCubeMap.frag
 }
 
+vertex_shader SHConvolutionVertex glsl
+{
+  Source SHConvolution.vert
+}
 
+fragment_shader SHConvolutionFragment glsl
+{
+  Source SHConvolution.frag
+}
+
+
+vertex_shader AccumulateDiffuseVertex glsl
+{
+  Source AccumulateDiffuse.vert
+}
+
+fragment_shader AccumulateDiffuseFragment glsl
+{
+  Source AccumulateDiffuse.frag
+}
+
+
+vertex_shader AccumulateReadCubeMapVertex glsl
+{
+  Source AccumulateReadCubeMap.vert
+}
+
+fragment_shader AccumulateReadCubeMapFragment glsl
+{
+  Source AccumulateReadCubeMap.frag
+}

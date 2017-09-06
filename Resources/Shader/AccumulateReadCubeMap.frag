@@ -1,8 +1,9 @@
 #version 430 core
 in vec3 WorldPosition ;
 uniform samplerCube EvnCubeMap;
-out vec4 FinalFragColor ;
 uniform int MipMapLevel;
+out vec4 FinalFragColor ;
+
 void main()
 {
     
