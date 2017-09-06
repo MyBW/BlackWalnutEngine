@@ -7,7 +7,7 @@ out vec4 FinalFragColor ;
 void main()
 {
     
-	float4 AccumulateValue = textureLod(EvnCubeMap, vec3(1.0, 0.0 ,0.0), MipMapLevel); 
+	vec4 AccumulateValue = textureLod(EvnCubeMap, vec3(1.0, 0.0 ,0.0), MipMapLevel); 
 	AccumulateValue += textureLod(EvnCubeMap, vec3(0.0, 1.0 ,0.0), MipMapLevel); 
 	AccumulateValue += textureLod(EvnCubeMap, vec3(0.0, 0.0 ,1.0), MipMapLevel); 
 	AccumulateValue += textureLod(EvnCubeMap, vec3(-1.0, 0.0 ,0.0), MipMapLevel); 
