@@ -62,8 +62,8 @@ public:
 
 	//////////////////////////////New Interface
 public:
-	void SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight, 
-		int ScissorX, int ScissorY, int ScissorWidth, int ScissorHigh) override;
+	void SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight) override;
+	void SetScissor(bool IsEnable, int ScissorX  = 0 , int ScissorY = 0, int ScissorWidth  = 0 , int ScissorHigh = 0 ) override;
 	void SetRenderTarget(RSRenderTarget& InRenderTarget) override;
 	void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
 	void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler) override;

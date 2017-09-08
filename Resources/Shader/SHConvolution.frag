@@ -46,7 +46,12 @@ FThreeBandSHVector SHBasisFunction3( vec3  InputVector)
 
 void main()
 {
-	vec3 Dir = normalize(WorldPosition);
+    vec3 TmpWorldPos = WorldPosition ;
+    TmpWorldPos.y *= -1;// 目前只有这样才能得到正确的cubemap 应该是引擎传入的View 矩阵有问题
+    TmpWorldPos.z *= -1;
+	vec3 Dir = normalize(TmpWorldPos);
+	
+	
 	vec3 Lighting = texture(EvnCubeMap, Dir).xyz;
 	
     vec2 ScaledUVs = SampleSphericalMap(Dir) ;
@@ -57,4 +62,5 @@ void main()
     
 	float SHCofficient = dot(SHCoefficients.V0 , Mask0) + dot(SHCoefficients.V1, Mask1) + SHCoefficients.V2 * Mask2 ;
     FinalFragColor = vec4(Lighting * SHCofficient * TexelWeight, TexelWeight);
+	//FinalFragColor = vec4(Lighting,1.0);
 }

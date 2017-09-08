@@ -62,7 +62,11 @@ vec2 saturate(vec2 UV)
 
 void main()
 {
-    vec3 Dir = normalize(WorldPosition) ;
+
+    vec3 TmpWorldPos = WorldPosition ;
+    TmpWorldPos.y *= -1;// 目前只有这样才能得到正确的cubemap 应该是引擎传入的View 矩阵有问题
+    TmpWorldPos.z *= -1;
+	vec3 Dir = normalize(TmpWorldPos);
     vec2 UV = SampleSphericalMap(Dir) ;
     vec4 AccumlationReslut = vec4(0.0) ;
 
@@ -71,6 +75,7 @@ void main()
 	    vec2 ScaledUVs = saturate(UV + Sampler01.xy) * 2 - 1;
 	    vec3 CubeCoordinates = GetCubemapVector(ScaledUVs);
 	    AccumlationReslut += textureLod(AccumulatedCubeMap , CubeCoordinates, MipMapLevel);
+		//AccumlationReslut += textureLod(AccumulatedCubeMap , CubeCoordinates, MipMapLevel);
 	}
   
 	{	
@@ -94,5 +99,5 @@ void main()
 	    AccumlationReslut += textureLod(AccumulatedCubeMap , CubeCoordinates, MipMapLevel);
 	}
 	
-	FinalFragColor = AccumlationReslut ;
+	FinalFragColor = AccumlationReslut/4.0 ;
 }

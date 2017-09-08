@@ -85,6 +85,7 @@ struct StaticSamplerStateInitializer
 	SamplerAddressMode RAdd_Mode;
 	SamplerAddressMode SAdd_Mode;
 	SamplerAddressMode TAdd_Mode;
+
 	int MipBias;
 };
 template<FilterOptions Filter = FO_POINT,

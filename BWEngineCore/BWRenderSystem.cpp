@@ -408,7 +408,13 @@ bool BWRenderSystem::InitRendererResource()
 	return true;
 }
 
-void BWRenderSystem::SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight, int ScissorX, int ScissorY, int ScissorWidth, int ScissorHigh)
+void BWRenderSystem::SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight)
+{
+
+}
+
+
+void BWRenderSystem::SetScissor(bool IsEnable, int ScissorX, int ScissorY, int ScissorWidth, int ScissorHigh)
 {
 
 }

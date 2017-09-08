@@ -493,7 +493,7 @@ class BWPixelBox : public BWBox
 {
 public:
 	BWPixelBox(size_t width, size_t height, size_t depth, PixelFormat pixelFormat, void *pixelData = 0) :
-		BWBox(0, 0, 0, width, height, depth)
+		BWBox(0, height, 0, width, 0, depth)
 		, mPixelFormat(pixelFormat), mData(pixelData)
 	{
 		setConsecutive();

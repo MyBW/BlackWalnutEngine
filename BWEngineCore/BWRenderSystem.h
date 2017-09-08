@@ -84,8 +84,8 @@ public:
 	
 	void SetGlobalDataSet(BWAutoParamDataSource *GlobalData) { this->GlobalData = GlobalData; }
 ////////////////////////////////////////// The New Interface
-	virtual void SetViewport(int ViewportX , int ViewportY , int ViewportWidth, int ViewportHight,
-		int ScissorX , int ScissorY , int ScissorWidth, int ScissorHigh);
+	virtual void SetViewport(int ViewportX , int ViewportY , int ViewportWidth, int ViewportHight);
+	virtual void SetScissor(bool IsEnable, int ScissorX = 0, int ScissorY = 0, int ScissorWidth = 0, int ScissorHigh = 0);
 	virtual void SetRenderTarget(RSRenderTarget& InRenderTarget);
 	virtual void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState);
 	virtual void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler);
@@ -258,6 +258,9 @@ protected:
 
 	BWMaterialPtr mConverEquirectangularToCubeMap;
 	BWTexturePtr HDRCubeMap;
+    // SH
+	BWTexturePtr AccumulationCubeMaps[2];
+
 };
 
 
