@@ -2,7 +2,8 @@
 #define GPUPROGRAMUSAGE_H_
 #include "BWGpuProgramParams.h"
 #include "BWGpuProgram.h"
-#include "BWPass.h"
+#include "BWHighLevelGpuProgram.h"
+class BWPass;
 class BWGpuProgramUsage 
 {
 public:
@@ -33,6 +34,34 @@ private:
 	BWGpuProgramPtr gpuProgram;
 	GpuProgramType gpuProgramType;
 };
-
+class BWGpuProgramUsagePtr : public SmartPointer<BWGpuProgramUsage>
+{
+public:
+	BWGpuProgramUsagePtr() :SmartPointer<BWGpuProgramUsage>() {}
+	BWGpuProgramUsagePtr(BWGpuProgramUsage* ptr) :SmartPointer<BWGpuProgramUsage>(ptr) {}
+	BWGpuProgramUsagePtr(const BWResourcePtr& resource)
+	{
+		mPointer = dynamic_cast<BWGpuProgramUsage*>(resource.Get());
+		counter = resource.GetCounterPointer();
+		(*counter)++;
+	}
+	const BWGpuProgramUsagePtr& operator=(BWResourcePtr resource)
+	{
+		if (mPointer == dynamic_cast<BWGpuProgramUsage*> (resource.Get()))
+		{
+			return *this;
+		}
+		if (mPointer)
+		{
+			(*counter)--;
+			if ((*counter) == 0)
+			{
+				delete mPointer;
+			}
+		}
+		mPointer = dynamic_cast<BWGpuProgramUsage*>(resource.Get());
+		counter = resource.GetCounterPointer();
+	}
+};
 
 #endif

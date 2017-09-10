@@ -15,6 +15,7 @@ public:
 	GLenum GetGLTextureTarget();
 	GLenum getTextureBufferAttachment() const;
 	GLuint GetHIID(){ return mTextureID; }
+	FORCEINLINE void SetHIID(GLuint NewHIID) { mTextureID = NewHIID; }
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget ,int Index , int MipLevel = 0) override;
 	static void do_image_io(std::string &name, std::string &groupName, std::string &ext, ImageVectorPtr &images, BWTexture *texture);
 	void RemoveFromRenderTarget() override;

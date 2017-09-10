@@ -385,7 +385,14 @@ void GLTexture::createInternalResourcesImpl()
 	if (mTextureType == TEX_TYPE_2D)
 	{
 		//  这里使用glTextureParamter的 是为了提前准备各种mipmap等 而不是纹理针对某一个纹理单元
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		if (mFormat == PF_B8G8R8A8)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		}
+		else
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		}
 		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	

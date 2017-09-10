@@ -231,7 +231,6 @@ THE SOFTWARE.
         SBF_SOURCE_ALPHA,
         SBF_ONE_MINUS_DEST_ALPHA,
         SBF_ONE_MINUS_SOURCE_ALPHA
-
     };
 
 	/** Blending operations controls how objects are blended into the scene. The default operation

@@ -76,6 +76,26 @@ public:
 		counter = resource.GetCounterPointer();
 		(*counter)++;
 	}
+	const BWHighLevelGpuProgramPtr& operator=(BWGpuProgramPtr resource)
+	{
+		if (mPointer == dynamic_cast<BWHighLevelGpuProgram*> (resource.Get()))
+		{
+			return *this;
+		}
+		if (mPointer)
+		{
+			(*counter)--;
+			if ((*counter) == 0)
+			{
+				delete mPointer;
+			}
+		}
+		mPointer = dynamic_cast<BWHighLevelGpuProgram*>(resource.Get());
+		counter = resource.GetCounterPointer();
+		(*counter)++;
+	}
+
+
 };
 
 #endif

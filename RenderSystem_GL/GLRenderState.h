@@ -27,3 +27,11 @@ public:
 	GLenum TAdd_Mode;
 	int MipBias;
 };
+class GLStaticBlendState : public BlendStateHI
+{
+public:
+	GLenum IsEnbaleBlend;
+	GLenum BlendEquation;
+	GLenum FactorS;
+	GLenum FactorD;
+};

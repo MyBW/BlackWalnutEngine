@@ -64,16 +64,26 @@ public:
 public:
 	void SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight) override;
 	void SetScissor(bool IsEnable, int ScissorX  = 0 , int ScissorY = 0, int ScissorWidth  = 0 , int ScissorHigh = 0 ) override;
-	void SetRenderTarget(RSRenderTarget& InRenderTarget) override;
-	void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
+	void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget, BWHardwareDepthBufferPtr DepthBuffer) override;
+	void SetRenderTargets(RSRenderTargets& InRenderTargets) override;
+	void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
 	void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler) override;
 	void ClearRenderTarget(unsigned int buffers, const ColourValue &color  = ColourValue::Black , float depth  = 1.0 , unsigned short stencil = 0 );
 	void ReadSurfaceData(BWTexturePtr SourceTexture, int Index, int MipLevel, BWPixelBox& Destination) override;
+	void RenderOperation(BWRenderOperation & RenderOperation, BWHighLevelGpuProgramPtr GPUProgram) override;
+	void CopyTextureToTexture(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel, BWTexturePtr DestinationTexture, int DestinationIndex, int DestinationMipmapLevel) override;
+	void CopyTextureToScreen(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel);
 	RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) override;
 	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
 	SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) override;
+	BlendStateHIRef CreateBlendStateHI(StaticBlendStateInitializer& Initializer) override;
+	// Just As Helper Function 
+	void RenderInDirectLights() override;
 public:
 	//////////////////////////////New Interface End
+	void SetRenderTargetImmediately(RSRenderTarget& InRenderTarget);
+	void SetGraphicsPipelineStateImmediately(RSGraphicPipelineState& InPipelineState);
+	void SetShaderTextureImmediately(const std::vector<RSShaderTexture>& InShaderTexures);
 
 
 protected:
@@ -117,9 +127,7 @@ protected:
 	void RenderRenderableShadow(BWRenderable * Renderable) override;
 	void FinishLightsShadowMaps() override;
 	void BeginDeferLight() override;
-	void DirectLightPass() override;
 	void PointLightPass() override;
-	void RenderSkyBox() override;
 	void RenderAmbientOcclusion() override;
 
 	void SetProjectedShadowInfoForRenderShadow(ShadowMapProjectInfo& ProjectInfo) override;
@@ -127,6 +135,7 @@ protected:
 
 
 	void RenderRenderOperation(BWRenderOperation & RenderOperation , BWMatrix4& ModelMatrix);
+	
 	void RenderOperation(BWRenderOperation & RenderOperation, GLSLGpuProgram * GPUProgram);
 	void RenderRenderOperationWithPointLight(BWRenderOperation &RenderOperation);
 	void RenderRenderOperationWithSkyBox(BWRenderOperation &RenderOperation);
@@ -160,14 +169,14 @@ private:
 
 
 	class GLSLGpuProgram* DirectLightGLSLProgram;
-	class BWGpuProgramUsage*  DirectLightGLSLPrgramUsage;
+	BWGpuProgramUsagePtr  DirectLightGLSLPrgramUsage;
 
 
 	GLint DirectLightShadowMapLoc;
 
 
 	class GLSLGpuProgram* mPointLightDefferLightingGLSLProgram;
-	class BWGpuProgramUsage*  mPointLightDefferLightingGpuPrgramUsage;
+	BWGpuProgramUsagePtr mPointLightDefferLightingGpuPrgramUsage;
 
 
 	/*GLint mPointLightDefferLightingBaseColorMapLoc;
@@ -178,7 +187,7 @@ private:
     GLTexturePtr GLNormalTexture;
 	GLTexturePtr GLPositionTexture;
 
-	BWRenderOperation CubeMeshRenderOperation;
+	
 	BWRenderOperation SphereMeshRenderOperation;
 
 	class GLRenderTarget* GLShadowMapRenderTarget;
@@ -190,8 +199,8 @@ private:
 	class BWGpuProgramUsage*  DirectionalLightShadowMapGpuPrgramUsage;
 	
 
-	class GLSLGpuProgram* mSkyBoxGLSLProgram;
-	class BWGpuProgramUsage*  mSkyBoxGpuPrgramUsage;
+	
+	
 	GLTexturePtr GLSkyBoxTexture;
 
 	//class BWGpuProgramUsage*  AmbientOcclusionGpuPrgramUsage;

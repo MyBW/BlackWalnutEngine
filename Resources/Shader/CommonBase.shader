@@ -176,3 +176,17 @@ fragment_shader AccumulateReadCubeMapFragment glsl
 {
   Source AccumulateReadCubeMap.frag
 }
+
+
+vertex_shader ImageBaseLightingVertex glsl
+{
+  Source ImageBaseLighting.vert
+}
+
+fragment_shader ImageBaseLightingFragment glsl
+{
+  Source ImageBaseLighting.frag
+}
+
+
+

@@ -28,3 +28,16 @@ SamplerStateHIRef TStaticSamplerState<Filter, RAdd_Mode, SAdd_Mode, TAdd_Mode, M
 	StaticSamplerStateInitializer Initializer = { Filter, RAdd_Mode, SAdd_Mode, TAdd_Mode, MipBias };
 	return BWRoot::GetInstance()->mActiveRenderSystem->CreateSamplerStateHI(Initializer);
 }
+
+
+template<bool IsEnableBlend /*= false*/,
+	SceneBlendOperation BlendEquation /*= SceneBlendOperation::SBO_ADD*/,
+	SceneBlendFactor FactorS /*= SceneBlendFactor::SBF_ONE*/,
+	SceneBlendFactor FactorD /*= SceneBlendFactor::SBF_ZERO
+							 */>
+	BlendStateHIRef TStaticBlendStateHI<IsEnableBlend, BlendEquation, FactorS, FactorD>::CreateHI()
+{
+	StaticBlendStateInitializer Initializer = { IsEnableBlend, BlendEquation, FactorS, FactorD };
+	return BWRoot::GetInstance()->mActiveRenderSystem->CreateBlendStateHI(Initializer);
+}
+

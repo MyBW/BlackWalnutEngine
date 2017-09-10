@@ -584,7 +584,7 @@ float BWPass::getDepthBiasSlopScale() const
 }
 bool BWPass::isProgrammable() const
 {
-	return mFragmentPrg || mVertexPrg || mGPUProgram;
+	return mFragmentPrg || mVertexPrg || mGPUProgram.Get();
 }
 bool BWPass::getPolygonModeOverrideable() const
 {
@@ -604,7 +604,7 @@ unsigned int BWPass::getStartLight() const
 
 BWHighLevelGpuProgramPtr BWPass::getGPUProgram() const
 {
-	if (!mGPUProgram)
+	if (!mGPUProgram.IsNull())
 	{
 		return mGPUProgram->GetGpuProgram();
 	}
@@ -612,7 +612,7 @@ BWHighLevelGpuProgramPtr BWPass::getGPUProgram() const
 }
 void BWPass::setGPUProgram(const std::string &name , const std::string &language)
 {
-	if (!mGPUProgram)
+	if (mGPUProgram.IsNull())
 	{
 		mGPUProgram = new BWGpuProgramUsage(this);
 	}
@@ -620,13 +620,13 @@ void BWPass::setGPUProgram(const std::string &name , const std::string &language
 }
 BWGpuProgramParametersPtr BWPass::getGPUProgramParameter() const
 {
-	if (mGPUProgram)
+	if (!mGPUProgram.IsNull())
 	{
 		return mGPUProgram->GetGpuProgramParameter();
 	}
 	return NULL;
 }
-BWGpuProgramUsage* BWPass::getGPUProgramUsage() const
+BWGpuProgramUsagePtr BWPass::getGPUProgramUsage() const
 {
 	return mGPUProgram;
 }

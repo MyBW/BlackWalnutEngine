@@ -155,8 +155,11 @@ typedef std::map<std::string, std::string> NameValuePairList;
 
 
 
+namespace HelperFunction
+{
+	size_t  GetMaxMipmaps(size_t width, size_t height, size_t depth);
 
-
+}
 
 
 

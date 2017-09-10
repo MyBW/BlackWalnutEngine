@@ -2,6 +2,7 @@
 #define GLHardwarePixelBuffer_H_
 #include "GL/include/glew.h"
 #include "../BWEngineCore/BWHardwarePixelBuffer.h"
+#include "../BWEngineCore/BWCommon.h"
 class GLHardwarePixelBuffer : public BWHardwarePixelBuffer
 {
 public:
@@ -12,7 +13,7 @@ public:
 	virtual void removeFromRenderTarget();
 	void RemoveFromRenderTarget() override;
 	GLenum getAttachment() const;
-
+	FORCEINLINE GLuint GetHIID() const { return mRenderbufferID; }
 	virtual void unLockImp() override;
 	virtual BWPixelBox lockImp(const BWBox lockBox, LockOptions option) override;
 	virtual void blitFromMemory(const BWPixelBox &src, const BWBox &desBox) override;

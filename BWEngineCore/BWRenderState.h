@@ -30,6 +30,7 @@ class StateHI
 {
 public:
 	virtual int GetMemSize() { return 0; } 
+	bool IsDirty{ false };
 };
 
 class RasterizerStateHI : public StateHI
@@ -98,6 +99,30 @@ class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<Filter, RA
 {
 public:
 	static SamplerStateHIRef CreateHI();
+};
+
+class BlendStateHI : public StateHI
+{
+
+};
+using BlendStateHIP = BlendStateHI*;
+using BlendStateHIRef = SmartPointer<BlendStateHI>;
+struct StaticBlendStateInitializer
+{
+	bool IsEnableBlend;
+	SceneBlendOperation BlendEquation;
+	SceneBlendFactor FactorS;
+	SceneBlendFactor FactorD;
+};
+template<bool IsEnableBlend = false,
+	SceneBlendOperation BlendEquation = SceneBlendOperation::SBO_ADD,
+	SceneBlendFactor FactorS = SceneBlendFactor::SBF_ONE,
+    SceneBlendFactor FactorD = SceneBlendFactor::SBF_ZERO
+	>
+class TStaticBlendStateHI : public TStaticStateHI<TStaticBlendStateHI<IsEnableBlend, BlendEquation, FactorS, FactorD>, BlendStateHIRef, BlendStateHIP>
+{
+public:
+	static BlendStateHIRef CreateHI();
 };
 
 #include "BWRenderState.inl"

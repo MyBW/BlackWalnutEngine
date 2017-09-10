@@ -11,19 +11,35 @@
 #include"BWMesh.h"
 #include "BWRenderState.h"
 /////////////////////////// New Interface
+struct RSShaderTexture
+{
+	BWGpuProgramUsagePtr GPUProgramUsage;
+	BWTexturePtr Texture;
+	SamplerStateHIRef Sampler;
+};
+
 struct RSRenderTarget
 {
 	int Index;  // 如果是纹理数组 或者 立方体纹理  表示的位置
 	int MipmapLevel;
 	BWTexturePtr RenderTargetTexture;
 	BWTexturePtr ShaderableTexture;
+};
+
+struct RSRenderTargets
+{
+	BWGpuProgramUsagePtr GPUProgramUsage;
+	std::vector<RSRenderTarget> RenderTargets;
 	BWHardwareDepthBufferPtr DepthAndStencil;
 };
+
 struct RSGraphicPipelineState
 {
 	RasterizerStateHIRef RasterizerState;
+	BlendStateHIRef BlendState;
 	DepthAndStencilStateHIRef DepthAndStencilState;
-	BWHighLevelGpuProgramPtr GPUProgram;
+	//BWHighLevelGpuProgramPtr GPUProgram;
+	BWGpuProgramUsagePtr GPUProgramUsage;
 };
 ///////////////////////////////New Interface End
 class BWRenderWindow;
@@ -86,17 +102,34 @@ public:
 ////////////////////////////////////////// The New Interface
 	virtual void SetViewport(int ViewportX , int ViewportY , int ViewportWidth, int ViewportHight);
 	virtual void SetScissor(bool IsEnable, int ScissorX = 0, int ScissorY = 0, int ScissorWidth = 0, int ScissorHigh = 0);
-	virtual void SetRenderTarget(RSRenderTarget& InRenderTarget);
-	virtual void SetGrphicsPipelineState(RSGraphicPipelineState& InPipelineState);
+	virtual void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget, BWHardwareDepthBufferPtr DepthBuffer) { };
+	virtual void SetRenderTargets(RSRenderTargets& InRenderTargets) {};
+
+	virtual void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState);
 	virtual void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler);
 	virtual void ClearRenderTarget(unsigned int buffers, const ColourValue &color = ColourValue::Black, float depth = 1.0, unsigned short stencil = 0);
 	virtual void ReadSurfaceData(BWTexturePtr SourceInterface, int Index, int MipLevel, BWPixelBox& Destination) { };
+	virtual void CopyTextureToTexture(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel, BWTexturePtr DestinationTexture, int DestinationIndex, int DestinationMipmapLevel) { }
+	virtual void CopyTextureToScreen(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel) { };
+	virtual void ClearResourceForRender();
+
 	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) { return nullptr; }
 	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
 	virtual SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
+	virtual BlendStateHIRef CreateBlendStateHI(StaticBlendStateInitializer& Initializer) { return  nullptr; }
+	virtual void RenderOperation(BWRenderOperation &RenderOperation, BWHighLevelGpuProgramPtr GPUProgram) { };
+	
 protected:
 	RSGraphicPipelineState CachedPipelineState;
-	SamplerStateHIRef CacheSamplerState;
+	RSRenderTarget CacheRenderTarget;
+	std::vector<RSShaderTexture> ShaderTextures;
+	TSHVector<3> SHVector;
+	BWRenderOperation CubeMeshRenderOperation;
+
+	BWHighLevelGpuProgramPtr ImageBaseLighting;
+	BWGpuProgramUsagePtr ImageBaseLightingUsage;
+
+	void SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage);
 
 public:
 //////////////////////////////////////////
@@ -202,6 +235,8 @@ protected:
 	BWRenderTarget* GRenderTarget;
 
 	BWMaterialPtr mDirectionLightM;
+	BWGpuProgramUsagePtr  DirectLightProgramUsage;
+
 	BWMeshPrt mCubeMesh;
 	BWMaterialPtr mPointLightM;
 	BWMeshPrt mPointLightMesh;
@@ -209,6 +244,8 @@ protected:
 	BWTexturePtr BaseColorTexture;
 	BWTexturePtr NormalTexture;
 	BWTexturePtr PositionTexture;
+	BWHardwareDepthBufferPtr GDepthBuffer;
+	BWTexturePtr FinalRenderResult;
 
 	BWMaterialPtr AmbientOcclusionMaterial;
 	BWTexturePtr AmbientOcclusionTexture;
@@ -236,23 +273,25 @@ protected:
 	virtual void SetProjectedShadowInfoForRenderShadow(ShadowMapProjectInfo& ProjectInfo){ }
 	virtual void RemoveProjectedShadowInfoFromRenderShadow(ShadowMapProjectInfo& ProjectInfo){ }
 
-
+	
 	BWMaterialPtr mSkyBoxM;
-	virtual void RenderSkyBox() { };
+	BWGpuProgramUsagePtr  mSkyBoxGpuPrgramUsage;
+	BWHighLevelGpuProgramPtr mSkyBoxGLSLProgram;
+	virtual void RenderSkyBox();
 
 	BWMaterialPtr mProcessEvnMap;
 	BWTexturePtr mProcessEvnMapTexture;
-	class BWGpuProgramUsage*  mProcessEvnMapGpuPrgramUsage;
+	BWGpuProgramUsagePtr  mProcessEvnMapGpuPrgramUsage;
 	BWHighLevelGpuProgramPtr mProcessEvnMapProgram;
 	BWTexturePtr IBL_Diffuse_Cube_Map;
 
 	BWMaterialPtr mPreprocessEvnMapForSpecular;
-	class BWGpuProgramUsage*  mProcessEvnMapForSpecularGpuPrgramUsage;
+	BWGpuProgramUsagePtr  mProcessEvnMapForSpecularGpuPrgramUsage;
 	BWHighLevelGpuProgramPtr mProcessEvnMapForSpecularProgram;
 	BWTexturePtr IBL_Specular_Cube_Map;
 
 	BWMaterialPtr mPreprocessEvnMapLUT;
-	class BWGpuProgramUsage*  mProcessEvnMapLUTGpuPrgramUsage;
+	BWGpuProgramUsagePtr  mProcessEvnMapLUTGpuPrgramUsage;
 	BWHighLevelGpuProgramPtr mProcessEvnMapLUTProgram;
 	BWTexturePtr IBL_LUT;
 

@@ -1,5 +1,6 @@
 #include "BWGpuProgramUsage.h"
 #include "BWHighLevelGpuProgramManager.h"
+#include "BWPass.h"
 const std::string & BWGpuProgramUsage::GetProgramName()
 {
 	return gpuProgram->GetResourceName();
@@ -66,7 +67,9 @@ BWGpuProgramPtr BWGpuProgramUsage::GetGpuProgram()
 
 BWHighLevelGpuProgramPtr BWGpuProgramUsage::GetHighLevelGpuProgram()
 {
-	return dynamic_cast<BWHighLevelGpuProgram*>(gpuProgram.Get());
+	BWHighLevelGpuProgramPtr ReturnValue;
+	ReturnValue = gpuProgram;
+	return ReturnValue;
 }
 
 void BWGpuProgramUsage::setGPUProgram(const std::string &name , const std::string &language) // 这个GLSL已经失去意义

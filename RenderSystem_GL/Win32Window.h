@@ -6,6 +6,7 @@
 #include"GLTexture.h"
 #include "GLWin32Support.h"
 #include "Win32Context.h"
+#include "../BWEngineCore/BWGpuProgramUsage.h"
 
 class WIn32Window : public BWRenderWindow
 {
@@ -65,7 +66,7 @@ private:
 	// 这里是延迟渲染相关的东西 但是这里涉及到了GL相关的代码 不应该这样随后调整
 	BWMaterialPtr material;
 	class GLSLGpuProgram* glslProgram;
-	class BWGpuProgramUsage*  gpuPrgramUsage;
+	BWGpuProgramUsagePtr  gpuPrgramUsage;
 	GLuint BufferID ;
 	GLint BaseColorMapLoc;
 	GLint NormalMapLoc;
@@ -75,7 +76,7 @@ private:
 	BWMaterialPtr mPointLightDefferLightingMaterial;
 
 	class GLSLGpuProgram* mPointLightDefferLightingGLSLProgram;
-	class BWGpuProgramUsage*  mPointLightDefferLightingGpuPrgramUsage;
+	BWGpuProgramUsagePtr  mPointLightDefferLightingGpuPrgramUsage;
 	GLuint mPointLightDefferLightingBufferID;
 	GLuint mPointLightDefferLightingIndexBufferID;
 

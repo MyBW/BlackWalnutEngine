@@ -259,7 +259,6 @@ void main()
    vec3 FinalColor = DirectLightColor  + InDirectLightDiffuseColor + InDirectLightSpecular ;
    
    float gamma = 2.2 ;
-   FinalColor = FinalColor;
    FinalColor = FinalColor / (FinalColor + vec3(1.0)) ;
    FinalColor = pow(FinalColor , vec3(1.0/gamma)) ;
    gl_FragColor.xyz = FinalColor;

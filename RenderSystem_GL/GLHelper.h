@@ -97,4 +97,43 @@ namespace Helper
 		Check(0);
 		return 0;
 	}
+	FORCEINLINE GLenum GetBlendEquation(SceneBlendOperation Equation)
+	{
+		switch (Equation)
+		{
+		case SBO_ADD: return GL_FUNC_ADD;
+		case SBO_SUBTRACT: return GL_FUNC_SUBTRACT;
+		case SBO_REVERSE_SUBTRACT: return GL_FUNC_REVERSE_SUBTRACT;
+		case SBO_MIN: return GL_MIN;
+		case SBO_MAX: return GL_MAX;
+		}
+		Check(0);
+	}
+	FORCEINLINE GLenum GetBlendFactor(SceneBlendFactor BlendFactor)
+	{
+		switch (BlendFactor)
+		{
+		case SBF_ONE:
+			return GL_ONE;
+		case SBF_ZERO:
+			return GL_ZERO;
+		case SBF_DEST_COLOUR:
+			return GL_DST_COLOR;
+		case SBF_SOURCE_COLOUR:
+			return GL_SRC_COLOR;
+		case SBF_ONE_MINUS_DEST_COLOUR:
+			return GL_ONE_MINUS_DST_COLOR;
+		case SBF_ONE_MINUS_SOURCE_COLOUR:
+			return GL_ONE_MINUS_SRC_COLOR;
+		case SBF_DEST_ALPHA:
+			return GL_DST_ALPHA;
+		case SBF_SOURCE_ALPHA:
+			return GL_SRC_ALPHA;
+		case SBF_ONE_MINUS_DEST_ALPHA:
+			return GL_ONE_MINUS_DST_ALPHA;
+		case SBF_ONE_MINUS_SOURCE_ALPHA:
+			return GL_ONE_MINUS_SRC_ALPHA;
+		}
+		return GL_ONE;
+	}
 }

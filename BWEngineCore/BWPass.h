@@ -11,6 +11,7 @@
 #include "BWTextureUnitState.h"
 #include "BWCommon.h"
 #include "BWTechnique.h"
+#include "BWGpuProgramUsage.h"
 enum IlluminationStage
 {
 	IS_AMBIENT,
@@ -18,7 +19,6 @@ enum IlluminationStage
 	IS_DECAL,
 	IS_UNKNOW
 };
-class BWGpuProgramUsage;
 class BWPass
 {
 	friend class BWTechnique;
@@ -139,7 +139,7 @@ public:
 	void setGPUProgram(const std::string &name ,  const std::string &language);
 	BWHighLevelGpuProgramPtr getGPUProgram() const;
 	BWGpuProgramParametersPtr getGPUProgramParameter() const;
-	BWGpuProgramUsage* getGPUProgramUsage() const;
+	BWGpuProgramUsagePtr getGPUProgramUsage() const ;
 protected:
 	void load();
 private:
@@ -236,7 +236,7 @@ private:
 	TextureUnitStates mTextureUnitStates;
 
 	BWHighLevelGpuProgramPtr mHeightLevelProgram;
-	BWGpuProgramUsage *mGPUProgram;
+	BWGpuProgramUsagePtr mGPUProgram;
 };
 
 

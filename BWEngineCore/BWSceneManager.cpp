@@ -595,7 +595,11 @@ void BWSceneManager::renderSingleObject(  BWRenderable *renderable, const BWPass
 		fireRenderSingleObject(renderable, pass, mAutoParamDataSource, NULL, mSuppressRenderStateChanges);
 		if (pass->isProgrammable())
 		{
-			mActiveRenderSystem->bindGPUProgramUsage(pass->getGPUProgramUsage());
+			RSGraphicPipelineState Pipeline;
+			Pipeline.GPUProgramUsage = pass->getGPUProgramUsage();
+			mActiveRenderSystem->SetGraphicsPipelineState(Pipeline);
+			mActiveRenderSystem->SetupGBufferRenderTarget(pass->getGPUProgramUsage());
+			//~!~! mActiveRenderSystem->bindGPUProgramUsage(pass->getGPUProgramUsage());
 		}
 
 		mActiveRenderSystem->setCurrentPassIterationCount(1);
