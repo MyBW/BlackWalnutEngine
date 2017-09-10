@@ -390,7 +390,7 @@ void GLSLShader::createUniformConstant(std::string &uniformSentence)
 	std::size_t pos = name.find("[");
 	if (pos != std::string::npos)
 	{
-		std::string num = name.substr(pos, name.find(']', pos) - pos);
+		std::string num = name.substr(pos + 1, name.find(']', pos) - pos - 1);
 		name = name.substr(0, pos);
 		def.arraySize = StringConverter::ParseInt(num);
 	}

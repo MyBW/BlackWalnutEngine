@@ -1279,10 +1279,7 @@ void GLRenderSystem::_render(const BWRenderOperation &ro)
 	BWRenderSystem::_render(ro);
 
 	if (CachedPipelineState.GPUProgramUsage.Get())
-	//~!~!if (mGPUProgram.Get() && ro.useIndexes)
 	{
-		//~!~!dynamic_cast<GLSLGpuProgram*>(mGPUProgram.Get())->bindingBuffer(ro.indexData, ro.vertexData);
-
 		BWHighLevelGpuProgramPtr GPUProgram = CachedPipelineState.GPUProgramUsage->GetHighLevelGpuProgram();
 		GLSLGpuProgram* GLGPUProgram = dynamic_cast<GLSLGpuProgram*>(GPUProgram.Get());
 		GLGPUProgram->bind();
@@ -2142,31 +2139,13 @@ BlendStateHIRef GLRenderSystem::CreateBlendStateHI(StaticBlendStateInitializer& 
 	return RenderState;
 }
 
-
-void GLRenderSystem::RenderInDirectLights()
-{
-	return;
-	GLHardwarePixelBuffer*FinalRenderResultHI = dynamic_cast<GLHardwarePixelBuffer*>(GLGBuffer->getPixelRenderBuffer(std::string("FinalRenderResult")).Get());
-	static BWTexturePtr TempTexture;//= BWTextureManager::GetInstance()->Create("BaseColorMap", DEFAULT_RESOURCE_GROUP);
-    if (!TempTexture.Get())
-    {
-		TempTexture = BWTextureManager::GetInstance()->Create("BaseColorMap", DEFAULT_RESOURCE_GROUP);
-    }
-	TempTexture->setWidth(FinalRenderResultHI->getWidth());
-	TempTexture->setHeight(FinalRenderResultHI->getHeight());
-	TempTexture->setTextureType(TEX_TYPE_2D);
-	dynamic_cast<GLTexture*>(TempTexture.Get())->SetHIID(FinalRenderResultHI->GetHIID());
-	CopyTextureToTexture(TempTexture, 0, 0, BWRenderSystem::FinalRenderResult, 0, 0);
-	BWRenderSystem::RenderInDirectLights();
-	CopyTextureToTexture(BWRenderSystem::FinalRenderResult, 0, 0, TempTexture , 0, 0);
-}
-
 void GLRenderSystem::BeginDeferLight()
 {
 	//~!~!glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 void GLRenderSystem::PointLightPass()
 {
+	return;
 	//点光源光照
 	BWGpuProgramParametersPtr GpuProgramParameter = mPointLightDefferLightingGpuPrgramUsage->GetGpuProgramParameter();
 	/*BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(GpuProgramParameter);*/

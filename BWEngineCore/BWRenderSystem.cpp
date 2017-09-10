@@ -424,6 +424,7 @@ bool BWRenderSystem::InitRendererResource()
 	
 	GDepthBuffer = GRenderTarget->getDepthRenderBuffer(std::string("DepthBuffer"));
 
+	
 	DirectLightProgramUsage = mDirectionLightM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
 
 	BWMaterialPtr ImageBaseLightingMaterial = BWMaterialManager::GetInstance()->GetResource("ImageBaseLighting", "General");
@@ -801,11 +802,8 @@ bool BWRenderSystem::InitRendererResource()
 			SetRenderTarget(mProcessEvnMapForSpecularGpuPrgramUsage ,RenderTarget, TmpDepthBuffer1);
 			mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
 			mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("roughness", &roughness, 1, 1);
-			//mProcessEvnMapForSpecularProgram->SetGPUProgramParameters(mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter());
 			ClearRenderTarget(FBT_DEPTH);
 			BWHighLevelGpuProgramPtr tmp;
-			//RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapForSpecularProgram.Get()));
-			//RenderOperation(CubeMeshRenderOperation, mProcessEvnMapForSpecularProgram);
 			RenderOperation(CubeMeshRenderOperation, tmp);
 		}
 	}
@@ -949,20 +947,29 @@ void BWRenderSystem::RenderLights()
 
 void BWRenderSystem::RenderInDirectLights()
 {
-	return;
     // Image Base Lighting 
 	RSGraphicPipelineState PipelineState;
-	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<>::GetStateHI();
 	PipelineState.GPUProgramUsage = ImageBaseLightingUsage;
-	PipelineState.RasterizerState = TStaticRasterizerState<PM_SOLID, CULL_CLOCKWISE>::GetStateHI();
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
 	PipelineState.BlendState = TStaticBlendStateHI<true, SBO_ADD, SBF_ONE, SBF_ONE>::GetStateHI();
 	SetGraphicsPipelineState(PipelineState);
+
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
+		ImageBaseLightingUsage->GetGpuProgramParameter()
+		);
+	ImageBaseLighting = ImageBaseLightingUsage->GetHighLevelGpuProgram();
+	
 
 	BaseColorTexture->SetIndex(0);
 	NormalTexture->SetIndex(1);
 	PositionTexture->SetIndex(2);
 	IBL_Specular_Cube_Map->SetIndex(3);
 	IBL_LUT->SetIndex(4);
+
+	// 使用一张贴图来进行环境满反射
+	//IBL_Diffuse_Cube_Map->SetIndex(5);
+	//SetShaderTexture(DirectLighting, IBL_Diffuse_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
 	SetShaderTexture(ImageBaseLighting, BaseColorTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, NormalTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, PositionTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
@@ -972,15 +979,15 @@ void BWRenderSystem::RenderInDirectLights()
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture = FinalRenderResult;
+	RenderTarget.RenderTargetTexture = BWRenderSystem::FinalRenderResult;
 	SetRenderTarget(ImageBaseLightingUsage, RenderTarget,GDepthBuffer);
-
 	ImageBaseLightingUsage->GetGpuProgramParameter()->SetNamedConstant("SHCoefficient", SHVector.V, 36, 1);
-	ImageBaseLighting->SetGPUProgramParameters(ImageBaseLightingUsage->GetGpuProgramParameter());
-	ClearRenderTarget(FBT_DEPTH);
-	RenderOperation(CubeMeshRenderOperation, ImageBaseLighting);
-
-	PipelineState.BlendState = TStaticBlendStateHI<false, SBO_ADD, SBF_ONE, SBF_ONE>::GetStateHI();
+	
+	BWHighLevelGpuProgramPtr tmp;
+	RenderOperation(CubeMeshRenderOperation, tmp);
+	
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<true, true>::GetStateHI();
+	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
 	SetGraphicsPipelineState(PipelineState);
 }
 
@@ -1032,16 +1039,10 @@ void BWRenderSystem::DirectLightPass()
 	BaseColorTexture->SetIndex(0);
 	NormalTexture->SetIndex(1);
 	PositionTexture->SetIndex(2);
-	IBL_Diffuse_Cube_Map->SetIndex(3);
-	IBL_Specular_Cube_Map->SetIndex(4);
-	IBL_LUT->SetIndex(5);
 	SetShaderTexture(DirectLighting, BaseColorTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(DirectLighting, NormalTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(DirectLighting, PositionTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(DirectLighting, IBL_Diffuse_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(DirectLighting, IBL_Specular_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(DirectLighting, IBL_LUT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-
+	
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;

@@ -77,8 +77,6 @@ public:
 	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
 	SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) override;
 	BlendStateHIRef CreateBlendStateHI(StaticBlendStateInitializer& Initializer) override;
-	// Just As Helper Function 
-	void RenderInDirectLights() override;
 public:
 	//////////////////////////////New Interface End
 	void SetRenderTargetImmediately(RSRenderTarget& InRenderTarget);

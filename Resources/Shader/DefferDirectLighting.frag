@@ -3,9 +3,6 @@ in vec2 textureCoord ;
 uniform sampler2D BaseColorMap ;
 uniform sampler2D NormalMap ;
 uniform sampler2D PositionMap;
-uniform samplerCube IBL_Diffuse_Light ;
-uniform samplerCube IBL_Specular_Light;
-uniform sampler2D  IBL_LUT;
 uniform vec3 LightDirection ;
 uniform vec3 LightColor;
 layout(binding = 0,std140) uniform CameraInfo
@@ -245,19 +242,7 @@ void main()
    vec3 Diffuse = Kd * Albedo / PI ;
    vec3 DirectLightColor = ( Diffuse + FinalSpecular) *LightColor * NoL;
 
-   vec3 InF = fresnelSchlickRoughness(max(dot(Normal , ViewDirection), 0.0) , RealSpecular , Roughness) ;  // 使用不同的Freshnel
-   vec3 InKs = InF ;
-   vec3 InKd = vec3(1.0) - InKs ;
-
-   vec3 InDirectLightDiffuseColor = InKd * Albedo * texture(IBL_Diffuse_Light, Normal).rgb / PI;
-
-   vec3 R = reflect(-ViewDirection , Normal) ;
-   vec2 Brdf = texture(IBL_LUT, vec2( 1 - NoV , Roughness)).xy ; // LUT 有问题
-   vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R , Roughness * 6.0 /* Mip Num*/).rgb ;
-   vec3 InDirectLightSpecularPart2 = InF * Brdf.x + Brdf.y ;
-   vec3 InDirectLightSpecular = InDirectLightSpecularPart1 * InDirectLightSpecularPart2 ;
-   vec3 FinalColor = DirectLightColor  + InDirectLightDiffuseColor + InDirectLightSpecular ;
-   
+   vec3 FinalColor = DirectLightColor ;
    float gamma = 2.2 ;
    FinalColor = FinalColor / (FinalColor + vec3(1.0)) ;
    FinalColor = pow(FinalColor , vec3(1.0/gamma)) ;

@@ -5,10 +5,6 @@ uniform sampler2D NormalMap ;
 uniform sampler2D PositionMap;
 uniform samplerCube IBL_Specular_Light;
 uniform sampler2D  IBL_LUT;
-
-uniform vec4 SHCoefficient[9];
-
-
 layout(binding = 0,std140) uniform CameraInfo
 {
   mat4 ViewInversMatrix;
@@ -18,6 +14,7 @@ layout(binding = 0,std140) uniform CameraInfo
   vec2 NearFar;
   vec2 ScreenWH ;
 };
+uniform float SHCoefficient[36];
 const float PI = 3.1415926 ;
 vec4 FromScreenToWorld(mat4 InViewInverse , vec2 InScreenPos , vec2 InScreenWH, float InFov , vec2 InNearFar , float InPrjPlaneWInverseH,float InCameraDepth)
 {
@@ -91,7 +88,7 @@ float  DotSH3(FThreeBandSHVector A,FThreeBandSHVector B)
 
 vec3  DotSH3RGB(FThreeBandSHVectorRGB A,FThreeBandSHVector B)
 {
-	vec3  Result = 0;
+	vec3  Result = vec3(0.0, 0.0, 0.0);
 	Result.r = DotSH3(A.R,B);
 	Result.g = DotSH3(A.G,B);
 	Result.b = DotSH3(A.B,B);
@@ -142,24 +139,25 @@ vec3 GetIndirectLightDifffuseColor(vec3 Normal)
 {
 	    FThreeBandSHVectorRGB CachedSH;
 		int ColorIndex = 0 ;
-		CachedSH.R.V0 = float4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
-		CachedSH.R.V1 = float4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
+		CachedSH.R.V0.xyzw = vec4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
+		CachedSH.R.V1 = vec4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
 		CachedSH.R.V2 = SHCoefficient[ColorIndex + 32];
 		
-		int ColorIndex = 1 ;
-		CachedSH.G.V0 = float4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
-		CachedSH.G.V1 = float4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
+		ColorIndex = 1 ;
+		CachedSH.G.V0 = vec4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
+		CachedSH.G.V1 = vec4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
 		CachedSH.G.V2 = SHCoefficient[ColorIndex + 32];
 		
-		int ColorIndex = 2 ;
-		CachedSH.B.V0 = float4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
-		CachedSH.B.V1 = float4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
+		ColorIndex = 2 ;
+		CachedSH.B.V0 = vec4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
+		CachedSH.B.V1 = vec4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
 		CachedSH.B.V2 = SHCoefficient[ColorIndex + 32];
 		
 
 		FThreeBandSHVector DiffuseTransferSH = CalcDiffuseTransferSH3(Normal, 1);
 		
-		vec3 OutDiffuseLighting = max( vec3(0,0,0), DotSH3RGB(CachedSH, DiffuseTransferSH)) / PI;
+		vec3 OutDiffuseLighting = max( vec3(0,0,0), DotSH3RGB(CachedSH, DiffuseTransferSH));
+		return OutDiffuseLighting;
 		
 }
 
@@ -188,17 +186,19 @@ void main()
    vec3 ViewPos = ViewPositionWorldSpace ;
    vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , gl_FragCoord.xy, ScreenWH, FoV, NF, PrjPlaneWInverseH, CameraSpaceDepth) ;
    vec3 ViewDirection = normalize(ViewPos - WorldPos.xyz);
+   float NoV = max(dot(Normal , ViewDirection) , 0.0) ;   
    
+   vec3 InF = fresnelSchlickRoughness(max(dot(Normal , ViewDirection), 0.0) , RealSpecular , Roughness) ;  // 使用不同的Freshnel
    
+  
+   vec3 InKs = InF ;
+   vec3 InKd = vec3(1.0) - InKs ;
    
-  // Use Diffuse Light Eve Map To Render
-   //vec3 InF = fresnelSchlickRoughness(max(dot(Normal , ViewDirection), 0.0) , RealSpecular , Roughness) ;  // 使用不同的Freshnel
-   //vec3 InKs = InF ;
-   //vec3 InKd = vec3(1.0) - InKs ;
+  // Use Diffuse Light Eve Map To Render 
    //vec3 InDirectLightDiffuseColor = InKd * Albedo * texture(IBL_Diffuse_Light, Normal).rgb / PI;
    
   //Use SH To Simulate Diffuse Light 
-     vec3 InDirectLightDiffuseColor = GetIndirectLightDifffuseColor(Normal);
+     vec3 InDirectLightDiffuseColor = InKd * Albedo* GetIndirectLightDifffuseColor(Normal)/ PI;
     
 
    vec3 R = reflect(-ViewDirection , Normal) ;
@@ -208,10 +208,12 @@ void main()
    vec3 InDirectLightSpecular = InDirectLightSpecularPart1 * InDirectLightSpecularPart2 ;
    vec3 FinalColor = InDirectLightDiffuseColor + InDirectLightSpecular ;
    
+
+   //FinalColor = InDirectLightDiffuseColor;
    float gamma = 2.2 ;
-   FinalColor = FinalColor;
+   //FinalColor = FinalColor;
    FinalColor = FinalColor / (FinalColor + vec3(1.0)) ;
   // FinalColor = pow(FinalColor , vec3(1.0/gamma)) ;
-  // gl_FragColor.xyz = FinalColor;
+   gl_FragColor.xyz = FinalColor;
    gl_FragColor.a = 1.0;
 }

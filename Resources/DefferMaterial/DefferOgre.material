@@ -310,9 +310,6 @@ material Ogre/BaseDirectLightingMaterial
 			   param_named BaseColorMap int 0
 			   param_named NormalMap int 1
 			   param_named PositionMap int 2
-			   param_named IBL_Diffuse_Light int 3
-			   param_named IBL_Specular_Light int 4
-			   param_named IBL_LUT int 5
 			   param_named_auto ViewInversMatrix inverse_view_matrix
 			   param_named_auto ViewPositionWorldSpace camera_position
 			   param_named_auto FoV fov
@@ -441,13 +438,21 @@ material ImageBaseLighting
 	{
 		pass
 		{
+		
 			gpu_program_ref   RenderSystem_ImageBaseLighting  GLSL
 			{
-				param_named BaseColorMap int 0
+			   
+			   param_named BaseColorMap int 0
 			   param_named NormalMap int 1
 			   param_named PositionMap int 2
 			   param_named IBL_Specular_Light int 3
 			   param_named IBL_LUT int 4
+			   param_named_auto ViewInversMatrix inverse_view_matrix
+			   param_named_auto ViewPositionWorldSpace camera_position
+			   param_named_auto FoV fov
+			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
+			   param_named_auto NearFar far_and_near_clip_distance
+			   param_named_auto ScreenWH viewport_width_and_height
 			}
 		}
 	}

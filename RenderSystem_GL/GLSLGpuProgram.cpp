@@ -554,9 +554,9 @@ void GLSLGpuProgram::loadImpl()
 		while (defMapItor != namedConstantes->map.end())
 		{
 			defMapItor->second.logicalIndex = glGetUniformLocation(mID, defMapItor->first.c_str());
+			CHECK_GL_ERROR();
 			defMapItor++;
 		}
-		
 		mFloatList.resize(namedConstantes->floatBufferSize);
 		mIntList.resize(namedConstantes->intBufferSize);
 		// …Ë÷√UBO
