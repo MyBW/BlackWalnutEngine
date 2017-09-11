@@ -30,14 +30,18 @@ SamplerStateHIRef TStaticSamplerState<Filter, RAdd_Mode, SAdd_Mode, TAdd_Mode, M
 }
 
 
-template<bool IsEnableBlend /*= false*/,
-	SceneBlendOperation BlendEquation /*= SceneBlendOperation::SBO_ADD*/,
-	SceneBlendFactor FactorS /*= SceneBlendFactor::SBF_ONE*/,
-	SceneBlendFactor FactorD /*= SceneBlendFactor::SBF_ZERO
-							 */>
-	BlendStateHIRef TStaticBlendStateHI<IsEnableBlend, BlendEquation, FactorS, FactorD>::CreateHI()
+template < bool IsEnableBlend /*= false*/,
+	SceneBlendOperation RGBBlendEquation /*= SceneBlendOperation::SBO_ADD*/,
+	SceneBlendFactor RGBFactorS /*= SceneBlendFactor::SBF_ONE*/,
+	SceneBlendFactor RGBFactorD /*= SceneBlendFactor::SBF_ZERO*/,
+	bool IsSepatate /*= false*/,
+	SceneBlendOperation AlphaBlendEquation /*= SceneBlendOperation::SBO_ADD*/,
+	SceneBlendFactor AlphaFactorS /*= SceneBlendFactor::SBF_ONE*/,
+	SceneBlendFactor AlphaFactorD /*= SceneBlendFactor::SBF_ZERO
+								  */>
+	BlendStateHIRef TStaticBlendStateHI<IsEnableBlend, RGBBlendEquation, RGBFactorS, RGBFactorD, IsSepatate, AlphaBlendEquation, AlphaFactorS, AlphaFactorD>::CreateHI()
 {
-	StaticBlendStateInitializer Initializer = { IsEnableBlend, BlendEquation, FactorS, FactorD };
-	return BWRoot::GetInstance()->mActiveRenderSystem->CreateBlendStateHI(Initializer);
+	StaticBlendStateInitializer Initializer = { IsEnableBlend, RGBBlendEquation, RGBFactorS, RGBFactorD, IsSepatate, AlphaBlendEquation, AlphaFactorS, AlphaFactorD };
+	return BWRoot::GetInstance()->mActiveRenderSystem->CreateSamplerStateHI(Initializer);
 }
 

@@ -459,5 +459,56 @@ material ImageBaseLighting
 }
 
 
+material AmbientOcclusion
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref   RenderSystem_AmbientOcclusion  GLSL
+			{
+			   
+			   param_named BaseColorMap int 0
+			   param_named NormalMap int 1
+			   param_named PositionMap int 2
+			   param_named IBL_Specular_Light int 3
+			   
+			   
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto ViewInversMatrix inverse_view_matrix
+			   param_named_auto ViewPositionWorldSpace camera_position
+			   param_named_auto FoV fov
+			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
+			   param_named_auto NearFar far_and_near_clip_distance
+			   param_named_auto ScreenWH viewport_width_and_height
+			}
+		}
+	}
+}
 
+
+material AmbientOcclusion
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref   RenderSystem_AmbientOcclusionFilter  GLSL
+			{
+			   
+			   param_named BaseColorMap int 0
+			   param_named_auto ViewInversMatrix inverse_view_matrix
+			   param_named_auto ViewPositionWorldSpace camera_position
+			   param_named_auto FoV fov
+			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
+			   param_named_auto NearFar far_and_near_clip_distance
+			   param_named_auto ScreenWH viewport_width_and_height
+			}
+		}
+	}
+}
 

@@ -110,16 +110,27 @@ using BlendStateHIRef = SmartPointer<BlendStateHI>;
 struct StaticBlendStateInitializer
 {
 	bool IsEnableBlend;
-	SceneBlendOperation BlendEquation;
-	SceneBlendFactor FactorS;
-	SceneBlendFactor FactorD;
+	SceneBlendOperation RGBBlendEquation;
+	SceneBlendFactor RGBFactorS ;
+	SceneBlendFactor RGBFactorD ;
+	bool IsSepatate;
+	SceneBlendOperation AlphaBlendEquation;
+	SceneBlendFactor AlphaFactorS ;
+	SceneBlendFactor AlphaFactorD ;
 };
-template<bool IsEnableBlend = false,
-	SceneBlendOperation BlendEquation = SceneBlendOperation::SBO_ADD,
-	SceneBlendFactor FactorS = SceneBlendFactor::SBF_ONE,
-    SceneBlendFactor FactorD = SceneBlendFactor::SBF_ZERO
+template < bool IsEnableBlend = false,
+	SceneBlendOperation RGBBlendEquation = SceneBlendOperation::SBO_ADD,
+	SceneBlendFactor RGBFactorS = SceneBlendFactor::SBF_ONE,
+	SceneBlendFactor RGBFactorD = SceneBlendFactor::SBF_ZERO,
+	bool IsSepatate = false,
+	SceneBlendOperation AlphaBlendEquation = SceneBlendOperation::SBO_ADD,
+	SceneBlendFactor AlphaFactorS = SceneBlendFactor::SBF_ONE,
+	SceneBlendFactor AlphaFactorD = SceneBlendFactor::SBF_ZERO
 	>
-class TStaticBlendStateHI : public TStaticStateHI<TStaticBlendStateHI<IsEnableBlend, BlendEquation, FactorS, FactorD>, BlendStateHIRef, BlendStateHIP>
+class TStaticBlendStateHI : public TStaticStateHI<TStaticBlendStateHI<IsEnableBlend, RGBBlendEquation, RGBFactorS, RGBFactorD, 
+	IsSepatate, AlphaBlendEquation, AlphaFactorS , AlphaFactorD>, 
+	BlendStateHIRef, 
+	BlendStateHIP>
 {
 public:
 	static BlendStateHIRef CreateHI();

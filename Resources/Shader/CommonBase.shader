@@ -189,4 +189,14 @@ fragment_shader ImageBaseLightingFragment glsl
 }
 
 
+fragment_shader AmibientOcclusionFragment glsl
+{
+  Source PostProcessAO.frag
+}
+
+fragment_shader AmibientOcclusionFilterFragment glsl
+{
+  Source PostProcessAOFilter.frag
+}
+
 

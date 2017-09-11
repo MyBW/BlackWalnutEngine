@@ -126,7 +126,6 @@ protected:
 	void FinishLightsShadowMaps() override;
 	void BeginDeferLight() override;
 	void PointLightPass() override;
-	void RenderAmbientOcclusion() override;
 
 	void SetProjectedShadowInfoForRenderShadow(ShadowMapProjectInfo& ProjectInfo) override;
 	void RemoveProjectedShadowInfoFromRenderShadow(ShadowMapProjectInfo& ProjectInfo)override;

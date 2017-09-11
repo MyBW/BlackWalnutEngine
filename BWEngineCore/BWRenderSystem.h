@@ -254,9 +254,9 @@ protected:
 	BWMaterialPtr DirectionLightShadowMapM;
 	BWMaterialPtr PointLightShadowMapM;
 
-	virtual void RenderAmbientOcclusion() { };
-	virtual void RenderLights();
-	virtual void RenderInDirectLights();
+	void RenderAmbientOcclusion() ;
+	void RenderLights();
+	void RenderInDirectLights();
 	virtual void RenderLightsShadowMaps();
 	virtual void FinishLightsShadowMaps() {}
 	virtual void SetRenderShadowMapRenderTarget() { };
@@ -277,7 +277,7 @@ protected:
 	BWMaterialPtr mSkyBoxM;
 	BWGpuProgramUsagePtr  mSkyBoxGpuPrgramUsage;
 	BWHighLevelGpuProgramPtr mSkyBoxGLSLProgram;
-	virtual void RenderSkyBox();
+	void RenderSkyBox();
 
 	BWMaterialPtr mProcessEvnMap;
 	BWTexturePtr mProcessEvnMapTexture;

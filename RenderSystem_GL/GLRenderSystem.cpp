@@ -1858,9 +1858,18 @@ void GLRenderSystem::SetGraphicsPipelineState(RSGraphicPipelineState& InPipeline
 	{
 		CachedPipelineState.BlendState = InPipelineState.BlendState;
 		GLStaticBlendState* BlendState = dynamic_cast<GLStaticBlendState*>(InPipelineState.BlendState.Get());
-		Helper::SetIsEnableState(BlendState->IsEnbaleBlend, GL_BLEND);
-		CHECK_GL_ERROR(glBlendEquation(BlendState->BlendEquation));
-		glBlendFunc(BlendState->FactorS, BlendState->FactorD);
+		Helper::SetIsEnableState(BlendState->IsEnableBlend, GL_BLEND);
+		if (BlendState->IsSepatate == GL_TRUE)
+		{
+			glBlendEquationSeparate(BlendState->RGBBlendEquation, BlendState->AlphaBlendEquation);
+			glBlendFuncSeparate(BlendState->RGBFactorS, BlendState->RGBFactorD,
+				BlendState->AlphaFactorS, BlendState->AlphaFactorD);
+		}
+		else
+		{
+			CHECK_GL_ERROR(glBlendEquation(BlendState->RGBBlendEquation));
+			CHECK_GL_ERROR(glBlendFunc(BlendState->RGBFactorS, BlendState->RGBFactorD));
+		}
 	}
 	CachedPipelineState.GPUProgramUsage = InPipelineState.GPUProgramUsage;
 }
@@ -2132,10 +2141,16 @@ SamplerStateHIRef GLRenderSystem::CreateSamplerStateHI(StaticSamplerStateInitial
 BlendStateHIRef GLRenderSystem::CreateBlendStateHI(StaticBlendStateInitializer& Initializer)
 {
 	GLStaticBlendState* RenderState = new GLStaticBlendState();
-	RenderState->IsEnbaleBlend = Helper::GetBool(Initializer.IsEnableBlend);
-	RenderState->BlendEquation = Helper::GetBlendEquation(Initializer.BlendEquation);
-	RenderState->FactorS = Helper::GetBlendFactor(Initializer.FactorS);
-	RenderState->FactorD = Helper::GetBlendFactor(Initializer.FactorD);
+	RenderState->IsEnableBlend = Helper::GetBool(Initializer.IsEnableBlend);
+	RenderState->RGBBlendEquation = Helper::GetBlendEquation(Initializer.RGBBlendEquation);
+	RenderState->RGBFactorS = Helper::GetBlendFactor(Initializer.RGBFactorS);
+	RenderState->RGBFactorD = Helper::GetBlendFactor(Initializer.RGBFactorD);
+
+	RenderState->IsSepatate = Helper::GetBool(Initializer.IsSepatate);
+	RenderState->AlphaBlendEquation = Helper::GetBlendEquation(Initializer.AlphaBlendEquation);
+	RenderState->AlphaFactorS = Helper::GetBlendFactor(Initializer.AlphaFactorS);
+	RenderState->AlphaFactorD = Helper::GetBlendFactor(Initializer.AlphaFactorD);
+
 	return RenderState;
 }
 
@@ -2316,26 +2331,6 @@ void GLRenderSystem::PointLightPass()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	return;
-}
-
-
-void GLRenderSystem::RenderAmbientOcclusion()
-{
-	//// ¼ÆËãÕÚµ²
-	//CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, GLGBuffer->getID()));
-	//GLTexture* AmbientOcclusion =  dynamic_cast<GLTexture*>(AmbientOcclusionTexture.Get());
-	//CHECK_GL_ERROR(glDrawBuffer(AmbientOcclusion->getTextureBufferAttachment()));
-	//CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-	//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLPositionTexture->GetHIID()));
-	//RenderOperation(CubeMeshRenderOperation, AmbientOcclusionProgram);
-
-	//// filter
-	//CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, GLGBuffer->getID()));
-	//CHECK_GL_ERROR(glDrawBuffer(GLPositionTexture->getTextureBufferAttachment()));
-	//CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-	//CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, AmbientOcclusion->GetHIID()));
-	//RenderOperation(CubeMeshRenderOperation, AmbientOcclusionFilterProgram);
-
 }
 
 void GLRenderSystem::SetRenderShadowMapRenderTarget()

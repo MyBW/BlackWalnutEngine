@@ -112,3 +112,18 @@
 	  fragment_shader_ref ImageBaseLightingFragment
 	}
 	
+
+	
+	
+	gpu_program RenderSystem_AmbientOcclusion GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref AmibientOcclusionFragment
+	}
+	
+	gpu_program RenderSystem_AmbientOcclusionFilter GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref AmibientOcclusionFilterFragment
+	}
+	

@@ -30,8 +30,12 @@ public:
 class GLStaticBlendState : public BlendStateHI
 {
 public:
-	GLenum IsEnbaleBlend;
-	GLenum BlendEquation;
-	GLenum FactorS;
-	GLenum FactorD;
+	GLenum IsEnableBlend;
+	GLenum RGBBlendEquation;
+	GLenum RGBFactorS;
+	GLenum RGBFactorD;
+	GLenum IsSepatate;
+	GLenum AlphaBlendEquation;
+	GLenum AlphaFactorS;
+	GLenum AlphaFactorD;
 };

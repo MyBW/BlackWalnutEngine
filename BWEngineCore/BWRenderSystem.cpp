@@ -937,6 +937,50 @@ void BWRenderSystem::RenderLightsShadowMaps()
 	}
 	FinishLightsShadowMaps();
 }
+
+void BWRenderSystem::RenderAmbientOcclusion()
+{
+	RSGraphicPipelineState Pipeline;
+	BWGpuProgramUsagePtr GPUProgramUage;
+	BWHighLevelGpuProgramPtr AOGPUProgram;
+	std::vector<float> SamplerDir;
+	Pipeline.GPUProgramUsage;
+	Pipeline.BlendState = TStaticBlendStateHI<true, SBO_ADD, SBF_ZERO, SBF_ONE, true, SBO_ADD, SBF_ONE, SBF_ZERO>::GetStateHI();
+	Pipeline.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
+	Pipeline.RasterizerState = TStaticRasterizerState<PM_SOLID>::GetStateHI();
+	SetGraphicsPipelineState(Pipeline);
+
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
+		GPUProgramUage->GetGpuProgramParameter()
+		);
+	AOGPUProgram = GPUProgramUage->GetHighLevelGpuProgram();
+
+	BWTexturePtr SamplerTexture;
+	NormalTexture->SetIndex(0);
+	PositionTexture->SetIndex(1);
+	SamplerTexture->SetIndex(2);
+	SetShaderTexture(AOGPUProgram, NormalTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(AOGPUProgram, PositionTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(AOGPUProgram, SamplerTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
+	RSRenderTarget RenderTarget;
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture;
+	SetRenderTarget(GPUProgramUage, RenderTarget, GDepthBuffer);
+
+	GPUProgramUage->GetGpuProgramParameter()->SetNamedConstant("SampleDirection", SamplerDir.data(), 64 * 3, 1);
+
+	BWHighLevelGpuProgramPtr tmp;
+	RenderOperation(CubeMeshRenderOperation, tmp);
+
+	// Filter Operation
+
+
+	Pipeline.BlendState = TStaticBlendStateHI<false>::GetStateHI();
+	SetGraphicsPipelineState(Pipeline);
+}
+
 void BWRenderSystem::RenderLights()
 {
 	//RenderLightsShadowMaps();
@@ -966,7 +1010,7 @@ void BWRenderSystem::RenderInDirectLights()
 	IBL_Specular_Cube_Map->SetIndex(3);
 	IBL_LUT->SetIndex(4);
 
-	// 使用一张贴图来进行环境满反射
+	// 使用一张贴图来进行环境满反射 目前我們使用的是SH
 	//IBL_Diffuse_Cube_Map->SetIndex(5);
 	//SetShaderTexture(DirectLighting, IBL_Diffuse_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
