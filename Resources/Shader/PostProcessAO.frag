@@ -1,8 +1,7 @@
 #version 430 core
 in vec2 textureCoord ;
-niform sampler2D PositionMap ;
-uniform sampler2D NoramlMap ;
-uniform sampler2D NoiseMap ;
+uniform sampler2D BBufer ;
+uniform sampler2D Noise ;
 uniform vec3 SampleDirection[64];
 layout(location = 0) out vec4 AmbientOcclusion ;
 layout(binding = 0,std140) uniform CameraInfo
@@ -32,50 +31,88 @@ vec4 FromScreenToWorld(mat4 InViewInverse , vec2 InScreenPos , vec2 InScreenWH, 
    Pos.y = Pos.y - PrjPlaneHalfWH.y ;
    vec3 CameraPrjPlanePos = vec3(Pos.xy , -InNearFar.x) ;
    vec4 CameraSpacePos = vec4(CameraPrjPlanePos * (-InCameraDepth/InNearFar.x) , 1.0);
-   //return CameraSpacePos ;
-   return InViewInverse * CameraSpacePos ;
+   return CameraSpacePos ;
+   //return InViewInverse * CameraSpacePos ;
 }
+
+vec3 ComputerNormal(vec2 InNormalXY)
+{
+   vec3 Normal ;
+   float sinThta = sin(InNormalXY.x) ;
+   float cosThta = cos(InNormalXY.x) ;
+   float sinPh = sin(InNormalXY.y ) ;
+   float cosPh = cos(InNormalXY.y ) ;
+   Normal.x = sinThta * cosPh ;
+   Normal.y = sinThta * sinPh ;
+   Normal.z = cosThta ;
+   return Normal;
+}
+
 
 
 void main()
 {
     
-   vec4  NormalMapData = texture2D(NormalMap, textureCoord.xy) ;
+   vec4  NormalMapData = texture2D(BBufer, textureCoord.xy) ;
    vec3  Normal = ComputerNormal(vec2(NormalMapData.xy)) ;
-   Noraml = (ViewMatrix * vec4(Normal, 0.0)).xyz ;
+   Normal = (ViewMatrix * vec4(Normal, 0.0)).xyz ;
    Normal = normalize(Normal) ;	
-   
-   
-   vec4  PositionMapData = texture2D(PositionMap, textureCoord.xy);
-   float CameraSpaceDepth = PositionMapData.r ;
+   float CameraSpaceDepth = NormalMapData.b;
    
    vec2 NF = vec2( -NearFar.x , -NearFar.y) ;
    vec3 ViewPos = ViewPositionWorldSpace ;
    vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , gl_FragCoord.xy, ScreenWH, FoV, NF, PrjPlaneWInverseH, CameraSpaceDepth) ;
+   //WorldPos.w = 1.0 ;
    vec4 CameraPos = ViewMatrix * WorldPos  ;
-   
+   CameraPos = WorldPos ;
    vec2 NoiseSacle = vec2(ScreenWH.x / 4, ScreenWH.y / 4) ;
    
-   vec3 RandVec = texture2D(NoiseMap , textureCoord * NoiseSacle).xyz ;
+   vec3 RandVec = texture2D(Noise , textureCoord * NoiseSacle).xyz ;
    
-   vec3 Tangent = normalize(RandVec - Noraml * dot(Normal , RandVec)) ;
+   vec3 Tangent = normalize(RandVec - Normal * dot(Normal , RandVec)) ;
    vec3 Bitangent = cross(Normal, Tangent) ;
-   mat3 TBN = mat3(Tangent, Bitangent, Noraml);
+   mat3 TBN = mat3(Tangent, Bitangent, Normal);
    float Occlusion = 0.0 ;
    float Radius = 1.0 ;
+   vec4 Offset;
+   
+   vec2 NearHalfWH;
+    NearHalfWH.x   = NF.x * tan(FoV/2.0) ;
+   NearHalfWH.y = NearHalfWH.x / PrjPlaneWInverseH ;
+   
+   //CameraPos *= NF.x/CameraPos.z ;
+   //CameraPos.xy /= NearHalfWH ;
+   //CameraPos.xy = CameraPos.xy * 0.5 + 0.5;
+   //CameraPos.x = 1- CameraPos.x ;
+   //CameraPos.y = 1 - CameraPos.y ;
+   
    for(int i = 0 ; i < 64; i++)
    {
 		vec3 Sample = TBN * SampleDirection[i];
-		Sample = WorldPos + Sample * Radius ;
-		vec4 Offset = vec4(Sample , 1.0) ;
-		Sample = ProjectMatrix * Offset ;
-		Sample = Sample.xyz / Sample.w ;
-		Sample.xyz = Sample.xyz * 0.5 + 0.5 ;
-		float SampleDepth = texture2D(PositionMap, Sample.xy).r ;
-		float RangeCheck = smoothstep(0.0 , 1.0 , Radius /abs(SampleDepth - CameraSpaceDepth));
-		Occlusion += (SampleDepth >= Sample.z ? 1.0 : 0.0)* RangeCheck;
+		Sample = CameraPos.xyz + Sample * Radius;
+		Offset = vec4(Sample , 1.0) ;
+		Offset *= NF.x/Offset.z ;
+        Offset.xy /= NearHalfWH ;
+		Offset.xy = Offset.xy * 0.5 + 0.5 ;
+		Offset.xy = vec2(1.0)- Offset.xy ;
+		float SampleDepth = texture2D(BBufer, Offset.xy).b ;
+		float RangeCheck = smoothstep(0.1 , 1.0 , Radius /abs(SampleDepth - CameraSpaceDepth));
+		Occlusion += (SampleDepth <= Sample.z ? 1.0 : 0.0) * RangeCheck;
    }
    Occlusion /= 64 ;
-  AmbientOcclusion.xyz = 0.0;
-  AmbientOcclusion.w = Occlusion ;
+   //CameraPos.z = Occlusion ;
+   //CameraPos.w = 1.0 ;
+   //ProjPos = ProjectMatrix * CameraPos ;
+   //ProjPos.xyz = ProjPos.xyz / ProjPos.w ;
+   //ProjPos.xyz = ProjPos.xyz * 0.5 + 0.5 ;
+   
+   
+   
+  AmbientOcclusion.xyz = vec3(0.0);
+  //if( abs(ProjPos.x - textureCoord.x ) < 0.2)
+  if( Offset.x > 0.9)
+  AmbientOcclusion.w = 1.0 ;
+  else
+  AmbientOcclusion.w = 0 ;
+  AmbientOcclusion.w = Occlusion;
 }

@@ -672,7 +672,7 @@ void BWGpuProgramParameters::SetNamedConstants(const GpuNamedConstantsPtr &const
 void BWGpuProgramParameters::SetNamedConstant(const std::string &name, BWMatrix4& matrix)
 {
 	const GpuConstantDefinition *def = FindNamedConstantDefinition(name, !ignoreMissingParams);
-	WriteRawConstants(def->physicalIndex, matrix.M, 16);
+ 	WriteRawConstants(def->physicalIndex, matrix.M, 16);
 }
 void BWGpuProgramParameters::SetConstant(int index, BWMatrix4& matrix)
 {

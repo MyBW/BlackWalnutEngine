@@ -129,7 +129,8 @@ enum SamplerAddressMode
 	SAM_WRAP,
 	SAM_CLAMP,
 	SAM_MIRROR,
-	SAM_BORDER
+	SAM_BORDER,
+	SAM_REPEAT
 };
 enum ClipResult
 {

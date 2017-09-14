@@ -1624,9 +1624,9 @@ bool GLRenderSystem::InitRendererResource()
 		BWMeshPrt  mPointMesh = getPointLightMesh();
 		BWSubMesh * mPointSubMesh = mPointMesh->getSubMesh(0);
 		mPointSubMesh->_getRenderOperation(SphereMeshRenderOperation);
-		GLBaseColorTexture = BaseColorTexture;
-		GLNormalTexture = NormalTexture;
-		GLPositionTexture = PositionTexture;
+		GLABufferTexture = ABufferTexture;
+		GLNormalTexture = BBufferTexture;
+		GLPositionTexture = CBufferTexture;
 		GLGBuffer = dynamic_cast<GLRenderTarget*>(GRenderTarget);
 		FinalRenderResult = dynamic_cast<GLHardwarePixelBuffer*>(GLGBuffer->getPixelRenderBuffer(std::string("FinalRenderResult")).Get());
 		//shadowmapÏà¹Øshader
@@ -1904,11 +1904,11 @@ void GLRenderSystem::SetGraphicsPipelineStateImmediately(RSGraphicPipelineState&
 	}*/
 	if (InPipelineState.BlendState->IsDirty)
 	{
-		GLStaticBlendState* BlendState = dynamic_cast<GLStaticBlendState*>(InPipelineState.BlendState.Get());
-		Helper::SetIsEnableState(BlendState->IsEnbaleBlend, BlendState->IsEnbaleBlend);
+		/*GLStaticBlendState* BlendState = dynamic_cast<GLStaticBlendState*>(InPipelineState.BlendState.Get());
+		Helper::SetIsEnableState(BlendState->IsEnableBlend, GL_BLEND);
 		glBlendEquation(BlendState->BlendEquation);
 		glBlendFunc(BlendState->FactorS, BlendState->FactorD);
-		InPipelineState.BlendState->IsDirty = false;
+		InPipelineState.BlendState->IsDirty = false;*/
 	}
 	CachedPipelineState.GPUProgramUsage = InPipelineState.GPUProgramUsage;
 
@@ -2264,7 +2264,7 @@ void GLRenderSystem::PointLightPass()
 */
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
-	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLBaseColorTexture->GetHIID()));
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLABufferTexture->GetHIID()));
 
 	CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE1));
 	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, GLNormalTexture->GetHIID()));

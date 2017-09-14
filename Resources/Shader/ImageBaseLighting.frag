@@ -1,8 +1,8 @@
 #version 430 core
 in vec2 textureCoord ;
-uniform sampler2D BaseColorMap ;
-uniform sampler2D NormalMap ;
-uniform sampler2D PositionMap;
+uniform sampler2D ABuffer ;
+uniform sampler2D BBuffer ;
+uniform sampler2D CBuffer;
 uniform samplerCube IBL_Specular_Light;
 uniform sampler2D  IBL_LUT;
 layout(binding = 0,std140) uniform CameraInfo
@@ -165,19 +165,23 @@ vec3 GetIndirectLightDifffuseColor(vec3 Normal)
 void main()
 {
 
-   vec4  BaseColorMapData  = texture2D(BaseColorMap, textureCoord.xy) ;
+ 
+   vec4  BaseColorMapData  = texture2D(ABuffer, textureCoord.xy) ;
    vec3  BaseColor = BaseColorMapData.xyz ;
-   float Roughness = BaseColorMapData.a ;
+   float Specular = BaseColorMapData.w ;
    
-   vec4  NormalMapData = texture2D(NormalMap, textureCoord.xy) ;
+   
+   vec4  NormalMapData = texture2D(BBuffer, textureCoord.xy) ;
    vec3  Normal = ComputerNormal(vec2(NormalMapData.xy)) ;
    Normal = normalize(Normal) ;
-   float Specular = NormalMapData.z ;
+   float CameraSpaceDepth = NormalMapData.z;
+   
 
-   vec4  PositionMapData = texture2D(PositionMap, textureCoord.xy);
-   float CameraSpaceDepth = PositionMapData.r ;
-   float Metalic = PositionMapData.g ;
-
+   vec4  EffectData = texture2D(CBuffer, textureCoord.xy);
+   float Metalic = EffectData.g ;
+   float Roughness = EffectData.r ;
+   float Occlusion = EffectData.w;
+   
    
    vec3 Albedo , RealSpecular ;
    ComputeAlbedoAndSpecular(BaseColor , Metalic , Specular , Albedo , RealSpecular) ;
@@ -198,7 +202,7 @@ void main()
    //vec3 InDirectLightDiffuseColor = InKd * Albedo * texture(IBL_Diffuse_Light, Normal).rgb / PI;
    
   //Use SH To Simulate Diffuse Light 
-     vec3 InDirectLightDiffuseColor = InKd * Albedo* GetIndirectLightDifffuseColor(Normal)/ PI;
+     vec3 InDirectLightDiffuseColor = InKd * Albedo* GetIndirectLightDifffuseColor(Normal)/ PI * Occlusion;
     
 
    vec3 R = reflect(-ViewDirection , Normal) ;

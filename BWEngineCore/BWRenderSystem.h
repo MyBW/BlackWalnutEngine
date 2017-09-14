@@ -241,14 +241,18 @@ protected:
 	BWMaterialPtr mPointLightM;
 	BWMeshPrt mPointLightMesh;
 	
-	BWTexturePtr BaseColorTexture;
-	BWTexturePtr NormalTexture;
-	BWTexturePtr PositionTexture;
+	BWTexturePtr ABufferTexture;
+	BWTexturePtr BBufferTexture;
+	BWTexturePtr CBufferTexture;
 	BWHardwareDepthBufferPtr GDepthBuffer;
 	BWTexturePtr FinalRenderResult;
 
+	
+
 	BWMaterialPtr AmbientOcclusionMaterial;
-	BWTexturePtr AmbientOcclusionTexture;
+	BWTexturePtr AOSamplerTexture;
+	BWGpuProgramUsagePtr AmbientOcclusionProgramUage;
+	BWHighLevelGpuProgramPtr AmbientOcclusionGPUProgram;
 
 	BWRenderTarget* ShadowMapTarget;
 	BWMaterialPtr DirectionLightShadowMapM;

@@ -25,7 +25,7 @@ public:
 protected:
 	void _createSurfaceList();
 	void createRenderTexture();
-	void createInternalResourcesImpl();
+	void createInternalResourcesImpl(const void *Data) override;
 	void freeInternalResourcesImpl();
 
 	void createInternalResourcesWithImageImpl(const ConstImagePtrList& images) override;

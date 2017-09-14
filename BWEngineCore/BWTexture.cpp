@@ -185,11 +185,21 @@ void BWTexture::createInternalResourcesWithImage(const ConstImagePtrList& images
 		mInternalResourcesCreated = true;
 	}
 }
+
+void BWTexture::CreateInternalResourcesWithData(const void * Data)
+{
+	if (!mInternalResourcesCreated)
+	{
+		createInternalResourcesImpl(Data);
+		mInternalResourcesCreated = true;
+	}
+}
+
 void BWTexture::createInternalResources()
 {
 	if (!mInternalResourcesCreated)
 	{
-		createInternalResourcesImpl();
+		createInternalResourcesImpl(NULL);
 		mInternalResourcesCreated = true;
 	}
 }

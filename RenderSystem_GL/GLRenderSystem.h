@@ -180,7 +180,7 @@ private:
 	GLint mPointLightDefferLightingNormalMapLoc;
 	GLint mPointLightDefferLightingPositionMapLoc;*/
 
-	GLTexturePtr GLBaseColorTexture;
+	GLTexturePtr GLABufferTexture;
     GLTexturePtr GLNormalTexture;
 	GLTexturePtr GLPositionTexture;
 

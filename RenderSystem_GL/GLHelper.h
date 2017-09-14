@@ -57,6 +57,7 @@ namespace Helper
 		case SAM_CLAMP: return GL_CLAMP_TO_EDGE;
 		case SAM_MIRROR: return GL_MIRROR_CLAMP_EXT;
 		case SAM_BORDER: return GL_CLAMP_TO_BORDER;
+		case SAM_REPEAT: return GL_REPEAT;
 		}
 		Check(0);
 	}

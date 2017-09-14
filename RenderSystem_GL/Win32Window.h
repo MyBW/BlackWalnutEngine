@@ -84,9 +84,9 @@ private:
 	GLint mPointLightDefferLightingNormalMapLoc;
 	GLint mPointLightDefferLightingPositionMapLoc;*/
 
-	GLTexturePtr BaseColorTexture;
-	GLTexturePtr NormalTexture;
-	GLTexturePtr PositionTexture;
+	GLTexturePtr ABufferTexture;
+	GLTexturePtr BBufferTexture;
+	GLTexturePtr CBufferTexture;
 	class BWRenderTarget* GBuffer;
 };
 

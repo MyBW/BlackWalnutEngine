@@ -137,6 +137,8 @@ public:
 	virtual void createInternalResources(void);
 
 	virtual void createInternalResourcesWithImage(const ConstImagePtrList& images);
+
+	virtual void CreateInternalResourcesWithData(const void * Data);
 	/** Frees internal texture resources for this texture.
 	*/
 	virtual void freeInternalResources(void);
@@ -310,7 +312,7 @@ protected:
 
 	/** Implementation of creating internal texture resources
 	*/
-	virtual void createInternalResourcesImpl(void) = 0;
+	virtual void createInternalResourcesImpl(const void *Data) = 0;
 	virtual void createInternalResourcesWithImageImpl(const ConstImagePtrList& images) = 0;
 	/** Implementation of freeing internal texture resources
 	*/

@@ -350,12 +350,12 @@ void GLTexture::createInternalResourcesWithImageImpl(const ConstImagePtrList& im
 		}
 	}
 }
-void GLTexture::createInternalResourcesImpl()
+void GLTexture::createInternalResourcesImpl(const void *Data)
 {
 	if (!GLEW_VERSION_1_2 && mTextureType == TEX_TYPE_3D)
 	{
 		//1.2版本之前不支持3D纹理
-		assert(0); 
+		assert(0);
 	}
 	//这里主要处理的是 将纹理的大小 位深 从ogre的定义转换到合适的GL定义  然后判断是否能生成mipmap 然后判断是否生成压缩纹理
 
@@ -364,7 +364,7 @@ void GLTexture::createInternalResourcesImpl()
 	//mHeight = GLPixelUtil::optionalPO2(mHeight);
 	//mDepth = GLPixelUtil::optionalPO2(mDepth);
 	if (glIsTexture(mTextureID)) glDeleteTextures(1, &mTextureID);
-	mFormat = BWTextureManager::GetInstance()->getNativeFormat(mTextureType, mFormat, mUsage);
+	//mFormat = BWTextureManager::GetInstance()->getNativeFormat(mTextureType, mFormat, mUsage);
 	size_t maxMipmaps = GLPixelUtil::getMaxMipmaps(mWidth, mHeight, mDepth);
 	mNumMipmaps = mNumRequestedMipmaps;
 	if (mNumMipmaps > maxMipmaps)
@@ -381,17 +381,21 @@ void GLTexture::createInternalResourcesImpl()
 
 	glGenTextures(1, &mTextureID);
 	glBindTexture(GetGLTextureTarget(), mTextureID);
-	
+
 	if (mTextureType == TEX_TYPE_2D)
 	{
 		//  这里使用glTextureParamter的 是为了提前准备各种mipmap等 而不是纹理针对某一个纹理单元
 		if (mFormat == PF_B8G8R8A8)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, Data);
+		}
+		else if (mFormat == PF_FLOAT32_RGB)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, Data);
 		}
 		else
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, Data);
 		}
 		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -404,7 +408,7 @@ void GLTexture::createInternalResourcesImpl()
 		// 这里的cubemap都是为HDR做准备的
 		for (unsigned int i = 0 ; i< 6 ; i++)
 		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, nullptr);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, Data);
 		}
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	}

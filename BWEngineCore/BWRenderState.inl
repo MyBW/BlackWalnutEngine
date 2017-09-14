@@ -42,6 +42,6 @@ template < bool IsEnableBlend /*= false*/,
 	BlendStateHIRef TStaticBlendStateHI<IsEnableBlend, RGBBlendEquation, RGBFactorS, RGBFactorD, IsSepatate, AlphaBlendEquation, AlphaFactorS, AlphaFactorD>::CreateHI()
 {
 	StaticBlendStateInitializer Initializer = { IsEnableBlend, RGBBlendEquation, RGBFactorS, RGBFactorD, IsSepatate, AlphaBlendEquation, AlphaFactorS, AlphaFactorD };
-	return BWRoot::GetInstance()->mActiveRenderSystem->CreateSamplerStateHI(Initializer);
+	return BWRoot::GetInstance()->mActiveRenderSystem->CreateBlendStateHI(Initializer);
 }
 

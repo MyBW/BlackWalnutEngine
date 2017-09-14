@@ -15,11 +15,9 @@ uniform float TestMetalic ;
 
 out vec3  WorldPosition ;
 
-layout(location = 0) out vec4 BaseColorMap;
-layout(location = 1) out vec4 NormalMap;
-layout(location = 2) out vec4 PositionMap;
-
-
+layout(location = 0) out vec4 ABuffer;
+layout(location = 1) out vec4 BBuffer;
+layout(location = 2) out vec4 CBuffer;
 
 layout(binding = 0,std140) uniform UBO1
 {
@@ -28,21 +26,20 @@ layout(binding = 0,std140) uniform UBO1
   mat4  ProjectMatrix;
 };
 
-
+// BaseColor:3 Specular :1
+// Normal:2 CameraSpaceDepth: 1
+// Roughness:1   Metalic: 1
 
 void main()
 {
    // 正确的情况
-   // BaseColor  And Roughness
+   // BaseColor  And Specular
    vec4  TexColor  = texture2D(BaseColor , TextureCoord.xy) ;
-   BaseColorMap = TexColor ;
-   BaseColorMap.a = texture2D(Roughness , TextureCoord.xy).r ;
-   
-   
-   
+   ABuffer = TexColor ;
+   ABuffer.a = 0.5;
    
    //Normal Map
-  //Normal And Specular
+  //Normal And CameraSpaceDepth
    vec3 NormalInTBN  ;
    vec3 tmpNormalInTBn  = texture2D(Normal , TextureCoord.xy).xyz;
    //法线贴图内存储的数据格式需要转换
@@ -62,15 +59,11 @@ void main()
    NormalFromNormalMap.z = T.z * NormalInTBN.x + B.z * NormalInTBN.y + N.z * NormalInTBN.z ;
    
    NormalFromNormalMap = (ModelMatrix * vec4(NormalFromNormalMap , 0.0)).xyz;
-   NormalMap.rg = vec2(acos(NormalFromNormalMap.z) , atan(NormalFromNormalMap.y , NormalFromNormalMap.x)) ;
-   NormalMap.z = 0.5;
+   BBuffer.rg = vec2(acos(NormalFromNormalMap.z) , atan(NormalFromNormalMap.y , NormalFromNormalMap.x)) ;
+   BBuffer.b = CameraSpaceDepth;
+   
 
-   //Normal And Specular
-  /* vec3 VertexNormal = normalize(OutNormal) ;
-   NormalMap.xy = vec2(acos(VertexNormal.z) , atan(VertexNormal.y , VertexNormal.x)) ;
-   NormalMap.z = 0.5 ;
-   */
-   //Position At CameraSpaceDepth  And Metalic
-   PositionMap.r = CameraSpaceDepth ;
-   PositionMap.g = texture2D(Metalic , TextureCoord.xy).r;
+   //Roughness  And Metalic
+   CBuffer.r = texture2D(Roughness , TextureCoord.xy).r ;
+   CBuffer.g = texture2D(Metalic , TextureCoord.xy).r;
 }

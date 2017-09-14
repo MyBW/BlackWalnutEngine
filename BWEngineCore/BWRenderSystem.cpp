@@ -1,4 +1,4 @@
-#include "BWRenderSystem.h"
+ï»¿#include "BWRenderSystem.h"
 #include "BWCommon.h"
 #include "BWVertexIndexData.h"
 #include"BWMeshManager.h"
@@ -73,7 +73,7 @@ void BWRenderSystem::_initRenderTargets()
 }
 void BWRenderSystem::_updateAllRenderTargets(bool swapBuffer)
 {
-	// ÕâÀï¸üÐÂµÄÊ±ºò¸ù¾ÝÓÅÏÈ¼¶¸úÐÂ ±£Ö¤ÏÈµÃµ½render to texture  È»ºó²ÅÊÇrender to window
+	// è¿™é‡Œæ›´æ–°çš„æ—¶å€™æ ¹æ®ä¼˜å…ˆçº§è·Ÿæ–° ä¿è¯å…ˆå¾—åˆ°render to texture  ç„¶åŽæ‰æ˜¯render to window
 	RenderTargetPriorityMap::iterator itor = mPrioritiseRenderTargets.begin();
 	RenderTargetPriorityMap::iterator itorEnd = mPrioritiseRenderTargets.end();
 	for (; itor != itorEnd; itor++)
@@ -96,7 +96,7 @@ bool BWRenderSystem::updatePassIterationRenderState()
 	}
 	--mCurrentPassIterationCount;
 	++mCurrentPassIterationNum;
-	// ÕâÀïÉèÖÃ¸÷ÖÖshader 
+	// è¿™é‡Œè®¾ç½®å„ç§shader 
 	return true;
 }
 void BWRenderSystem::bindGpuProgram(BWGpuProgram *GpuProgamr)
@@ -155,18 +155,18 @@ void BWRenderSystem::_setTextureProjectionRelativeTo(bool camraRelativeRendering
 }
 void BWRenderSystem::_endFrame()
 {
-	//ÑÓ³ÙäÖÈ¾Ïà¹Ø  
+	//å»¶è¿Ÿæ¸²æŸ“ç›¸å…³  
 
 	RenderAmbientOcclusion();
-	//¹âÕÕÏà¹Ø
+	//å…‰ç…§ç›¸å…³
 	RenderLights();
 
 	RenderInDirectLights();
 
 
-	//ÕÚµ²Ïà¹Ø
+	//é®æŒ¡ç›¸å…³
 
-	//Ìì¿ÕºÐ
+	//å¤©ç©ºç›’
 	RenderSkyBox();
 
 
@@ -193,8 +193,8 @@ void BWRenderSystem::_setTextureUnitFiltering(size_t texUnit, FilterOptions min,
 void BWRenderSystem::_setTextureUnitSetting(size_t texUnit, BWTextureUnitState& textureUnit)
 {
 	const BWTexturePtr &texture = textureUnit._getTexturePtr();
-	// ÕâÀï»¹ÓÐrender system ÄÜÁ¦²âÊÔ
-	if (false) //  opengl±¾Éí²»Ö§³ÖÎÆÀíµÄÒ»Ð©²Ù×÷
+	// è¿™é‡Œè¿˜æœ‰render system èƒ½åŠ›æµ‹è¯•
+	if (false) //  openglæœ¬èº«ä¸æ”¯æŒçº¹ç†çš„ä¸€äº›æ“ä½œ
 	{
 		if (textureUnit.getBindingType() == BWTextureUnitState::BT_VERTEX)
 		{
@@ -320,15 +320,15 @@ void BWRenderSystem::SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage)
 	RenderTargets.GPUProgramUsage = GPUUsage;
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture = BaseColorTexture;
+	RenderTarget.RenderTargetTexture = ABufferTexture;
 	RenderTargets.RenderTargets.push_back(RenderTarget);
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture = NormalTexture;
+	RenderTarget.RenderTargetTexture = BBufferTexture;
 	RenderTargets.RenderTargets.push_back(RenderTarget);
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture = PositionTexture;
+	RenderTarget.RenderTargetTexture = CBufferTexture;
 	RenderTargets.RenderTargets.push_back(RenderTarget);
 	SetRenderTargets(RenderTargets);
 }
@@ -367,28 +367,26 @@ bool BWRenderSystem::InitRendererResource()
 	GRenderTarget->setWidth(1024);
 	GRenderTarget->setHeight(768);
 
-	BWTexturePtr texture = BWTextureManager::GetInstance()->Create("BaseColorMap", DEFAULT_RESOURCE_GROUP);
+	BWTexturePtr texture = BWTextureManager::GetInstance()->Create("ABuffer", DEFAULT_RESOURCE_GROUP);
 	texture->setHeight(GRenderTarget->getHeight());
 	texture->setWidth(GRenderTarget->getWidth());
 	GRenderTarget->addTextureBuffer(texture, 0);
-	texture = BWTextureManager::GetInstance()->Create("NormalMap", DEFAULT_RESOURCE_GROUP);
+	texture = BWTextureManager::GetInstance()->Create("BBuffer", DEFAULT_RESOURCE_GROUP);
 	texture->setHeight(GRenderTarget->getHeight());
 	texture->setWidth(GRenderTarget->getWidth());
 	GRenderTarget->addTextureBuffer(texture, 0);
-	texture = BWTextureManager::GetInstance()->Create("PositionMap", DEFAULT_RESOURCE_GROUP);
+	texture = BWTextureManager::GetInstance()->Create("CBuffer", DEFAULT_RESOURCE_GROUP);
 	texture->setHeight(GRenderTarget->getHeight());
 	texture->setWidth(GRenderTarget->getWidth());
 	GRenderTarget->addTextureBuffer(texture, 0);
-	texture = BWTextureManager::GetInstance()->Create("AmbientOcclusion", DEFAULT_RESOURCE_GROUP);
-	texture->setHeight(GRenderTarget->getHeight());
-	texture->setWidth(GRenderTarget->getWidth());
-	GRenderTarget->addTextureBuffer(texture, 0);
-
 
 	GRenderTarget->createDepthBuffer(std::string("DepthBuffer"));
 	GRenderTarget->createPixelBuffer(std::string("FinalRenderResult"));
 
 	AmbientOcclusionMaterial = BWMaterialManager::GetInstance()->GetResource("AmbientOcclusion", "General");
+	AmbientOcclusionProgramUage = AmbientOcclusionMaterial->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
+	AmbientOcclusionGPUProgram = AmbientOcclusionProgramUage->GetHighLevelGpuProgram();
+	AmbientOcclusionGPUProgram->Load();
 
 	mPointLightMesh = BWMeshManager::GetInstance()->load("sphere.mesh", "General");
 	mCubeMesh = BWMeshManager::GetInstance()->load("cube.mesh", "General");
@@ -409,35 +407,47 @@ bool BWRenderSystem::InitRendererResource()
 	}
 
 
-	BaseColorTexture = GRenderTarget->getTextureBuffer("BaseColorMap");
-	NormalTexture = GRenderTarget->getTextureBuffer("NormalMap");
-	PositionTexture = GRenderTarget->getTextureBuffer("PositionMap");
+	ABufferTexture = GRenderTarget->getTextureBuffer("ABuffer");
+	BBufferTexture = GRenderTarget->getTextureBuffer("BBuffer");
+	CBufferTexture = GRenderTarget->getTextureBuffer("CBuffer");
 
 	FinalRenderResult = BWTextureManager::GetInstance()->Create("FinalRenderReslutColor", DEFAULT_RESOURCE_GROUP);
-	FinalRenderResult->setWidth(BaseColorTexture->getWidth());
-	FinalRenderResult->setHeight(BaseColorTexture->getHeight());
+	FinalRenderResult->setWidth(ABufferTexture->getWidth());
+	FinalRenderResult->setHeight(ABufferTexture->getHeight());
 	FinalRenderResult->setTextureType(TEX_TYPE_2D);
-	FinalRenderResult->setFormat(PF_BYTE_BGRA);
+	FinalRenderResult->setFormat(PF_BYTE_RGBA);
 	FinalRenderResult->setNumMipmaps(0);
 	FinalRenderResult->SetIndex(0);
 	FinalRenderResult->createInternalResources();
 	
 	GDepthBuffer = GRenderTarget->getDepthRenderBuffer(std::string("DepthBuffer"));
 
-	
+	AOSamplerTexture = BWTextureManager::GetInstance()->Create("AOSamplerTexture", DEFAULT_RESOURCE_GROUP);
+	AOSamplerTexture->setWidth(4);
+	AOSamplerTexture->setHeight(4);
+	AOSamplerTexture->setTextureType(TEX_TYPE_2D);
+	AOSamplerTexture->setFormat(PF_FLOAT32_RGB);
+	AOSamplerTexture->setNumMipmaps(0);
+	std::vector<float> SamplerData;
+	auto RandNum = [=] { return float(std::rand()) / RAND_MAX; };
+	for (int i = 0; i < 16 * 3; i += 3)
+	{
+		SamplerData.push_back(RandNum() * 2.0 - 1);
+		SamplerData.push_back(RandNum() * 2.0 - 1);
+		SamplerData.push_back(0);
+	}
+	AOSamplerTexture->CreateInternalResourcesWithData(SamplerData.data());
+
 	DirectLightProgramUsage = mDirectionLightM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
+
 
 	BWMaterialPtr ImageBaseLightingMaterial = BWMaterialManager::GetInstance()->GetResource("ImageBaseLighting", "General");
 	ImageBaseLightingMaterial->Load();
 	ImageBaseLightingUsage = ImageBaseLightingMaterial->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
 	ImageBaseLighting = ImageBaseLightingUsage->GetHighLevelGpuProgram();
 	ImageBaseLighting->Load();
-
-
-
-
 	
-	//ÒõÓ°Ïà¹Ø
+	//é˜´å½±ç›¸å…³
 	/*ShadowMapTarget = createRenderTarget("ShadowRenderTarget");
 	ShadowMapTarget->setWidth(1024);
 	ShadowMapTarget->setHeight(768);
@@ -456,7 +466,6 @@ bool BWRenderSystem::InitRendererResource()
 		return false;
 	}*/
 
-
 	mSkyBoxM = BWMaterialManager::GetInstance()->GetResource("SkyBox", "General");
 	if (mSkyBoxM.IsNull())
 	{
@@ -472,7 +481,7 @@ bool BWRenderSystem::InitRendererResource()
 
 	BWQuaternion Quaterniton;
 	BWMatrix4 ViewMatrixs[6];
-	//ÒÔÏÂµÄ·½Ïò¶¼ÊÇÏà¶ÔÊÀ½ç×ø±êÏµÀ´ËµµÄ ×óÊÖ×ø±êÏµ ÕâÀïÒª×¢ÒâÐý×ª½Ç¶ÈµÄÕý¸º¶Ô·½ÏòµÄÓ°Ïì
+	//ä»¥ä¸‹çš„æ–¹å‘éƒ½æ˜¯ç›¸å¯¹ä¸–ç•Œåæ ‡ç³»æ¥è¯´çš„ å·¦æ‰‹åæ ‡ç³» è¿™é‡Œè¦æ³¨æ„æ—‹è½¬è§’åº¦çš„æ­£è´Ÿå¯¹æ–¹å‘çš„å½±å“
 	Quaterniton.fromAngleAxis(Radian(-PI / 2), BWVector3D(0.0, 1.0, 0.0));
 	ViewMatrixs[0] = BWMatrix4::makeViewMatrix(BWVector3D(0.0, 0.0, 0.0), Quaterniton, nullptr); // +X
 	Quaterniton.fromAngleAxis(Radian(PI / 2), BWVector3D(0.0, 1.0, 0.0));
@@ -502,14 +511,14 @@ bool BWRenderSystem::InitRendererResource()
 
 
 
-	//´ÓEquirectangular HRD ²úÉú CubeMap»·¾³ÌùÍ¼
+	//ä»ŽEquirectangular HRD äº§ç”Ÿ CubeMapçŽ¯å¢ƒè´´å›¾
 	mConverEquirectangularToCubeMap = BWMaterialManager::GetInstance()->GetResource("ConvertEquirectangularToCubeMap", "General");
 	if (mConverEquirectangularToCubeMap.IsNull())
 	{
 		Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : cant get the ConverEquirectangularToCubeMap material");
 		return false;
 	}
-	//Ä¿Ç°Ê¹ÓÃÕâÑùµÄ·½Ê½´´½¨ÌùÍ¼  Ï£ÍûÄÜ»»Ò»ÖÖ·½Ê½ ÀýÈç Ö±½ÓNewÒ»¸öÌùÍ¼BWTextureUnitState
+	//ç›®å‰ä½¿ç”¨è¿™æ ·çš„æ–¹å¼åˆ›å»ºè´´å›¾  å¸Œæœ›èƒ½æ¢ä¸€ç§æ–¹å¼ ä¾‹å¦‚ ç›´æŽ¥Newä¸€ä¸ªè´´å›¾BWTextureUnitState
 	BWTextureUnitState* BeConveredMap = mConverEquirectangularToCubeMap->getTechnique(0)->GetPass(0)->getTextureUnitState(0);
 	//BeConveredMap->setTextureName("GCanyon_C_YumaPoint_3k.hdr");
 	BeConveredMap->setTextureName("small_apartment.hdr");
@@ -553,7 +562,7 @@ bool BWRenderSystem::InitRendererResource()
 		BWHighLevelGpuProgramPtr tmp;
 		RenderOperation(CubeMeshRenderOperation, tmp);
 	}
-	// ´ÓEquirectangular HRD ²úÉú CubeMap»·¾³ÌùÍ¼ End
+	// ä»ŽEquirectangular HRD äº§ç”Ÿ CubeMapçŽ¯å¢ƒè´´å›¾ End
 
 
 	//Use SH To Convolution The EnvMap
@@ -710,7 +719,7 @@ bool BWRenderSystem::InitRendererResource()
 		SetScissor(false);
 	}
 
-	// Ä¿Ç°·¢ÏÖÒ»¸öÎÊÌâ PixelDataÊý¾ÝÖÐµÄalphaÍ¨µÀÒ»Ö±ÊÇ1.0  ²»ÂÛÈçºÎµ÷ÕûshaderµÄÊä³öÖµ Ò»Ö±±£³Ö²»±ä
+	// ç›®å‰å‘çŽ°ä¸€ä¸ªé—®é¢˜ PixelDataæ•°æ®ä¸­çš„alphaé€šé“ä¸€ç›´æ˜¯1.0  ä¸è®ºå¦‚ä½•è°ƒæ•´shaderçš„è¾“å‡ºå€¼ ä¸€ç›´ä¿æŒä¸å˜
 	/*GLenum DesFormat = GLPixelUtil::getGLOriginFormat(PF_FLOAT32_RGBA);
 	GLenum DesDataType = GLPixelUtil::getGLOriginDataType(PF_FLOAT32_RGBA);
 	float PixelData[36];
@@ -757,7 +766,7 @@ bool BWRenderSystem::InitRendererResource()
 		RenderOperation(CubeMeshRenderOperation, tmp);
 	}
 
-	//»·¾³ÌùÍ¼¶Ô¸ß¹â´¦Àí
+	//çŽ¯å¢ƒè´´å›¾å¯¹é«˜å…‰å¤„ç†
 	mPreprocessEvnMapForSpecular = BWMaterialManager::GetInstance()->GetResource("ProcessEnvMapForSpecular", "General");
 	if (mPreprocessEvnMapForSpecular.IsNull())
 	{
@@ -810,7 +819,7 @@ bool BWRenderSystem::InitRendererResource()
 
 
 
-	//¼ÆËãLUT
+	//è®¡ç®—LUT
 	mPreprocessEvnMapLUT = BWMaterialManager::GetInstance()->GetResource("PreprocessEvnMapLUT", "General");
 	if (mPreprocessEvnMapLUT.IsNull())
 	{
@@ -940,43 +949,55 @@ void BWRenderSystem::RenderLightsShadowMaps()
 
 void BWRenderSystem::RenderAmbientOcclusion()
 {
+	
 	RSGraphicPipelineState Pipeline;
-	BWGpuProgramUsagePtr GPUProgramUage;
-	BWHighLevelGpuProgramPtr AOGPUProgram;
-	std::vector<float> SamplerDir;
-	Pipeline.GPUProgramUsage;
+	static std::vector<float> SamplerDir;
+	if (SamplerDir.size() == 0)
+	{
+		auto RandNum = [=]{ return  float(std::rand()) / RAND_MAX; };
+		for (int i = 0; i < 64 * 3; i+= 3)
+		{
+			BWVector3 Sample;
+			Sample.x = RandNum() * 2.0 - 1;
+			Sample.y = RandNum() * 2.0 - 1;
+			Sample.z = RandNum();
+			Sample.normalize();
+			Sample = Sample * RandNum();
+			SamplerDir.push_back(Sample.x);
+			SamplerDir.push_back(Sample.y);
+			SamplerDir.push_back(Sample.z);
+		}
+	}
+	Pipeline.GPUProgramUsage = AmbientOcclusionProgramUage;
 	Pipeline.BlendState = TStaticBlendStateHI<true, SBO_ADD, SBF_ZERO, SBF_ONE, true, SBO_ADD, SBF_ONE, SBF_ZERO>::GetStateHI();
 	Pipeline.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
 	Pipeline.RasterizerState = TStaticRasterizerState<PM_SOLID>::GetStateHI();
 	SetGraphicsPipelineState(Pipeline);
 
-	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
-		GPUProgramUage->GetGpuProgramParameter()
-		);
-	AOGPUProgram = GPUProgramUage->GetHighLevelGpuProgram();
 
-	BWTexturePtr SamplerTexture;
-	NormalTexture->SetIndex(0);
-	PositionTexture->SetIndex(1);
-	SamplerTexture->SetIndex(2);
-	SetShaderTexture(AOGPUProgram, NormalTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(AOGPUProgram, PositionTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(AOGPUProgram, SamplerTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
+		AmbientOcclusionProgramUage->GetGpuProgramParameter()
+		);
+	AmbientOcclusionProgramUage->GetHighLevelGpuProgram();
+
+	
+	BBufferTexture->SetIndex(0);
+	AOSamplerTexture->SetIndex(1);
+	SetShaderTexture(AmbientOcclusionGPUProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(AmbientOcclusionGPUProgram, AOSamplerTexture, TStaticSamplerState<FO_LINEAR,SAM_REPEAT , SAM_REPEAT , SAM_REPEAT>::GetStateHI());
 
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture;
-	SetRenderTarget(GPUProgramUage, RenderTarget, GDepthBuffer);
-
-	GPUProgramUage->GetGpuProgramParameter()->SetNamedConstant("SampleDirection", SamplerDir.data(), 64 * 3, 1);
+	RenderTarget.RenderTargetTexture = CBufferTexture;
+	SetRenderTarget(AmbientOcclusionProgramUage, RenderTarget, GDepthBuffer);
+	
+	AmbientOcclusionProgramUage->GetGpuProgramParameter()->SetNamedConstant("SampleDirection", SamplerDir.data(), 64 * 3, 1);
 
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
 
 	// Filter Operation
-
-
 	Pipeline.BlendState = TStaticBlendStateHI<false>::GetStateHI();
 	SetGraphicsPipelineState(Pipeline);
 }
@@ -1004,19 +1025,19 @@ void BWRenderSystem::RenderInDirectLights()
 	ImageBaseLighting = ImageBaseLightingUsage->GetHighLevelGpuProgram();
 	
 
-	BaseColorTexture->SetIndex(0);
-	NormalTexture->SetIndex(1);
-	PositionTexture->SetIndex(2);
+	ABufferTexture->SetIndex(0);
+	BBufferTexture->SetIndex(1);
+	CBufferTexture->SetIndex(2);
 	IBL_Specular_Cube_Map->SetIndex(3);
 	IBL_LUT->SetIndex(4);
 
-	// Ê¹ÓÃÒ»ÕÅÌùÍ¼À´½øÐÐ»·¾³Âú·´Éä Ä¿Ç°ÎÒ‚ƒÊ¹ÓÃµÄÊÇSH
+	// ä½¿ç”¨ä¸€å¼ è´´å›¾æ¥è¿›è¡ŒçŽ¯å¢ƒæ»¡åå°„ ç›®å‰æˆ‘å€‘ä½¿ç”¨çš„æ˜¯SH
 	//IBL_Diffuse_Cube_Map->SetIndex(5);
 	//SetShaderTexture(DirectLighting, IBL_Diffuse_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
-	SetShaderTexture(ImageBaseLighting, BaseColorTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(ImageBaseLighting, NormalTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(ImageBaseLighting, PositionTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ImageBaseLighting, ABufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ImageBaseLighting, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ImageBaseLighting, CBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, IBL_Specular_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, IBL_LUT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
@@ -1080,12 +1101,12 @@ void BWRenderSystem::DirectLightPass()
 		);
 	DirectLighting = DirectLightProgramUsage->GetHighLevelGpuProgram();
 
-	BaseColorTexture->SetIndex(0);
-	NormalTexture->SetIndex(1);
-	PositionTexture->SetIndex(2);
-	SetShaderTexture(DirectLighting, BaseColorTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(DirectLighting, NormalTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(DirectLighting, PositionTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	ABufferTexture->SetIndex(0);
+	BBufferTexture->SetIndex(1);
+	CBufferTexture->SetIndex(2);
+	SetShaderTexture(DirectLighting, ABufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(DirectLighting, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(DirectLighting, CBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
@@ -1130,7 +1151,7 @@ void BWRenderSystem::DirectLightPass()
 		//	DirLight->FrustumEndWorldSpace[3].z,
 		//	DirLight->FrustumEndWorldSpace[3].w));
 
-		for (int i = 0; i < 1; i++) // ÕâÀïÓ¦¸ÃÊÇ3´ÎÑ­»· Ã¿´ÎÊ¹ÓÃ²»Í¬µÄshadowmapÀ´Íê³É¶Ô³¡¾°µÄÒõÓ°äÖÈ¾ µ«ÊÇ ÕâÀïµÄ»ìºÏÊ§Ð§ÁË »áÔì³ÉÔÚfinalcolorbufferÖÐÑÕÉ«²»ÊÇ»ìºÏ ±ä³ÉÁËµþ¼Ó ÕâÀï»¹ÊÇÒª×¢ÒâÒ»ÏÂ
+		for (int i = 0; i < 1; i++) // è¿™é‡Œåº”è¯¥æ˜¯3æ¬¡å¾ªçŽ¯ æ¯æ¬¡ä½¿ç”¨ä¸åŒçš„shadowmapæ¥å®Œæˆå¯¹åœºæ™¯çš„é˜´å½±æ¸²æŸ“ ä½†æ˜¯ è¿™é‡Œçš„æ··åˆå¤±æ•ˆäº† ä¼šé€ æˆåœ¨finalcolorbufferä¸­é¢œè‰²ä¸æ˜¯æ··åˆ å˜æˆäº†å åŠ  è¿™é‡Œè¿˜æ˜¯è¦æ³¨æ„ä¸€ä¸‹
 		{
 			BWMatrix4  LightViewMatrix = DirLight->GetShadowMapProjectedInfor(i).ViewMatrix;
 			/*CHECK_GL_ERROR(glUniform1i(ShadowIndexLocation, i));
