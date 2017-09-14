@@ -169,6 +169,7 @@ void BWRenderSystem::_endFrame()
 	//天空盒
 	RenderSkyBox();
 
+	RenderToneMap();
 
 	CopyTextureToScreen(BWRenderSystem::FinalRenderResult, 0, 0);
 	RSRenderTarget RenderTarget;
@@ -437,6 +438,26 @@ bool BWRenderSystem::InitRendererResource()
 		SamplerData.push_back(0);
 	}
 	AOSamplerTexture->CreateInternalResourcesWithData(SamplerData.data());
+
+	ToneMapTexture = BWTextureManager::GetInstance()->Create("ToneMapTexture", DEFAULT_RESOURCE_GROUP);
+	ToneMapTexture->setWidth(FinalRenderResult->getWidth() / 2);
+	ToneMapTexture->setHeight(FinalRenderResult->getHeight()/ 2);
+	ToneMapTexture->setTextureType(TEX_TYPE_2D);
+	ToneMapTexture->setFormat(PF_FLOAT32_RGB);
+	ToneMapTexture->setNumMipmaps(0);
+	ToneMapTexture->createInternalResources();
+
+
+	BloomTexture = BWTextureManager::GetInstance()->Create("BloomTexture", DEFAULT_RESOURCE_GROUP);
+	BloomTexture->setWidth(32);
+	BloomTexture->setHeight(32);
+	BloomTexture->setTextureType(TEX_TYPE_2D);
+	BloomTexture->setFormat(PF_FLOAT32_R);
+	BloomTexture->setNumMipmaps(0);
+	BloomTexture->createInternalResources();
+
+
+
 
 	DirectLightProgramUsage = mDirectionLightM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
 
@@ -949,7 +970,6 @@ void BWRenderSystem::RenderLightsShadowMaps()
 
 void BWRenderSystem::RenderAmbientOcclusion()
 {
-	
 	RSGraphicPipelineState Pipeline;
 	static std::vector<float> SamplerDir;
 	if (SamplerDir.size() == 0)
@@ -1054,6 +1074,131 @@ void BWRenderSystem::RenderInDirectLights()
 	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<true, true>::GetStateHI();
 	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
 	SetGraphicsPipelineState(PipelineState);
+}
+
+
+void BWRenderSystem::RenderToneMap()
+{
+	SetViewport(0, 0, ToneMapTexture->getWidth(), ToneMapTexture->getHeight());
+
+	RSGraphicPipelineState PipelineState;
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
+	PipelineState.GPUProgramUsage = EmptyGPUProgramUsage;
+	SetGraphicsPipelineState(PipelineState);
+
+	FinalRenderResult->SetIndex(0);
+	SetShaderTexture(EmptyGPUProgramUsage->GetHighLevelGpuProgram(), FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
+	RSRenderTarget RenderTarget;
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = ToneMapTexture;
+	SetRenderTarget(EmptyGPUProgramUsage ,RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_COLOUR);
+	BWHighLevelGpuProgramPtr tmp;
+	RenderOperation(CubeMeshRenderOperation, tmp);
+
+
+	SetViewport(0, 0, BloomTexture->getWidth(), BloomTexture->getHeight());
+	PipelineState.GPUProgramUsage = ComputeBloomUsage;
+	SetGraphicsPipelineState(PipelineState);
+
+	ToneMapTexture->SetIndex(0);
+	SetShaderTexture(ComputeAvgLum->GetHighLevelGpuProgram(), ToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	// 这里只是利用BloomTexture 计算平均亮度
+	RenderTarget.RenderTargetTexture = BloomTexture;
+	SetRenderTarget(ComputeAvgLum, RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_COLOUR);
+	RenderOperation(CubeMeshRenderOperation, tmp);
+	int LumDataNum = BloomTexture->getWidth() * BloomTexture->getHeight();
+	float *LumData = new float[LumDataNum];
+	BWPixelBox PixelBox(BloomTexture->getWidth(),BloomTexture->getHeight(), 0,PixelFormat::PF_FLOAT32_R, LumData);
+	ReadSurfaceData(BloomTexture, 0, 0, PixelBox);
+	float AvgLum = 0.0f;
+	for (int i = 0; i < LumDataNum; i++)
+	{
+		AvgLum += LumData[i];
+	}
+	AvgLum = std::exp(AvgLum / LumDataNum);
+	static float LumAdapt = 0.0f; // 模拟人眼的自适应
+	float TimeDlta;
+	LumAdapt += (AvgLum - LumAdapt) *(1 - std::pow(0.98f, 30.f * TimeDlta));
+
+	//Bloom
+	// Get The Bloom Area
+	PipelineState.GPUProgramUsage = ComputeBloomUsage;
+	SetGraphicsPipelineState(PipelineState);
+
+	ToneMapTexture->SetIndex(0);
+	SetShaderTexture(ComputeBloomUsage->GetHighLevelGpuProgram(), ToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	ComputeBloomUsage->GetGpuProgramParameter()->SetNamedConstant("AverageLum", LumAdapt, 1, 1);
+
+	RenderTarget.RenderTargetTexture = BloomTexture;
+	SetRenderTarget(ComputeBloomUsage,RenderTarget, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	ClearRenderTarget(FBT_COLOUR);
+	RenderOperation(CubeMeshRenderOperation, tmp);
+
+
+	//Filter Bloom 
+	FilterTexture(BloomTexture);
+
+	//ToneMap And Bloom
+	static BWTexturePtr DumpToneMapTexture = BWTextureManager::GetInstance()->Create("DumpToneMapTexure", DEFAULT_RESOURCE_GROUP);
+	DumpToneMapTexture->setWidth(FinalRenderResult->getWidth());
+	DumpToneMapTexture->setHeight(FinalRenderResult->getHeight());
+	DumpToneMapTexture->setFormat(FinalRenderResult->getFormat());
+	DumpToneMapTexture->setTextureType(TEX_TYPE_2D);
+	DumpToneMapTexture->setNumMipmaps(0);
+	DumpToneMapTexture->SetIndex(0);
+	DumpToneMapTexture->createInternalResources();
+	CopyTextureToTexture(FinalRenderResult, 0, 0, DumpToneMapTexture, 0, 0);
+
+	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+	PipelineState.GPUProgramUsage = ToneMapProgramUsage;
+	SetGraphicsPipelineState(PipelineState);
+
+	BloomTexture->SetIndex(0);
+	SetShaderTexture(ToneMapProgram, DumpToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ToneMapProgram, BloomTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
+	ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("AverageLum", LumAdapt, 1, 1);
+
+	RenderTarget.RenderTargetTexture = FinalRenderResult;
+	SetRenderTarget(ToneMapProgramUsage ,RenderTarget, GDepthBuffer);
+	RenderOperation(CubeMeshRenderOperation, tmp);
+}
+
+
+void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
+{
+	RSGraphicPipelineState CacheCachePipelineState = CachedPipelineState;
+	RSGraphicPipelineState PipelineState;
+	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
+	PipelineState.RasterizerState = TStaticRasterizerState<>::GetStateHI();
+	PipelineState.GPUProgramUsage = FilterImageUsage;
+	SetGraphicsPipelineState(PipelineState);
+	SetViewport(0, 0, SourceImage->getWidth(), SourceImage->getHeight());
+	SetShaderTexture(FilterImageUsage->GetHighLevelGpuProgram(), SourceImage, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
+	DumpTexture->setWidth(SourceImage->getWidth());
+	DumpTexture->setHeight(SourceImage->getHeight());
+	DumpTexture->setFormat(SourceImage->getFormat());
+	DumpTexture->setTextureType(TEX_TYPE_2D);
+	DumpTexture->setNumMipmaps(0);
+	DumpTexture->SetIndex(0);
+	DumpTexture->createInternalResources();
+	RSRenderTarget RenderTarget;
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = DumpTexture;
+	SetRenderTarget(FilterImageUsage, RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_DEPTH);
+	BWHighLevelGpuProgramPtr tmp;
+	RenderOperation(CubeMeshRenderOperation, tmp);
+	CopyTextureToTexture(DumpTexture, 0, 0, SourceImage, 0, 0);
+	SetGraphicsPipelineState(CacheCachePipelineState);
+	return 
 }
 
 void BWRenderSystem::BeginDeferLight()

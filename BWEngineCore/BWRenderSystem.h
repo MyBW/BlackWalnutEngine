@@ -128,6 +128,22 @@ protected:
 
 	BWHighLevelGpuProgramPtr ImageBaseLighting;
 	BWGpuProgramUsagePtr ImageBaseLightingUsage;
+	
+	BWTexturePtr BloomTexture;
+	BWTexturePtr ToneMapTexture;
+	BWHighLevelGpuProgramPtr EmptyGPUProgram;
+	BWGpuProgramUsagePtr EmptyGPUProgramUsage;
+	BWHighLevelGpuProgramPtr ComputeAvgLum;
+	BWGpuProgramUsagePtr ComputeAvgLum;
+	BWHighLevelGpuProgramPtr ComputeBloom;
+	BWGpuProgramUsagePtr ComputeBloomUsage;
+	BWHighLevelGpuProgramPtr ToneMapProgram;
+	BWGpuProgramUsagePtr ToneMapProgramUsage;
+
+	BWHighLevelGpuProgramPtr FilterImage;
+	BWGpuProgramUsagePtr FilterImageUsage;
+
+	
 
 	void SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage);
 
@@ -261,6 +277,9 @@ protected:
 	void RenderAmbientOcclusion() ;
 	void RenderLights();
 	void RenderInDirectLights();
+	void RenderToneMap();
+
+	void FilterTexture(BWTexturePtr SourceImage);
 	virtual void RenderLightsShadowMaps();
 	virtual void FinishLightsShadowMaps() {}
 	virtual void SetRenderShadowMapRenderTarget() { };

@@ -393,6 +393,10 @@ void GLTexture::createInternalResourcesImpl(const void *Data)
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, Data);
 		}
+		else if (mFormat == PF_FLOAT32_R)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mWidth, mHeight, 0, GL_R, GL_FLOAT, Data);
+		}
 		else
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, Data);
