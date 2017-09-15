@@ -9,7 +9,6 @@ GPU资源中的会占用较大现存的资源，例如 纹理 渲染目标 等�
 后半年完成这些 不再做其他功能
 一周
 #将Unreal中的环境贴图算法实现    SH算法有问题 导致SH算出的光照偏向蓝绿色
-opengl sampler object
 
 一周
 #tonemap
@@ -22,7 +21,7 @@ opengl sampler object
 
 一周
 #shadowmap 
-
+opengl sampler object
 
 了解：（以上实现之后 可以选择下面一个实现 但是下面的都要了解）
 LightMass

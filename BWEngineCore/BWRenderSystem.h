@@ -134,15 +134,16 @@ protected:
 	BWHighLevelGpuProgramPtr EmptyGPUProgram;
 	BWGpuProgramUsagePtr EmptyGPUProgramUsage;
 	BWHighLevelGpuProgramPtr ComputeAvgLum;
-	BWGpuProgramUsagePtr ComputeAvgLum;
-	BWHighLevelGpuProgramPtr ComputeBloom;
+	BWGpuProgramUsagePtr ComputeAvgLumUsage;
+	BWHighLevelGpuProgramPtr ComputeBloomProgram;
 	BWGpuProgramUsagePtr ComputeBloomUsage;
 	BWHighLevelGpuProgramPtr ToneMapProgram;
 	BWGpuProgramUsagePtr ToneMapProgramUsage;
 
-	BWHighLevelGpuProgramPtr FilterImage;
-	BWGpuProgramUsagePtr FilterImageUsage;
-
+	BWHighLevelGpuProgramPtr FilterImageByGussiX;
+	BWGpuProgramUsagePtr FilterImageByGussiXUsage;
+	BWHighLevelGpuProgramPtr FilterImageByGussiY;
+	BWGpuProgramUsagePtr FilterImageByGussiYUsage;
 	
 
 	void SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage);
