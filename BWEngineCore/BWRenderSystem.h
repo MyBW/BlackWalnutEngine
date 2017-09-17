@@ -112,7 +112,6 @@ public:
 	virtual void CopyTextureToTexture(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel, BWTexturePtr DestinationTexture, int DestinationIndex, int DestinationMipmapLevel) { }
 	virtual void CopyTextureToScreen(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel) { };
 	virtual void ClearResourceForRender();
-
 	virtual RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) { return nullptr; }
 	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
 	virtual SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
@@ -133,8 +132,8 @@ protected:
 	BWTexturePtr ToneMapTexture;
 	BWHighLevelGpuProgramPtr EmptyGPUProgram;
 	BWGpuProgramUsagePtr EmptyGPUProgramUsage;
-	BWHighLevelGpuProgramPtr ComputeAvgLum;
-	BWGpuProgramUsagePtr ComputeAvgLumUsage;
+	BWHighLevelGpuProgramPtr ComputeLumValue;
+	BWGpuProgramUsagePtr ComputeLumUsage;
 	BWHighLevelGpuProgramPtr ComputeBloomProgram;
 	BWGpuProgramUsagePtr ComputeBloomUsage;
 	BWHighLevelGpuProgramPtr ToneMapProgram;
@@ -147,6 +146,10 @@ protected:
 	
 
 	void SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage);
+
+	// 目前出现的问题是在Tonemap过程中最后一步中调用SetShaderTexture会影响到后面的各种纹理调用
+	// 所以先用这个函数清理一下资源  随后再考虑是哪里出现了问题
+	virtual void ClearTextureResource();
 
 public:
 //////////////////////////////////////////

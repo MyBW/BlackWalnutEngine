@@ -214,10 +214,8 @@ void main()
    
 
    //FinalColor = InDirectLightDiffuseColor;
-   float gamma = 2.2 ;
+   
    //FinalColor = FinalColor;
-   FinalColor = FinalColor / (FinalColor + vec3(1.0)) ;
-  // FinalColor = pow(FinalColor , vec3(1.0/gamma)) ;
    gl_FragColor.xyz = FinalColor;
    gl_FragColor.a = 1.0;
 }

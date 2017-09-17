@@ -21,4 +21,3 @@ void main()
     color /= 5.0; 
     FilterResult = color;
 }
-

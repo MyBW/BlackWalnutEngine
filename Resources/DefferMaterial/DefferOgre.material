@@ -508,3 +508,97 @@ material AmbientOcclusionFilters
 	}
 }
 
+material ScaleCopy
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref RenderSystem_ScaleCopy GLSL
+			{
+			   param_named SrcTexture int 0
+			}
+		}
+	}
+}
+
+material ComputeLumValue
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref   RenderSystem_ComputeLumValue  GLSL
+			{
+			   param_named SrcTexture int 0
+			}
+		}
+	}
+}
+
+
+material ComputeBloom
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref   RenderSystem_ComputeBloom  GLSL
+			{
+			   param_named SrcTexture int 0
+			}
+		}
+	}
+}
+
+
+material ToneMap
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref   RenderSystem_ToneMap  GLSL
+			{
+			   param_named SrcTexture int 0
+			   param_named BloomTexture int 1
+			}
+		}
+	}
+}
+
+
+material FilterImageGussiX
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref   RenderSystem_FilterImageGussiX  GLSL
+			{
+			   param_named SrcTexture int 0
+			}
+		}
+	}
+}
+
+
+material FilterImageGussiY
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref   RenderSystem_FilterImageGussiY  GLSL
+			{
+			   param_named SrcTexture int 0
+			}
+		}
+	}
+}

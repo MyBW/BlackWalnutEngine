@@ -109,10 +109,5 @@ void main()
    
    
   AmbientOcclusion.xyz = vec3(0.0);
-  //if( abs(ProjPos.x - textureCoord.x ) < 0.2)
-  if( Offset.x > 0.9)
-  AmbientOcclusion.w = 1.0 ;
-  else
-  AmbientOcclusion.w = 0 ;
   AmbientOcclusion.w = Occlusion;
 }

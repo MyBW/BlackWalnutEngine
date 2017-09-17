@@ -70,7 +70,7 @@ vec4 GetScaleEightValue()
 }
 
 
-void mian()
+void main()
 {
   DestTexture = GetScaleFourValue() ;
 }

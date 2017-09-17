@@ -2154,6 +2154,13 @@ BlendStateHIRef GLRenderSystem::CreateBlendStateHI(StaticBlendStateInitializer& 
 	return RenderState;
 }
 
+
+void GLRenderSystem::ClearTextureResource()
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void GLRenderSystem::BeginDeferLight()
 {
 	//~!~!glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -2615,30 +2622,20 @@ void GLRenderSystem::RenderOperation(BWRenderOperation & RenderOperation, BWHigh
 
 void GLRenderSystem::CopyTextureToTexture(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel, BWTexturePtr DestinationTexture, int DestinationIndex, int DestinationMipmapLevel)
 {
+
+	// This Function Can Break Current FrameBufferBind
 	GLuint SourceFrameBuffer, DestinationFrameBuffer;
 	GLTexture* GLSourceTexture = dynamic_cast<GLTexture*>(SourceTexture.Get());
 	GLTexture* GLDestinationTexture = dynamic_cast<GLTexture*>(DestinationTexture.Get());
+	GLint Width = DestinationTexture->getWidth();
+	GLint Hieght = DestinationTexture->getHeight();
+	GLint DTextureID = GLDestinationTexture->GetHIID();
+	TextureType DRenderTextureType = GLDestinationTexture->GetTextureType();
 
 	glGenFramebuffers(1, &SourceFrameBuffer);
 	glGenFramebuffers(1, &DestinationFrameBuffer);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, DestinationFrameBuffer);
-	GLint DTextureID = GLDestinationTexture->GetHIID();
-	TextureType DRenderTextureType = GLDestinationTexture->GetTextureType();
-	if (DRenderTextureType == TEX_TYPE_2D)
-	{
-		CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, DTextureID, DestinationMipmapLevel));  //暂时使用2D纹理
-	}
-	if (DRenderTextureType == TEX_TYPE_CUBE_MAP)
-	{
-		CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + DestinationMipmapLevel, DTextureID, DestinationMipmapLevel));
-	}
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    
-	glClearColor(1.0, 1.0, 1.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, SourceFrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, SourceFrameBuffer);
 	GLint STextureID = GLSourceTexture->GetHIID();
 	TextureType SRenderTextureType = GLSourceTexture->GetTextureType();
 	if (SRenderTextureType == TEX_TYPE_2D)
@@ -2649,16 +2646,28 @@ void GLRenderSystem::CopyTextureToTexture(BWTexturePtr SourceTexture, int Source
 	{
 		CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + SourceIndex, STextureID, SourceMipmipLevel));
 	}
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-	GLint Width = DestinationTexture->getWidth();
-	GLint Hieght = DestinationTexture->getHeight();
+	glBindFramebuffer(GL_FRAMEBUFFER, DestinationFrameBuffer);
+	if (DRenderTextureType == TEX_TYPE_2D)
+	{
+		CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, DTextureID, DestinationMipmapLevel));  //暂时使用2D纹理
+	}
+	if (DRenderTextureType == TEX_TYPE_CUBE_MAP)
+	{
+		CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + DestinationMipmapLevel, DTextureID, DestinationMipmapLevel));
+	}
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);    
+	glClearColor(1.0, 1.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, SourceFrameBuffer);
+	CHECK_GL_ERROR(glReadBuffer(GL_COLOR_ATTACHMENT0));
 
 	CHECK_GL_ERROR(glBlitFramebuffer(0, 0, Width, Hieght,
 		0, 0, Width, Hieght, GL_COLOR_BUFFER_BIT, GL_LINEAR));
 
 	glDeleteFramebuffers(1, &SourceFrameBuffer);
 	glDeleteFramebuffers(1, &DestinationFrameBuffer);
+
 }
 
 
@@ -2696,6 +2705,9 @@ void GLRenderSystem::CopyTextureToScreen(BWTexturePtr SourceTexture, int SourceI
 	glDeleteFramebuffers(1, &SourceFrameBuffer);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, CurrentFrameBuffer);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GLRenderSystem::RenderRenderOperationWithPointLight(BWRenderOperation &RenderOperation)

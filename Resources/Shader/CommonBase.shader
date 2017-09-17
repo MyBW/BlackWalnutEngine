@@ -199,4 +199,39 @@ fragment_shader AmibientOcclusionFilterFragment glsl
   Source PostProcessAOFilter.frag
 }
 
+fragment_shader ScaleCopyFragment glsl
+{
+  Source ScaleCopy.frag
+}
+
+fragment_shader ComputeLumFragment glsl
+{
+  Source ComputeLumValue.frag
+}
+
+fragment_shader ComputeBloomFragment glsl
+{
+  Source ComputeBloomValue.frag
+}
+
+fragment_shader ToneMapFragment glsl
+{
+  Source ToneMap.frag
+}
+
+fragment_shader FilterImageCussiXFragment glsl
+{
+  Source FilterImageGussiX.frag
+}
+
+fragment_shader FilterImageCussiYFragment glsl
+{
+  Source FilterImageGussiY.frag
+}
+
+
+
+
+
+
 

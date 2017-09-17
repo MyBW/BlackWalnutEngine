@@ -77,6 +77,8 @@ public:
 	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
 	SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) override;
 	BlendStateHIRef CreateBlendStateHI(StaticBlendStateInitializer& Initializer) override;
+protected:
+	void ClearTextureResource() override;
 public:
 	//////////////////////////////New Interface End
 	void SetRenderTargetImmediately(RSRenderTarget& InRenderTarget);

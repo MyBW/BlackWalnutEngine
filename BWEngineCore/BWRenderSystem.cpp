@@ -172,6 +172,7 @@ void BWRenderSystem::_endFrame()
 	RenderToneMap();
 
 	CopyTextureToScreen(BWRenderSystem::FinalRenderResult, 0, 0);
+	ClearTextureResource();
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
@@ -364,6 +365,21 @@ void BWRenderSystem::bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage)
 }
 bool BWRenderSystem::InitRendererResource()
 {
+
+	auto LoadGUPUsageAndGPUProgram = [](std::string &MaterialName, BWGpuProgramUsagePtr& GPUUsage, BWHighLevelGpuProgramPtr& GPUProgram)
+	{
+		BWMaterialPtr Material = BWMaterialManager::GetInstance()->GetResource(MaterialName, "General");
+		if (Material.IsNull())
+		{
+			Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : Cant Get The  Material");
+			return;
+		}
+		Material->Load();
+		GPUUsage = Material->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
+		GPUProgram = GPUUsage->GetHighLevelGpuProgram();
+		GPUProgram->Load();
+	};
+
 	GRenderTarget = createRenderTarget("GRenderTarget");
 	GRenderTarget->setWidth(1024);
 	GRenderTarget->setHeight(768);
@@ -446,22 +462,23 @@ bool BWRenderSystem::InitRendererResource()
 	ToneMapTexture->setFormat(PF_FLOAT32_RGB);
 	ToneMapTexture->setNumMipmaps(0);
 	ToneMapTexture->createInternalResources();
-
-
 	BloomTexture = BWTextureManager::GetInstance()->Create("BloomTexture", DEFAULT_RESOURCE_GROUP);
-	BloomTexture->setWidth(32);
-	BloomTexture->setHeight(32);
+	BloomTexture->setWidth(FinalRenderResult->getWidth() / 2);
+	BloomTexture->setHeight(FinalRenderResult->getHeight()/ 2);
 	BloomTexture->setTextureType(TEX_TYPE_2D);
 	BloomTexture->setFormat(PF_FLOAT32_RGB);
 	BloomTexture->setNumMipmaps(0);
 	BloomTexture->createInternalResources();
 
-
-
+	
+	LoadGUPUsageAndGPUProgram(std::string("ScaleCopy"), EmptyGPUProgramUsage, EmptyGPUProgram);
+	LoadGUPUsageAndGPUProgram(std::string("ComputeLumValue"), ComputeLumUsage, ComputeLumValue);
+	LoadGUPUsageAndGPUProgram(std::string("ComputeBloom"), ComputeBloomUsage, ComputeBloomProgram);
+	LoadGUPUsageAndGPUProgram(std::string("ToneMap"), ToneMapProgramUsage, ToneMapProgram);
+	LoadGUPUsageAndGPUProgram(std::string("FilterImageGussiX"), FilterImageByGussiXUsage, FilterImageByGussiX);
+	LoadGUPUsageAndGPUProgram(std::string("FilterImageGussiY"), FilterImageByGussiYUsage, FilterImageByGussiY);
 
 	DirectLightProgramUsage = mDirectionLightM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-
-
 	BWMaterialPtr ImageBaseLightingMaterial = BWMaterialManager::GetInstance()->GetResource("ImageBaseLighting", "General");
 	ImageBaseLightingMaterial->Load();
 	ImageBaseLightingUsage = ImageBaseLightingMaterial->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
@@ -934,6 +951,12 @@ void BWRenderSystem::ClearResourceForRender()
 	CachedPipelineState.GPUProgramUsage.SetNull();
 }
 
+
+void BWRenderSystem::ClearTextureResource()
+{
+	
+}
+
 //////////////////New Interface End;
 void BWRenderSystem::RenderLightsShadowMaps()
 {
@@ -1079,17 +1102,15 @@ void BWRenderSystem::RenderInDirectLights()
 
 void BWRenderSystem::RenderToneMap()
 {
-	return;
-	SetViewport(0, 0, ToneMapTexture->getWidth(), ToneMapTexture->getHeight());
-
+	
 	int Width; 
 	int Hight;
 	RSGraphicPipelineState PipelineState;
 	RSRenderTarget RenderTarget;
-
 	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
 	PipelineState.GPUProgramUsage = EmptyGPUProgramUsage;
 	SetGraphicsPipelineState(PipelineState);
+	SetViewport(0, 0, ToneMapTexture->getWidth(), ToneMapTexture->getHeight());
 
 	FinalRenderResult->SetIndex(0);
 	SetShaderTexture(EmptyGPUProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
@@ -1111,15 +1132,15 @@ void BWRenderSystem::RenderToneMap()
 	SetViewport(0, 0, BloomTexture->getWidth(), BloomTexture->getHeight());
 	PipelineState.GPUProgramUsage = ComputeBloomUsage;
 	SetGraphicsPipelineState(PipelineState);
-
 	ToneMapTexture->SetIndex(0);
-	SetShaderTexture(ComputeAvgLum, ToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ComputeLumValue, ToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
 	// 这里只是利用BloomTexture 计算平均亮度
 	RenderTarget.RenderTargetTexture = BloomTexture;
-	SetRenderTarget(ComputeAvgLumUsage, RenderTarget, GDepthBuffer);
+	SetRenderTarget(ComputeLumUsage, RenderTarget, GDepthBuffer);
 	ClearRenderTarget(FBT_COLOUR);
 	RenderOperation(CubeMeshRenderOperation, tmp);
-	int LumDataNum = BloomTexture->getWidth() * BloomTexture->getHeight();
+	int LumDataNum = BloomTexture->getWidth() * BloomTexture->getHeight() * 3;
 	float *LumData = new float[LumDataNum];
 	BWPixelBox PixelBox(BloomTexture->getWidth(),BloomTexture->getHeight(), 0,PixelFormat::PF_FLOAT32_RGB, LumData);
 	ReadSurfaceData(BloomTexture, 0, 0, PixelBox);
@@ -1128,9 +1149,11 @@ void BWRenderSystem::RenderToneMap()
 	{
 		AvgLum += LumData[i];
 	}
+	delete[] LumData;
 	AvgLum = std::exp(AvgLum / LumDataNum);
 	static float LumAdapt = 0.0f; // 模拟人眼的自适应
-	float TimeDlta;
+    static float TimeDlta = 0.0;
+	//TimeDlta += 0.03; 
 	LumAdapt += (AvgLum - LumAdapt) *(1 - std::pow(0.98f, 30.f * TimeDlta));
 
 	//Bloom
@@ -1142,7 +1165,7 @@ void BWRenderSystem::RenderToneMap()
 	SetShaderTexture(ComputeBloomProgram, ToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	Width = ToneMapTexture->getWidth();
 	Hight = ToneMapTexture->getHeight();
-	ComputeBloomUsage->GetGpuProgramParameter()->SetNamedConstant("AverageLum", &LumAdapt, 1, 1);
+	ComputeBloomUsage->GetGpuProgramParameter()->SetNamedConstant("AvgLum", &AvgLum, 1, 1);
 	ComputeBloomUsage->GetGpuProgramParameter()->SetNamedConstant("Width", &Width, 1, 1);
 	ComputeBloomUsage->GetGpuProgramParameter()->SetNamedConstant("Hight", &Hight, 1, 1);
 
@@ -1151,9 +1174,9 @@ void BWRenderSystem::RenderToneMap()
 	ClearRenderTarget(FBT_COLOUR|FBT_DEPTH);
 	RenderOperation(CubeMeshRenderOperation, tmp);
 
-
 	//Filter Bloom 
 	FilterTexture(BloomTexture);
+
 
 	//ToneMap And Bloom
 	static BWTexturePtr DumpToneMapTexture = BWTextureManager::GetInstance()->Create("DumpToneMapTexure", DEFAULT_RESOURCE_GROUP);
@@ -1165,22 +1188,32 @@ void BWRenderSystem::RenderToneMap()
 	DumpToneMapTexture->SetIndex(0);
 	DumpToneMapTexture->createInternalResources();
 	CopyTextureToTexture(FinalRenderResult, 0, 0, DumpToneMapTexture, 0, 0);
-
 	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 	PipelineState.GPUProgramUsage = ToneMapProgramUsage;
 	SetGraphicsPipelineState(PipelineState);
 
-	BloomTexture->SetIndex(0);
+	DumpToneMapTexture->SetIndex(0);
+	BloomTexture->SetIndex(1);
 	SetShaderTexture(ToneMapProgram, DumpToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(ToneMapProgram, BloomTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+    SetShaderTexture(ToneMapProgram, BloomTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
 	float Key = 1.0f;
-	ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("AverageLum", &LumAdapt, 1, 1);
+
+	//ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("AverageLum", &LumAdapt, 1, 1);
+	ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("AvgLum", &AvgLum, 1, 1);
 	ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Key", &Key, 1, 1);
 
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = FinalRenderResult;
 	SetRenderTarget(ToneMapProgramUsage ,RenderTarget, GDepthBuffer);
 	RenderOperation(CubeMeshRenderOperation, tmp);
+
+
+	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<true, true>::GetStateHI();
+	SetGraphicsPipelineState(PipelineState);
+	return;
 }
 
 
@@ -1197,6 +1230,7 @@ void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
 	SetGraphicsPipelineState(PipelineState);
 
 	SetViewport(0, 0, SourceImage->getWidth(), SourceImage->getHeight());
+	SourceImage->SetIndex(0);
 	SetShaderTexture(FilterImageByGussiX, SourceImage, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
 	DumpTexture->setWidth(SourceImage->getWidth());
@@ -1212,18 +1246,17 @@ void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = DumpTexture;
 	SetRenderTarget(FilterImageByGussiXUsage, RenderTarget, GDepthBuffer);
-	ClearRenderTarget(FBT_DEPTH);
 	FilterImageByGussiXUsage->GetGpuProgramParameter()->SetNamedConstant("Width", &Width, 1 , 1);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
 
 	PipelineState.GPUProgramUsage = FilterImageByGussiYUsage;
 	SetGraphicsPipelineState(PipelineState);
+	DumpTexture->SetIndex(0);
 	SetShaderTexture(FilterImageByGussiY, DumpTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	RenderTarget.RenderTargetTexture = SourceImage;
 	SetRenderTarget(FilterImageByGussiYUsage, RenderTarget, GDepthBuffer);
-	ClearRenderTarget(FBT_DEPTH);
-	FilterImageByGussiXUsage->GetGpuProgramParameter()->SetNamedConstant("Hight", &Hight, 1, 1);
+	FilterImageByGussiYUsage->GetGpuProgramParameter()->SetNamedConstant("Hight", &Hight, 1, 1);
 	RenderOperation(CubeMeshRenderOperation, tmp);
 
 	SetGraphicsPipelineState(CacheCachePipelineState);

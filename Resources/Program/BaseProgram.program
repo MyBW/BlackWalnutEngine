@@ -103,16 +103,11 @@
 	  fragment_shader_ref AccumulateReadCubeMapFragment
 	}
 	
-	
-	
-	
 	gpu_program RenderSystem_ImageBaseLighting GLSL
 	{
 	  vertex_shader_ref   ImageBaseLightingVertex
 	  fragment_shader_ref ImageBaseLightingFragment
 	}
-	
-
 	
 	
 	gpu_program RenderSystem_AmbientOcclusion GLSL
@@ -125,5 +120,43 @@
 	{
 	  vertex_shader_ref    DefferDirectLightingVertex
 	  fragment_shader_ref AmibientOcclusionFilterFragment
+	}
+	
+	gpu_program RenderSystem_ScaleCopy GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref  ScaleCopyFragment
+	}
+	
+	gpu_program RenderSystem_ComputeLumValue GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref  ComputeLumFragment
+	}
+	
+	gpu_program RenderSystem_ComputeBloom GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref  ComputeBloomFragment
+	}
+	
+	
+	gpu_program RenderSystem_ToneMap GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref  ToneMapFragment
+	}
+	
+	
+	gpu_program RenderSystem_FilterImageGussiX GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref  FilterImageCussiXFragment
+	}
+	
+	gpu_program RenderSystem_FilterImageGussiY GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref  FilterImageCussiYFragment
 	}
 	

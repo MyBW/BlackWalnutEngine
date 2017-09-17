@@ -2,8 +2,8 @@
 in vec2 textureCoord ;
 uniform sampler2D SrcTexture ;
 uniform sampler2D BloomTexture;
-uniform float AvgLum ;
-uniform float Key ;
+uniform float AvgLum;
+uniform float Key;
 const vec4 Lumfact = vec4(0.27,0.67,0.06,0.0);
 layout(location = 0) out vec4 DestTexture;
 void main()
@@ -12,7 +12,12 @@ void main()
 	float Lum = dot(Color , Lumfact) ;
 	Color += texture2D(BloomTexture, textureCoord.xy);
 	
-	Color *= Key *Lum/AveLum;
+	Color *= Key * Lum/AvgLum;
 	Color = Color/(Color + vec4(1.0)) ;
-	DestTexture = Color;
+	float gamma = 2.2 ;
+    Color.xyz = pow(Color.xyz , vec3(1.0/gamma)) ;
+	
+	//Color = texture2D(BloomTexture, textureCoord.xy);
+	//Color = Color / (Color + vec4(1.0)) ;
+	DestTexture = Color ;
 }
