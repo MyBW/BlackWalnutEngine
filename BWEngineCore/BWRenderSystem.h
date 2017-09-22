@@ -144,7 +144,11 @@ protected:
 	BWHighLevelGpuProgramPtr FilterImageByGussiY;
 	BWGpuProgramUsagePtr FilterImageByGussiYUsage;
 	
-
+	//Templore AA
+	BWTexturePtr HistoryRT;
+	BWTexturePtr VelocityRT;
+	BWHighLevelGpuProgramPtr TemporalAAProgram;
+	BWGpuProgramUsagePtr TemporalAAUsage;
 	void SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage);
 
 	// 目前出现的问题是在Tonemap过程中最后一步中调用SetShaderTexture会影响到后面的各种纹理调用
@@ -282,6 +286,7 @@ protected:
 	void RenderLights();
 	void RenderInDirectLights();
 	void RenderToneMap();
+	void RenderTemporalAA();
 
 	void FilterTexture(BWTexturePtr SourceImage);
 	virtual void RenderLightsShadowMaps();

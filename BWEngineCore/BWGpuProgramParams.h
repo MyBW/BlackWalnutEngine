@@ -391,6 +391,7 @@ public:
 	{
 		/// The current world matrix
 		ACT_WORLD_MATRIX,
+		ACT_PRE_WORLD_MATRIX,
 		/// The current world matrix, inverted
 		ACT_INVERSE_WORLD_MATRIX,
 		/** Provides transpose of world matrix.
@@ -411,6 +412,8 @@ public:
 
 		/// The current view matrix
 		ACT_VIEW_MATRIX,
+
+		ACT_PRE_VIEW_MATIX,
 		/// The current view matrix, inverted
 		ACT_INVERSE_VIEW_MATRIX,
 		/** Provides transpose of view matrix.
@@ -429,6 +432,9 @@ public:
 		Equivalent to RenderMonkey's "ProjectionInverse".
 		*/
 		ACT_INVERSE_PROJECTION_MATRIX,
+
+		ACT_PRE_PROJECTION_MATRIX,
+		
 		/** Provides transpose of projection matrix.
 		Equivalent to RenderMonkey's "ProjectionTranspose".
 		*/
@@ -482,7 +488,7 @@ public:
 		matrices. Equivalent to RenderMonkey's "WorldViewProjectionInverseTranspose".
 		*/
 		ACT_INVERSE_TRANSPOSE_WORLDVIEWPROJ_MATRIX,
-
+		
 
 		/// render target related values
 		/** -1 if requires texture flipping, +1 otherwise. It's useful when you bypassed

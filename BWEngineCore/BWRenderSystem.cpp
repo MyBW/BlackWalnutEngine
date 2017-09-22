@@ -169,7 +169,12 @@ void BWRenderSystem::_endFrame()
 	//天空盒
 	RenderSkyBox();
 
+	RenderTemporalAA();
+
 	RenderToneMap();
+
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->EndFrame();
+
 
 	CopyTextureToScreen(BWRenderSystem::FinalRenderResult, 0, 0);
 	ClearTextureResource();
@@ -332,6 +337,10 @@ void BWRenderSystem::SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage)
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = CBufferTexture;
 	RenderTargets.RenderTargets.push_back(RenderTarget);
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = VelocityRT;
+	RenderTargets.RenderTargets.push_back(RenderTarget);
 	SetRenderTargets(RenderTargets);
 }
 
@@ -396,6 +405,12 @@ bool BWRenderSystem::InitRendererResource()
 	texture->setHeight(GRenderTarget->getHeight());
 	texture->setWidth(GRenderTarget->getWidth());
 	GRenderTarget->addTextureBuffer(texture, 0);
+	// 暂时使用这种方式来获得VelocityRT Buffer 随后  看看Unreal如何实现的
+	VelocityRT = BWTextureManager::GetInstance()->Create("VelocityRT", DEFAULT_RESOURCE_GROUP);
+	VelocityRT->setHeight(GRenderTarget->getHeight());
+	VelocityRT->setWidth(GRenderTarget->getWidth());
+	GRenderTarget->addTextureBuffer(VelocityRT, 0);
+
 
 	GRenderTarget->createDepthBuffer(std::string("DepthBuffer"));
 	GRenderTarget->createPixelBuffer(std::string("FinalRenderResult"));
@@ -477,6 +492,10 @@ bool BWRenderSystem::InitRendererResource()
 	LoadGUPUsageAndGPUProgram(std::string("ToneMap"), ToneMapProgramUsage, ToneMapProgram);
 	LoadGUPUsageAndGPUProgram(std::string("FilterImageGussiX"), FilterImageByGussiXUsage, FilterImageByGussiX);
 	LoadGUPUsageAndGPUProgram(std::string("FilterImageGussiY"), FilterImageByGussiYUsage, FilterImageByGussiY);
+
+	LoadGUPUsageAndGPUProgram(std::string("TemporalAntiAliasing"), FilterImageByGussiYUsage, FilterImageByGussiY);
+
+
 
 	DirectLightProgramUsage = mDirectionLightM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
 	BWMaterialPtr ImageBaseLightingMaterial = BWMaterialManager::GetInstance()->GetResource("ImageBaseLighting", "General");
@@ -1216,6 +1235,49 @@ void BWRenderSystem::RenderToneMap()
 	return;
 }
 
+
+void BWRenderSystem::RenderTemporalAA()
+{
+	RSGraphicPipelineState PipelineState;
+	PipelineState.GPUProgramUsage = TemporalAAUsage;
+	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState <false, false>::GetStateHI();
+	SetGraphicsPipelineState(PipelineState);
+	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
+		ToneMapProgramUsage->GetGpuProgramParameter()
+		);
+	BBufferTexture->SetIndex(0);
+	VelocityRT->SetIndex(1);
+	HistoryRT->SetIndex(2);
+	FinalRenderResult->SetIndex(3);
+	SetShaderTexture(TemporalAAProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(TemporalAAProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(TemporalAAProgram, HistoryRT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(TemporalAAProgram, VelocityRT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
+	DumpTexture->setWidth(HistoryRT->getWidth());
+	DumpTexture->setHeight(HistoryRT->getHeight());
+	DumpTexture->setFormat(HistoryRT->getFormat());
+	DumpTexture->setTextureType(TEX_TYPE_2D);
+	DumpTexture->setNumMipmaps(0);
+	DumpTexture->SetIndex(0);
+	DumpTexture->createInternalResources();
+
+	RSRenderTarget RenderTarget;
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = DumpTexture;
+	SetRenderTarget( TemporalAAUsage, RenderTarget, GDepthBuffer);
+	int Width = FinalRenderResult->getWidth();
+	int Height = FinalRenderResult->getHeight();
+	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("Width", &Width, 1, 1);
+	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("Height", &Height, 1, 1);
+	BWHighLevelGpuProgramPtr tmp;
+	RenderOperation(CubeMeshRenderOperation, tmp);
+	CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
+	CopyTextureToTexture(DumpTexture, 0, 0, FinalRenderResult, 0, 0);
+}
 
 void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
 {

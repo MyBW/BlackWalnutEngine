@@ -12,6 +12,7 @@ public:
 	BWCamera(BWSceneManager* creator, const std::string &name);
 	~BWCamera();
 	const BWMatrix4& getViewMatrix(bool ownFrustumOnly) const ;
+	const BWMatrix4& getPreViewMatrix(bool ownFrustumOnly)const;
 	const BWMatrix4& getViewMatrix() const;
 	BWCamera* getLodCamera() const ;
 

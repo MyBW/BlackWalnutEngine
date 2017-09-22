@@ -134,6 +134,12 @@ const BWMatrix4& BWCamera::getViewMatrix(bool ownFrustumOnly) const
 	}
 }
 
+
+const BWMatrix4& BWCamera::getPreViewMatrix(bool ownFrustumOnly) const
+{
+	return BWFrustum::getPreViewMatrix();
+}
+
 void BWCamera::setRealOrientation(const BWQuaternion &q)
 {
 	mOrientation = q;

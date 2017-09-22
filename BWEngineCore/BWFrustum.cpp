@@ -79,6 +79,12 @@ void BWFrustum::updateFrustum() const
 		updateFrustumImp();
     }
 }
+
+const BWMatrix4& BWFrustum::getPreProjectionMatrixRS() const
+{
+	return mPreProjectionMatrixRS;
+}
+
 float BWFrustum::getOrthoWindowHeight() const
 {
 	return mOrhtoHeight;
@@ -264,6 +270,12 @@ void BWFrustum::calcProjectionParameters(float &left, float &right, float &botto
 		}
 	}
 }
+
+BWMatrix4& BWFrustum::getPreViewMatrix() const
+{
+	return mPreViewMatrix;
+}
+
 BWMatrix4& BWFrustum::getViewMatrix() const
 {
 	updateViewMatrix();
@@ -355,6 +367,13 @@ void BWFrustum::invalidateView()
 	mRecalcFrustumPlanes = true;
 	mReCalcWorldSpeceCorners = true;
 }
+
+void BWFrustum::EndFrame() const
+{
+	mPreViewMatrix = getViewMatrix();
+	mPreProjectionMatrixRS = getProjectionMatrixRS();
+}
+
 float BWFrustum::getNearClipDistance() const
 {
 	return mNearDist;

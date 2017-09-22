@@ -7,6 +7,7 @@
 
 BWGpuProgramParameters::AutoConstantDefinition BWGpuProgramParameters::autoConstantDictionary[] = {
 	AutoConstantDefinition(ACT_WORLD_MATRIX, "world_matrix", 16, ET_REAL, ACDT_NONE),
+	AutoConstantDefinition(ACT_PRE_WORLD_MATRIX, "pre_world_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_INVERSE_WORLD_MATRIX, "inverse_world_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_TRANSPOSE_WORLD_MATRIX, "transpose_world_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_INVERSE_TRANSPOSE_WORLD_MATRIX, "inverse_transpose_world_matrix", 16, ET_REAL, ACDT_NONE),
@@ -16,11 +17,13 @@ BWGpuProgramParameters::AutoConstantDefinition BWGpuProgramParameters::autoConst
 	AutoConstantDefinition(ACT_WORLD_DUALQUATERNION_ARRAY_2x4, "world_dualquaternion_array_2x4", 8, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_WORLD_SCALE_SHEAR_MATRIX_ARRAY_3x4, "world_scale_shear_matrix_array_3x4", 9, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_VIEW_MATRIX, "view_matrix", 16, ET_REAL, ACDT_NONE),
+	AutoConstantDefinition(ACT_PRE_VIEW_MATIX, "pre_view_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_INVERSE_VIEW_MATRIX, "inverse_view_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_TRANSPOSE_VIEW_MATRIX, "transpose_view_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_INVERSE_TRANSPOSE_VIEW_MATRIX, "inverse_transpose_view_matrix", 16, ET_REAL, ACDT_NONE),
 
 	AutoConstantDefinition(ACT_PROJECTION_MATRIX, "projection_matrix", 16, ET_REAL, ACDT_NONE),
+	AutoConstantDefinition(ACT_PRE_PROJECTION_MATRIX,"pre_projection_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_INVERSE_PROJECTION_MATRIX, "inverse_projection_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_TRANSPOSE_PROJECTION_MATRIX, "transpose_projection_matrix", 16, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_INVERSE_TRANSPOSE_PROJECTION_MATRIX, "inverse_transpose_projection_matrix", 16, ET_REAL, ACDT_NONE),

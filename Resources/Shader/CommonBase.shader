@@ -229,6 +229,11 @@ fragment_shader FilterImageCussiYFragment glsl
   Source FilterImageGussiY.frag
 }
 
+fragment_shader TemporalAntiAliasingFragment glsl
+{
+  Source TemporalAntiAliasing.frag
+}
+
 
 
 

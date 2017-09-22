@@ -10,14 +10,11 @@ GPU资源中的会占用较大现存的资源，例如 纹理 渲染目标 等�
 一周
 #将Unreal中的环境贴图算法实现    SH算法有问题 导致SH算出的光照偏向蓝绿色
 
-一周
-#tonemap
-#ssao
-
 三周
-#屏幕空间反射
+#Motion Blu Buffer
+#Correct ProjectMatrix
 #templore AA 
-
+#屏幕空间反射
 
 一周
 #shadowmap 

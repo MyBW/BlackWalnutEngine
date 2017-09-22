@@ -5,6 +5,7 @@
 #include "BWRoot.h"
 #include "Math.h"
 #include "BWCamera.h"
+#include <utility>
 
 
 
@@ -65,6 +66,19 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 	BWAutoParamDataSource::~BWAutoParamDataSource()
 	{
 	}
+
+	void BWAutoParamDataSource::EndFrame()
+	{
+		mCurrentCamera->EndFrame();
+		RenderablePreWolrdMatrix.clear();
+		for (auto Renderable : AllRenderableInThisFrame)
+		{
+			BWMatrix4 WorldTrans;
+			Renderable->getWorldTransforms(&WorldTrans);
+			RenderablePreWolrdMatrix.insert(std::pair<BWRenderable*, BWMatrix4>(Renderable, WorldTrans));
+		}
+	}
+
 	//-----------------------------------------------------------------------------
 	const BWLight& BWAutoParamDataSource::getLight(size_t index) const
 	{
@@ -83,7 +97,16 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 	//-----------------------------------------------------------------------------
 	void BWAutoParamDataSource::setCurrentRenderable(const BWRenderable* rend)
 	{
-		mCurrentRenderable = rend;
+		mCurrentRenderable = nullptr;
+		for (auto Ele : AllRenderableInThisFrame)
+		{
+			if (Ele == rend) mCurrentRenderable = Ele;
+		}
+		if (!mCurrentRenderable)
+		{
+			mCurrentRenderable = rend;
+			AllRenderableInThisFrame.push_back(rend);
+		}
 		mWorldMatrixDirty = true;
 		mViewMatrixDirty = true;
 		mProjMatrixDirty = true;
@@ -103,6 +126,7 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 			mSpotlightWorldViewProjMatrixDirty[i] = true;
 		}
 
+		
 	}
 	//-----------------------------------------------------------------------------
 	void BWAutoParamDataSource::setCurrentCamera(const BWCamera* cam, bool useCameraRelative)
@@ -265,6 +289,13 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 		}
 		return mWorldMatrixArray[0];
 	}
+
+	const BWMatrix4& BWAutoParamDataSource::getPreWorldMatrix(void) const
+	{
+		std::map<const BWRenderable*, BWMatrix4>::const_iterator Itor = RenderablePreWolrdMatrix.find(mCurrentRenderable);
+		return Itor->second;
+	}
+
 	//-----------------------------------------------------------------------------
 	size_t BWAutoParamDataSource::getWorldMatrixCount(void) const
 	{
@@ -299,6 +330,12 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 		}
 		return mViewMatrix;
 	}
+
+	const BWMatrix4& BWAutoParamDataSource::getPreViewMatrix(void) const
+	{
+		return  mCurrentCamera->getPreViewMatrix(true);
+	}
+
 	//-----------------------------------------------------------------------------
 	const BWMatrix4& BWAutoParamDataSource::getViewProjectionMatrix(void) const
 	{
@@ -309,6 +346,12 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 		}
 		return mViewProjMatrix;
 	}
+
+	const BWMatrix4& BWAutoParamDataSource::getPreProjectionMatrix(void) const
+	{
+		return mCurrentCamera->getPreProjectionMatrixRS();
+	}
+
 	//-----------------------------------------------------------------------------
 	const BWMatrix4& BWAutoParamDataSource::getProjectionMatrix(void) const
 	{
@@ -1132,15 +1175,33 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 			{
 				switch (itor->paramType)
 				{
+				case BWGpuProgramParameters::ACT_PRE_VIEW_MATIX:
+				{
+					BWMatrix4 tmp = getPreViewMatrix();
+					GPUProgramParameter->WriteRawConstants(itor->physicalIndex, tmp.M, 16);
+					break;
+				}
 				case BWGpuProgramParameters::ACT_VIEW_MATRIX:
 				{
 					BWMatrix4 tmp = getViewMatrix();
 					GPUProgramParameter->WriteRawConstants(itor->physicalIndex, tmp.M, 16);
 					break;
 				}
+				case BWGpuProgramParameters::ACT_PRE_WORLD_MATRIX:
+				{
+					BWMatrix4 tmp = getPreWorldMatrix();  // 这个表示的是 Model Matirx
+					GPUProgramParameter->WriteRawConstants(itor->physicalIndex, tmp.M, 16);
+					break;
+				}
 				case BWGpuProgramParameters::ACT_WORLD_MATRIX:
 				{
 					BWMatrix4 tmp = getWorldMatrix();  // 这个表示的是 Model Matirx
+					GPUProgramParameter->WriteRawConstants(itor->physicalIndex, tmp.M, 16);
+					break;
+				}
+				case BWGpuProgramParameters::ACT_PRE_PROJECTION_MATRIX:
+				{
+					BWMatrix4 tmp = getPreProjectionMatrix();
 					GPUProgramParameter->WriteRawConstants(itor->physicalIndex, tmp.M, 16);
 					break;
 				}

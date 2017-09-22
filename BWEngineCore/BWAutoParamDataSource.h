@@ -68,6 +68,8 @@ protected:
 	mutable bool mLodCameraPositionObjectSpaceDirty;
 
 	const BWRenderable* mCurrentRenderable;
+    std::vector<const BWRenderable*> AllRenderableInThisFrame;
+	std::map<const BWRenderable*, BWMatrix4> RenderablePreWolrdMatrix;
 	const BWCamera* mCurrentCamera;
 	bool mCameraRelativeRendering;
 	BWVector3 mCameraRelativePosition;
@@ -117,6 +119,7 @@ public:
 
 	BWAutoParamDataSource();
 	virtual ~BWAutoParamDataSource();
+	virtual void EndFrame();
 	/** Updates the current renderable */
 	virtual void setCurrentRenderable(const BWRenderable* rend);
 	/** Sets the world matrices, avoid query from renderable again */
@@ -143,10 +146,13 @@ public:
 	virtual const BWCamera* GetActiveCamera() { return mCurrentCamera; }
 
 	virtual const BWMatrix4& getWorldMatrix(void) const;
+	virtual const BWMatrix4& getPreWorldMatrix(void)const;
 	virtual const BWMatrix4* getWorldMatrixArray(void) const;
 	virtual size_t getWorldMatrixCount(void) const;
 	virtual const BWMatrix4& getViewMatrix(void) const;
+	virtual const BWMatrix4& getPreViewMatrix(void) const;
 	virtual const BWMatrix4& getViewProjectionMatrix(void) const;
+	virtual const BWMatrix4& getPreProjectionMatrix(void) const;
 	virtual const BWMatrix4& getProjectionMatrix(void) const;
 	virtual const BWMatrix4& getWorldViewProjMatrix(void) const;
 	virtual const BWMatrix4& getWorldViewMatrix(void) const;

@@ -293,6 +293,9 @@ material SphereWithTextureInput
 			   param_named_auto ModelMatrix    world_matrix
 			   param_named_auto ViewMatrix     view_matrix
 			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
 			}
 		}
 	}
@@ -598,6 +601,29 @@ material FilterImageGussiY
 			gpu_program_ref   RenderSystem_FilterImageGussiY  GLSL
 			{
 			   param_named SrcTexture int 0
+			}
+		}
+	}
+}
+
+material TemporalAntiAliasing
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref RenderSystem_TemporalAntiAliasing GLSL
+			{
+			   param_named BBuffer 0
+			   param_named VelocityRT 1
+			   param_named HistoryRT 2
+			   param_named FinalRenderResult 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
 			}
 		}
 	}

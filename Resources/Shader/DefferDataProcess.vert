@@ -9,15 +9,22 @@ layout(binding = 0,std140) uniform UBO1
   mat4  ModelMatrix;
   mat4  ViewMatrix;
   mat4  ProjectMatrix;
+  mat4  PreModelMatix;
+  mat4  PreViewMatrix;
+  mat4  PreProjectMatrix;
 };
+
 out vec2 TextureCoord ;
 out vec3 OutNormal;
 out vec3 OutTangent;
 out float CameraSpaceDepth;
-out vec3  WorldPosition ;
+out vec4  ClipCoord ;
+out vec4  PreClipCoord;
 void main()
 {
    gl_Position = ProjectMatrix * ViewMatrix * ModelMatrix * vec4(Position , 1.0);
+   ClipCoord = gl_Position ;
+   PreClipCoord = PreModelMatix * PreViewMatrix * PreModelMatix * vec4(Position, 1.0) ;
    TextureCoord = Texture_Coordinates ;
    /*
    在Frag中计算法线贴图时候再转换 可以考虑是否可以在这里进行转化 到Frag中不再转化
@@ -28,6 +35,6 @@ void main()
    OutTangent = Tangent ;
    
    CameraSpaceDepth = (ViewMatrix * ModelMatrix * vec4(Position , 1.0)).z;
-   WorldPosition = Position;
+   
 }
 

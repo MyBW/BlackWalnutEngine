@@ -160,3 +160,10 @@
 	  fragment_shader_ref  FilterImageCussiYFragment
 	}
 	
+	
+	gpu_program RenderSystem_TemporalAntiAliasing GLSL
+	{
+	  vertex_shader_ref    DefferDirectLightingVertex
+	  fragment_shader_ref  TemporalAntiAliasingFragment
+	}
+	

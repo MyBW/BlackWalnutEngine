@@ -21,6 +21,7 @@ public:
 	// 投影矩阵
 	virtual const BWMatrix4& getProjectionMatrix() const;
 	void updateFrustum() const;
+	virtual const BWMatrix4& getPreProjectionMatrixRS() const;
 	virtual const BWMatrix4& getProjectionMatrixRS() const;
 	BWMatrix4 getProjectionMatrixWithRSDepth() const;
 	
@@ -29,6 +30,7 @@ public:
 	float getOrthoWindowHeight() const;
 	void  SetAspect(float Aspect) { mAspect = Aspect; }
 	// 视图矩阵
+	BWMatrix4& getPreViewMatrix() const;
 	BWMatrix4& getViewMatrix() const;
 	void updateViewMatrix() const;
 	
@@ -46,6 +48,7 @@ public:
 	virtual void invalidateFrustum();
 	virtual void invalidateView();
 	void SetProjectType(ProjectionType ProjType) { mProjectionType = ProjType; }
+	void EndFrame() const;
 protected:
 	virtual void updateFrustumImp() const;
 	virtual void updateViewMatrixImp() const;
@@ -54,6 +57,7 @@ protected:
     mutable	BWMatrix4 mProjectMatrix;
 	//RenderSystem 转换过后的矩阵
 	mutable BWMatrix4 mProjectMatrixRS;
+	mutable BWMatrix4 mPreProjectionMatrixRS;
 	//摄像机包围盒
 	mutable AxisAlignedBox mBoudingBox;
 	//更新相关
@@ -84,6 +88,7 @@ protected:
 
 	// 视图矩阵
 	mutable BWMatrix4 mViewMatrix;
+	mutable BWMatrix4 mPreViewMatrix;
 	BWMatrix4 mReflectMatrix;              //不懂什么意思
 	mutable BWVector3D mLastParentPosition;   // Node的位置
 	mutable BWQuaternion mLastParentOrientation; // Node的方位

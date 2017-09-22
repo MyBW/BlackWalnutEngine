@@ -3,6 +3,9 @@ in vec2 TextureCoord ;
 in vec3 OutNormal;
 in vec3 OutTangent ;
 in float CameraSpaceDepth;
+in vec4  ClipCoord ;
+in vec4  PreClipCoord;
+
 uniform sampler2D BaseColor ;
 uniform sampler2D Roughness;
 uniform sampler2D Metalic ;
@@ -13,23 +16,27 @@ uniform vec3 TestBaseColor ;
 uniform float TestRoughness ;
 uniform float TestMetalic ;
 
-out vec3  WorldPosition ;
+
 
 layout(location = 0) out vec4 ABuffer;
 layout(location = 1) out vec4 BBuffer;
 layout(location = 2) out vec4 CBuffer;
+layout(location = 3) out vec4 VelocityRT;
 
 layout(binding = 0,std140) uniform UBO1
 {
   mat4  ModelMatrix;
   mat4  ViewMatrix;
   mat4  ProjectMatrix;
+  mat4  PreModelMatix;
+  mat4  PreViewMatrix;
+  mat4  PreProjectMatrix;
 };
 
 // BaseColor:3 Specular :1
 // Normal:2 CameraSpaceDepth: 1
 // Roughness:1   Metalic: 1
-
+// VelocityRT: 3
 void main()
 {
    // 正确的情况
@@ -66,4 +73,8 @@ void main()
    //Roughness  And Metalic
    CBuffer.r = texture2D(Roughness , TextureCoord.xy).r ;
    CBuffer.g = texture2D(Metalic , TextureCoord.xy).r;
+   // Motion Blur
+   vec3 NDCPos = (ClipCoord / ClipCoord.w).xyz ;
+   vec3 PreNDXPos = (PreClipCoord / PreClipCoord.w).xyz;
+   VelocityRT.xy = (NDCPos - PreNDXPos).xy;
 }
