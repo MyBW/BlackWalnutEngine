@@ -144,6 +144,8 @@ protected:
 	BWHighLevelGpuProgramPtr FilterImageByGussiY;
 	BWGpuProgramUsagePtr FilterImageByGussiYUsage;
 	
+	BWHighLevelGpuProgramPtr MotionBlurProgram;
+	BWGpuProgramUsagePtr MotionBlurUsage;
 	//Templore AA
 	BWTexturePtr HistoryRT;
 	BWTexturePtr VelocityRT;
@@ -286,6 +288,7 @@ protected:
 	void RenderLights();
 	void RenderInDirectLights();
 	void RenderToneMap();
+	void RenderMotionBlur();
 	void RenderTemporalAA();
 
 	void FilterTexture(BWTexturePtr SourceImage);

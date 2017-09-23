@@ -83,7 +83,7 @@ vec4 FromScreenToWorld(mat4 InViewInverse , vec2 InScreenPos , vec2 InScreenWH, 
 
 float HdrWeightY(float InY , float InExposureScale) 
 {
-  rcp(InY * InExposureScale + 1.0);
+  return 1.0/(InY * InExposureScale + 1.0);
 }
 
 
@@ -142,16 +142,21 @@ vec4  Texture2DSampleBicubic( sampler2D Tex ,vec2 UV, vec2 Size )
 	return OutColor;
 }
 
-
+vec2 DecodeVelocityFormTexture(vec2 InVelocity)
+{
+   return InVelocity ;
+}
 
 void main()
 {
 	vec2 ScreenPos = gl_FragCoord.xy / vec2(Width , Height) ;
 	vec2 PixelStepSize = vec2(1.0f / Width , 1.0f / Height);
-	vec3 MaxDepthPos.xy = ScreenPos ;
-	MaxDepthPos.z = texture2D(BBuffer, textureCoord.xy).r ;
+	vec3 MinDepthPos;
+	MinDepthPos.xy = ScreenPos ;
+	MinDepthPos.z = texture2D(BBuffer, textureCoord.xy).r ;
 	
-	vec4 Depths.x = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(2.0 ,2.0)).r ;
+	vec4 Depths ; 
+	Depths.x = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(2.0 ,2.0)).r ;
 	Depths.y = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(-2.0 ,2.0)).r;
 	Depths.z = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(2.0 ,-2.0)).r;
 	Depths.w = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(-2.0 ,-2.0)).r;
@@ -173,9 +178,9 @@ void main()
 	  Offset = vec2(2.0 , -2.0) ;
 	  TmpX = Depths.z ;
 	}
-	if(TmpX > MaxDepthPos.z)
+	if(TmpX > MinDepthPos.z)
 	{
-	  MaxDepthPos.z = TmpX ;
+	  MinDepthPos.z = TmpX ;
 	}
 	else
 	{
@@ -183,19 +188,20 @@ void main()
 	}
 	
    vec2 NF = vec2( -NearFar.x , -NearFar.y) ;
-   vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , MaxDepthPos.xy, ScreenWH, FoV, NF, PrjPlaneWInverseH, MaxDepthPos.z) ;	
+   vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , MinDepthPos.xy, ScreenWH, FoV, NF, PrjPlaneWInverseH, MinDepthPos.z) ;	
    vec4 PreClipCoord = PreProjectMatrix * PreViewMatrix * WorldPos ;
    PreClipCoord = PreClipCoord / PreClipCoord.w ;
-   vec2 BackVec = ((MaxDepthPos.xy * 2.0).xy - vec2(1.0 ,1.0))).xy - PreClipCoord.xy  ;  // OpenGL的NDC坐标系为-1 到 1
+   vec2 NDCCoord = MinDepthPos.xy * 2.0 - vec2(1.0 ,1.0);
+   vec2 BackVec = NDCCoord - PreClipCoord.xy  ;  // OpenGL的NDC坐标系为-1 到 1
    // 以上所有代码都只是改变了深度 并没有改变ScreenPos  目的是当整个场景静态不动的时候 采用该像素周围最深的像素来计算BackVec 来对History采样
    
-   vec2 Velocity = texture2D(VelocityRT , MaxDepthPos.xy).rg ;
+   vec2 Velocity = texture2D(VelocityRT , MinDepthPos.xy).rg ;
    bool IsDynamic = Velocity.x > 0.0f ;
    if(IsDynamic)//当场景是动态的时候 使用Velocity 来表示采样
    {
        BackVec = DecodeVelocityFormTexture(Velocity);
    }
-   BackVec = ((MaxDepthPos.xy * 2.0).xy - vec2(1.0 ,1.0))).xy - BackVec ;
+   BackVec = NDCCoord - BackVec ;
    // 这里需要对BackVec进行处理  看看是否超出边界
    bool OffScreen = max(abs(BackVec.x) , abs(BackVec.y)) > 1.0f;
    BackVec.x = clamp(BackVec.x , -1.0, 1.0) ;
@@ -242,28 +248,28 @@ void main()
 	vec2 TestPos = PixelStepSize + textureCoord.xy ;
 	bool IsOffScreen = max(TestPos.x , TestPos.y)> 1.0 ;
 	if(IsOffScreen) Filterd = Neighbor4 ;
-	vec4 NeighborMin = min(min(min(min(Neighbor1.rgb , Neighbor3.rgb),Neighbor4.rgb), Neighbor5.rgb),Neighbor7.rgb);
-	vec4 NeighborMax = max(max(max(max(Neighbor1.rgb , Neighbor3.rgb),Neighbor4.rgb), Neighbor5.rgb),Neighbor7.rgb);
+	vec3 NeighborMin = min(min(min(min(Neighbor1.rgb , Neighbor3.rgb),Neighbor4.rgb), Neighbor5.rgb),Neighbor7.rgb);
+	vec3 NeighborMax = max(max(max(max(Neighbor1.rgb , Neighbor3.rgb),Neighbor4.rgb), Neighbor5.rgb),Neighbor7.rgb);
 	float NeighborAlphaMin = Neighbor1.a ;
 	float NeighborAlphaMax = Neighbor1.a ;
-	float NeighborMinWidght = NeighborWeight1 ;
-	float NeighborMaxWidget = NeighborWidget1 ;
+	float NeighborMinWidget = NeighborWeight1 ;
+	float NeighborMaxWidget = NeighborWeight1 ;
 	WeightTrackedAlphaClamping(NeighborAlphaMin , NeighborMinWidget , NeighborAlphaMax , NeighborMaxWidget , Neighbor3.a , NeighborWeight3) ;
 	WeightTrackedAlphaClamping(NeighborAlphaMin , NeighborMinWidget , NeighborAlphaMax , NeighborMaxWidget , Neighbor4.a , NeighborWeight4) ;
 	WeightTrackedAlphaClamping(NeighborAlphaMin , NeighborMinWidget , NeighborAlphaMax , NeighborMaxWidget , Neighbor5.a , NeighborWeight5) ;
 	WeightTrackedAlphaClamping(NeighborAlphaMin , NeighborMinWidget , NeighborAlphaMax , NeighborMaxWidget , Neighbor7.a , NeighborWeight7) ;
    
    // 对History采样  这里使用的是双三线采样算法  可以仔细看一下
-   vec4 HistoryColor = Texture2DSampleBicubic(HistoryRT , BackVec.xy,vec2(Width , Hieght));
+   vec4 HistoryColor = Texture2DSampleBicubic(HistoryRT , BackVec.xy,vec2(Width , Height));
    HistoryColor.rgb = RGBToYCoCg(HistoryColor.rgb) ;
    float HistoryWidget = HdrWeightY(HistoryColor.x , 1.0) ;
    HistoryColor *= HistoryWidget ;
    
-   bool IsDynamic1 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , 1.0));
-   bool IsDynamic3 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (-1.0 , 0.0));
-   bool IsDynamic4 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , 0.0));
-   bool IsDynamic5 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (1.0 , 0.0));
-   bool IsDynamic7 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , -1.0));
+   bool IsDynamic1 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , 1.0)).x > 0.0f;
+   bool IsDynamic3 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (-1.0 , 0.0)).x > 0.0f;
+   bool IsDynamic4 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , 0.0)).x > 0.0;
+   bool IsDynamic5 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (1.0 , 0.0)).x > 0.0f;
+   bool IsDynamic7 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , -1.0)).x > 0.0f;
    bool IsAllDynamic = IsDynamic1 || IsDynamic3 || IsDynamic4 || IsDynamic5 || IsDynamic7;
    if(!IsAllDynamic && HistoryColor.a > 0)
    {
@@ -278,7 +284,8 @@ void main()
 		HistoryColor = Filterd ;
 		HistoryColor.a = 0 ;
    }
-   vec4  OutColor.rgb = lerp(HistoryColor.rgb , Filterd.rgb , BlendFinal) ;
+   vec4  OutColor ;
+   OutColor.rgb = smoothstep(HistoryColor.rgb , Filterd.rgb , vec3(BlendFinal)) ;
    OutColor.a = max(HistoryColor.a , 1.0/2.0);
    OutColor.rgb *= HdrWeightY(OutColor.x , 1.0);
    OutColor.rgb = YCoCgToRGB(OutColor.rgb);

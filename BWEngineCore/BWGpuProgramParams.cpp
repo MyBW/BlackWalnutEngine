@@ -773,6 +773,7 @@ unsigned short BWGpuProgramParameters::deriveVariability(AutoConstantType act)
 		return (unsigned short)GPV_GLOBAL;
 
 	case ACT_WORLD_MATRIX:
+	case ACT_PRE_WORLD_MATRIX:
 	case ACT_INVERSE_WORLD_MATRIX:
 	case ACT_TRANSPOSE_WORLD_MATRIX:
 	case ACT_INVERSE_TRANSPOSE_WORLD_MATRIX:

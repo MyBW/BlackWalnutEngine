@@ -9,7 +9,7 @@ layout(binding = 0,std140) uniform UBO1
   mat4  ModelMatrix;
   mat4  ViewMatrix;
   mat4  ProjectMatrix;
-  mat4  PreModelMatix;
+  mat4  PreModelMatrix;
   mat4  PreViewMatrix;
   mat4  PreProjectMatrix;
 };
@@ -24,7 +24,7 @@ void main()
 {
    gl_Position = ProjectMatrix * ViewMatrix * ModelMatrix * vec4(Position , 1.0);
    ClipCoord = gl_Position ;
-   PreClipCoord = PreModelMatix * PreViewMatrix * PreModelMatix * vec4(Position, 1.0) ;
+   PreClipCoord = PreProjectMatrix * PreViewMatrix * PreModelMatrix * vec4(Position, 1.0) ;
    TextureCoord = Texture_Coordinates ;
    /*
    在Frag中计算法线贴图时候再转换 可以考虑是否可以在这里进行转化 到Frag中不再转化

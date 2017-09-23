@@ -28,7 +28,7 @@ layout(binding = 0,std140) uniform UBO1
   mat4  ModelMatrix;
   mat4  ViewMatrix;
   mat4  ProjectMatrix;
-  mat4  PreModelMatix;
+  mat4  PreModelMatrix;
   mat4  PreViewMatrix;
   mat4  PreProjectMatrix;
 };

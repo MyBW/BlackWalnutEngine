@@ -75,7 +75,7 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 		{
 			BWMatrix4 WorldTrans;
 			Renderable->getWorldTransforms(&WorldTrans);
-			RenderablePreWolrdMatrix.insert(std::pair<BWRenderable*, BWMatrix4>(Renderable, WorldTrans));
+			RenderablePreWolrdMatrix.insert(std::pair<const BWRenderable*, BWMatrix4>(Renderable, WorldTrans));
 		}
 	}
 
@@ -293,6 +293,10 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 	const BWMatrix4& BWAutoParamDataSource::getPreWorldMatrix(void) const
 	{
 		std::map<const BWRenderable*, BWMatrix4>::const_iterator Itor = RenderablePreWolrdMatrix.find(mCurrentRenderable);
+		if (Itor == RenderablePreWolrdMatrix.end())
+		{
+			return BWMatrix4::IDENTITY;
+		}
 		return Itor->second;
 	}
 

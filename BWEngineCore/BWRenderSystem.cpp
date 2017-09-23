@@ -169,6 +169,8 @@ void BWRenderSystem::_endFrame()
 	//天空盒
 	RenderSkyBox();
 
+	RenderMotionBlur();
+
 	RenderTemporalAA();
 
 	RenderToneMap();
@@ -486,14 +488,16 @@ bool BWRenderSystem::InitRendererResource()
 	BloomTexture->createInternalResources();
 
 	
+	
+
 	LoadGUPUsageAndGPUProgram(std::string("ScaleCopy"), EmptyGPUProgramUsage, EmptyGPUProgram);
 	LoadGUPUsageAndGPUProgram(std::string("ComputeLumValue"), ComputeLumUsage, ComputeLumValue);
 	LoadGUPUsageAndGPUProgram(std::string("ComputeBloom"), ComputeBloomUsage, ComputeBloomProgram);
 	LoadGUPUsageAndGPUProgram(std::string("ToneMap"), ToneMapProgramUsage, ToneMapProgram);
 	LoadGUPUsageAndGPUProgram(std::string("FilterImageGussiX"), FilterImageByGussiXUsage, FilterImageByGussiX);
 	LoadGUPUsageAndGPUProgram(std::string("FilterImageGussiY"), FilterImageByGussiYUsage, FilterImageByGussiY);
-
-	LoadGUPUsageAndGPUProgram(std::string("TemporalAntiAliasing"), FilterImageByGussiYUsage, FilterImageByGussiY);
+	LoadGUPUsageAndGPUProgram(std::string("TemporalAntiAliasing"), TemporalAAUsage, TemporalAAProgram);
+	LoadGUPUsageAndGPUProgram(std::string("MotionBlur"), MotionBlurUsage,MotionBlurProgram);
 
 
 
@@ -1236,8 +1240,47 @@ void BWRenderSystem::RenderToneMap()
 }
 
 
+void BWRenderSystem::RenderMotionBlur()
+{
+	RSGraphicPipelineState CacheCachePipelineState = CachedPipelineState;
+	RSGraphicPipelineState PipelineState;
+	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
+	PipelineState.RasterizerState = TStaticRasterizerState<>::GetStateHI();
+	PipelineState.GPUProgramUsage = MotionBlurUsage;
+	SetGraphicsPipelineState(PipelineState);
+	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+	FinalRenderResult->SetIndex(0);
+	VelocityRT->SetIndex(1);
+	SetShaderTexture(MotionBlurProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(MotionBlurProgram, VelocityRT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
+	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
+	DumpTexture->setWidth(FinalRenderResult->getWidth());
+	DumpTexture->setHeight(FinalRenderResult->getHeight());
+	DumpTexture->setFormat(FinalRenderResult->getFormat());
+	DumpTexture->setTextureType(TEX_TYPE_2D);
+	DumpTexture->setNumMipmaps(0);
+	DumpTexture->SetIndex(0);
+	DumpTexture->createInternalResources();
+
+	RSRenderTarget RenderTarget;
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = DumpTexture;
+	SetRenderTarget(MotionBlurUsage, RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
+	BWHighLevelGpuProgramPtr tmp;
+	RenderOperation(CubeMeshRenderOperation, tmp);
+	CopyTextureToTexture(DumpTexture, 0, 0, FinalRenderResult, 0, 0);
+	SetGraphicsPipelineState(CacheCachePipelineState);
+	return;
+
+}
+
 void BWRenderSystem::RenderTemporalAA()
 {
+	return;
 	RSGraphicPipelineState PipelineState;
 	PipelineState.GPUProgramUsage = TemporalAAUsage;
 	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
@@ -1309,6 +1352,7 @@ void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
 	RenderTarget.RenderTargetTexture = DumpTexture;
 	SetRenderTarget(FilterImageByGussiXUsage, RenderTarget, GDepthBuffer);
 	FilterImageByGussiXUsage->GetGpuProgramParameter()->SetNamedConstant("Width", &Width, 1 , 1);
+	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
 
@@ -1319,6 +1363,7 @@ void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
 	RenderTarget.RenderTargetTexture = SourceImage;
 	SetRenderTarget(FilterImageByGussiYUsage, RenderTarget, GDepthBuffer);
 	FilterImageByGussiYUsage->GetGpuProgramParameter()->SetNamedConstant("Hight", &Hight, 1, 1);
+	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
 	RenderOperation(CubeMeshRenderOperation, tmp);
 
 	SetGraphicsPipelineState(CacheCachePipelineState);

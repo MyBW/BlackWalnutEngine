@@ -234,6 +234,11 @@ fragment_shader TemporalAntiAliasingFragment glsl
   Source TemporalAntiAliasing.frag
 }
 
+fragment_shader MotionBlurFragment glsl
+{
+  Source MotionBlur.frag
+}
+
 
 
 

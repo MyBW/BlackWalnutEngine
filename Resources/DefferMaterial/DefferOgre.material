@@ -606,6 +606,25 @@ material FilterImageGussiY
 	}
 }
 
+
+material MotionBlur
+{
+	technique
+	{
+		pass
+		{
+		
+			gpu_program_ref   RenderSystem_MotionBlur  GLSL
+			{
+			   param_named FinalReslutImage int 0
+			   param_named VeclocityRT int 1
+			}
+		}
+	}
+}
+
+
+
 material TemporalAntiAliasing
 {
 	technique
@@ -614,10 +633,10 @@ material TemporalAntiAliasing
 		{
 			gpu_program_ref RenderSystem_TemporalAntiAliasing GLSL
 			{
-			   param_named BBuffer 0
-			   param_named VelocityRT 1
-			   param_named HistoryRT 2
-			   param_named FinalRenderResult 3
+			   param_named BBuffer int 0
+			   param_named VelocityRT int 1
+			   param_named HistoryRT int 2
+			   param_named FinalRenderResult int 3
 			   param_named_auto ModelMatrix    world_matrix
 			   param_named_auto ViewMatrix     view_matrix
 			   param_named_auto ProjectMatrix  projection_matrix
