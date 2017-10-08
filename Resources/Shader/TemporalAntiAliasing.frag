@@ -6,7 +6,9 @@ uniform sampler2D HistoryRT;
 uniform sampler2D FinalRenderResult;
 uniform int Width ;
 uniform int Height ;
+uniform float InExposureScale; 
 uniform float PlusWeights[5] ;
+layout(location = 0) out vec4 FinalAAResult;
 layout(binding = 0,std140) uniform UBO1
 {
   mat4  ModelMatrix;
@@ -146,39 +148,69 @@ vec2 DecodeVelocityFormTexture(vec2 InVelocity)
 {
    return InVelocity ;
 }
-
+vec3 tonemap(vec3 Color)
+{
+  return Color/(Color + vec3(1.0 , 1.0 , 1.0));
+}
+vec3 inverseTonemap(vec3 Color)
+{
+  return Color /(vec3(1.0 , 1.0 , 1.0) - Color);
+}
 void main()
 {
 	vec2 ScreenPos = gl_FragCoord.xy / vec2(Width , Height) ;
 	vec2 PixelStepSize = vec2(1.0f / Width , 1.0f / Height);
 	vec3 MinDepthPos;
-	MinDepthPos.xy = ScreenPos ;
-	MinDepthPos.z = texture2D(BBuffer, textureCoord.xy).r ;
+	MinDepthPos.xy = textureCoord.xy ;
+	MinDepthPos.z = texture2D(BBuffer, textureCoord.xy).z ;
 	
+   
+   vec4 Neighbor[9];
+    Neighbor[0] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (-1.0 , 1.0));
+    Neighbor[1] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (0.0 , 1.0));
+    Neighbor[2] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (1.0 , 1.0));
+    Neighbor[3] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (-1.0 , 0.0));
+    Neighbor[4] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (0.0 , 0.0));
+    Neighbor[5] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (1.0 , 0.0));
+    Neighbor[6] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (-1.0 , -1.0));
+    Neighbor[7] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (0.0 , -1.0));
+    Neighbor[8] = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (1.0 , -1.0));
+   vec4 MinNeighbor = Neighbor[0];
+   vec4 MaxNeighbor = Neighbor[0];
+   for(int i = 0 ; i < 9; i++)
+   {
+        MaxNeighbor.rgb = max(MaxNeighbor.rgb , Neighbor[i].rgb);
+		MinNeighbor.rgb = min(MinNeighbor.rgb , Neighbor[i].rgb);
+   }
+   
+   
+   
+   
+   
 	vec4 Depths ; 
-	Depths.x = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(2.0 ,2.0)).r ;
-	Depths.y = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(-2.0 ,2.0)).r;
-	Depths.z = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(2.0 ,-2.0)).r;
-	Depths.w = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(-2.0 ,-2.0)).r;
+	Depths.x = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(2.0 ,2.0)).z ;
+	Depths.y = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(-2.0 ,2.0)).z;
+	Depths.z = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(2.0 ,-2.0)).z;
+	Depths.w = texture2D(BBuffer, textureCoord.xy + PixelStepSize * vec2(-2.0 ,-2.0)).z;
 	
 	vec2 Offset = vec2(2.0f, 2.0f) ;
 	float TmpX = Depths.x ;
-	if(Depths.x < Depths.y) 
+	if(Depths.x > Depths.y) 
 	{
 	  Offset = vec2(-2.0 , 2.0) ;
 	  TmpX = Depths.y ;
 	}
-	if(Depths.z > TmpX)
+	if(Depths.z < TmpX)
 	{
 	  Offset = vec2(2.0 , -2.0) ;
 	  TmpX = Depths.z ;
 	}
-	if(Depths.w > TmpX) 
+	if(Depths.w < TmpX) 
 	{
 	  Offset = vec2(2.0 , -2.0) ;
 	  TmpX = Depths.z ;
 	}
-	if(TmpX > MinDepthPos.z)
+	if(TmpX < MinDepthPos.z)
 	{
 	  MinDepthPos.z = TmpX ;
 	}
@@ -187,108 +219,53 @@ void main()
 	  Offset = vec2(0.0 , 0.0) ;
 	}
 	
+   
    vec2 NF = vec2( -NearFar.x , -NearFar.y) ;
-   vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , MinDepthPos.xy, ScreenWH, FoV, NF, PrjPlaneWInverseH, MinDepthPos.z) ;	
+   vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , gl_FragCoord.xy, ScreenWH, FoV, NF, PrjPlaneWInverseH, MinDepthPos.z) ;	
    vec4 PreClipCoord = PreProjectMatrix * PreViewMatrix * WorldPos ;
+   
+   
    PreClipCoord = PreClipCoord / PreClipCoord.w ;
    vec2 NDCCoord = MinDepthPos.xy * 2.0 - vec2(1.0 ,1.0);
-   vec2 BackVec = NDCCoord - PreClipCoord.xy  ;  // OpenGL的NDC坐标系为-1 到 1
+    // OpenGL的NDC坐标系为-1 到 1
    // 以上所有代码都只是改变了深度 并没有改变ScreenPos  目的是当整个场景静态不动的时候 采用该像素周围最深的像素来计算BackVec 来对History采样
-   
-   vec2 Velocity = texture2D(VelocityRT , MinDepthPos.xy).rg ;
-   bool IsDynamic = Velocity.x > 0.0f ;
-   if(IsDynamic)//当场景是动态的时候 使用Velocity 来表示采样
-   {
-       BackVec = DecodeVelocityFormTexture(Velocity);
-   }
+   vec2 Velocity = texture2D(VelocityRT , MinDepthPos.xy + Offset * PixelStepSize).rg ;
+   vec2 BackVec = DecodeVelocityFormTexture(Velocity); // Unreal中使用了一种编码方式 使得使用更少的位数来存储Veclocity
    BackVec = NDCCoord - BackVec ;
-   // 这里需要对BackVec进行处理  看看是否超出边界
-   bool OffScreen = max(abs(BackVec.x) , abs(BackVec.y)) > 1.0f;
-   BackVec.x = clamp(BackVec.x , -1.0, 1.0) ;
-   BackVec.y = clamp(BackVec.y, -1.0, 1.0) ;
-   BackVec = BackVec.xy * 0.5 + 1.0 ;
-   // 对当前的FinalResut采样
-   vec4 Neighbor1 = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (0.0 , 1.0));
-   vec4 Neighbor3 = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (-1.0 , 0.0));
-   vec4 Neighbor4 = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (0.0 , 0.0));
-   vec4 Neighbor5 = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (1.0 , 0.0));
-   vec4 Neighbor7 = texture2D(FinalRenderResult, textureCoord.xy + PixelStepSize * (0.0 , -1.0));
-   Neighbor1.rgb = RGBToYCoCg(Neighbor1.rgb) ;
-   Neighbor3.rgb = RGBToYCoCg(Neighbor3.rgb) ;
-   Neighbor4.rgb = RGBToYCoCg(Neighbor4.rgb) ;
-   Neighbor5.rgb = RGBToYCoCg(Neighbor5.rgb) ;
-   Neighbor7.rgb = RGBToYCoCg(Neighbor7.rgb) ;
-   
-   float Lum1 , Lum2 ;
-   Lum1 = Neighbor1.x ; Lum2 = Neighbor1.x * Neighbor1.x ;
-   Lum1 += Neighbor3.x ; Lum2 += Neighbor3.x * Neighbor3.x ;
-   Lum1 += Neighbor4.x ; Lum2 += Neighbor4.x * Neighbor4.x ;
-   Lum1 += Neighbor5.x ; Lum2 += Neighbor5.x * Neighbor5.x ;
-   Lum1 += Neighbor7.x ; Lum2 += Neighbor7.x * Neighbor7.x ;
-   float AvgLum1 = Lum1 * (1.0f/5.0) ;
-   float VarLum = abs(Lum2 * (1.0/5) - pow(Lum1 ,2.0f)) ;// 这里猜测是使用的近似计算来得到方差的
-   float NeighborWeight1 = HdrWeightY(Neighbor1.x , 1.0) ;
-   float NeighborWeight3 = HdrWeightY(Neighbor3.x , 1.0) ;
-   float NeighborWeight4 = HdrWeightY(Neighbor4.x , 1.0) ;
-   float NeighborWeight5 = HdrWeightY(Neighbor5.x , 1.0) ;
-   float NeighborWeight7 = HdrWeightY(Neighbor7.x , 1.0) ;
-   Neighbor1.rgb *= NeighborWeight1;
-   Neighbor3.rgb *= NeighborWeight3;
-   Neighbor4.rgb *= NeighborWeight4;
-   Neighbor5.rgb *= NeighborWeight5;
-   Neighbor7.rgb *= NeighborWeight7;
-   
-   vec4 Filterd = Neighbor1 * PlusWeights[0] 
-                + Neighbor3 * PlusWeights[1] 
-				+ Neighbor4 * PlusWeights[2]
-				+ Neighbor5 * PlusWeights[3]
-				+ Neighbor7 * PlusWeights[4];
-	if(VarLum > 1.0) Filterd = Neighbor4 ;
-	
-	vec2 TestPos = PixelStepSize + textureCoord.xy ;
-	bool IsOffScreen = max(TestPos.x , TestPos.y)> 1.0 ;
-	if(IsOffScreen) Filterd = Neighbor4 ;
-	vec3 NeighborMin = min(min(min(min(Neighbor1.rgb , Neighbor3.rgb),Neighbor4.rgb), Neighbor5.rgb),Neighbor7.rgb);
-	vec3 NeighborMax = max(max(max(max(Neighbor1.rgb , Neighbor3.rgb),Neighbor4.rgb), Neighbor5.rgb),Neighbor7.rgb);
-	float NeighborAlphaMin = Neighbor1.a ;
-	float NeighborAlphaMax = Neighbor1.a ;
-	float NeighborMinWidget = NeighborWeight1 ;
-	float NeighborMaxWidget = NeighborWeight1 ;
-	WeightTrackedAlphaClamping(NeighborAlphaMin , NeighborMinWidget , NeighborAlphaMax , NeighborMaxWidget , Neighbor3.a , NeighborWeight3) ;
-	WeightTrackedAlphaClamping(NeighborAlphaMin , NeighborMinWidget , NeighborAlphaMax , NeighborMaxWidget , Neighbor4.a , NeighborWeight4) ;
-	WeightTrackedAlphaClamping(NeighborAlphaMin , NeighborMinWidget , NeighborAlphaMax , NeighborMaxWidget , Neighbor5.a , NeighborWeight5) ;
-	WeightTrackedAlphaClamping(NeighborAlphaMin , NeighborMinWidget , NeighborAlphaMax , NeighborMaxWidget , Neighbor7.a , NeighborWeight7) ;
-   
+   BackVec = BackVec.xy * 0.5 + vec2(0.5);
+   PreClipCoord.xy = BackVec;
    // 对History采样  这里使用的是双三线采样算法  可以仔细看一下
    vec4 HistoryColor = Texture2DSampleBicubic(HistoryRT , BackVec.xy,vec2(Width , Height));
-   HistoryColor.rgb = RGBToYCoCg(HistoryColor.rgb) ;
-   float HistoryWidget = HdrWeightY(HistoryColor.x , 1.0) ;
-   HistoryColor *= HistoryWidget ;
+   HistoryColor = texture2D(HistoryRT , BackVec.xy );
+   HistoryColor.rgb = clamp(HistoryColor.rgb , MinNeighbor.rgb , MaxNeighbor.rgb);
+   vec4 CurrentColor = Neighbor[4];
    
-   bool IsDynamic1 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , 1.0)).x > 0.0f;
-   bool IsDynamic3 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (-1.0 , 0.0)).x > 0.0f;
-   bool IsDynamic4 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , 0.0)).x > 0.0;
-   bool IsDynamic5 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (1.0 , 0.0)).x > 0.0f;
-   bool IsDynamic7 = texture2D(VelocityRT, textureCoord.xy + PixelStepSize * (0.0 , -1.0)).x > 0.0f;
-   bool IsAllDynamic = IsDynamic1 || IsDynamic3 || IsDynamic4 || IsDynamic5 || IsDynamic7;
-   if(!IsAllDynamic && HistoryColor.a > 0)
-   {
-	  HistoryColor = Filterd ;
-	  HistoryColor.a = 0 ;
-   }
-   // 混合 输出
-   HistoryColor.rgb = clamp(HistoryColor.rgb , NeighborMin.rgb , NeighborMax.rgb);
-   float BlendFinal = 1.0/4.0 ;  // Unreal中还提供了其他的算法 可去看看
-   if(OffScreen)
-   {
-		HistoryColor = Filterd ;
-		HistoryColor.a = 0 ;
-   }
-   vec4  OutColor ;
-   OutColor.rgb = smoothstep(HistoryColor.rgb , Filterd.rgb , vec3(BlendFinal)) ;
-   OutColor.a = max(HistoryColor.a , 1.0/2.0);
-   OutColor.rgb *= HdrWeightY(OutColor.x , 1.0);
-   OutColor.rgb = YCoCgToRGB(OutColor.rgb);
-   OutColor.rgb = -min(-OutColor.rgb, 0.0) ;
-   OutColor.a = IsDynamic4 ? 1.0 : 0.0;
+   
+   
+   	// the linear filtering can cause blurry image, try to account for that:
+	
+	float SubpixelCorrection =  max(abs(Velocity.x)*Width, abs(Velocity.y)*Height) ;
+	SubpixelCorrection = (SubpixelCorrection - int(SubpixelCorrection)) * 0.5f;
+
+	// compute a nice blend factor:
+	float blendfactor = 0.05f + (0.8f - 0.05f) * SubpixelCorrection;
+    if(blendfactor < 0.0) blendfactor = 0.0;
+	if(blendfactor > 1.0) blendfactor = 1.0;
+	
+	// if information can not be found on the screen, revert to aliased image:
+	bool IsInVaild = false;
+	if((PreClipCoord.x - clamp(PreClipCoord.x , 0.0f , 1.0f)) != 0.0f)
+	   IsInVaild = true;
+	if((PreClipCoord.y - clamp(PreClipCoord.y , 0.0f , 1.0f)) != 0.0f)
+	   IsInVaild = true;
+	   
+	blendfactor = IsInVaild ? 1.0f : blendfactor;
+	
+	HistoryColor.rgb = tonemap(HistoryColor.rgb);
+	CurrentColor.rgb = tonemap(CurrentColor.rgb);
+
+	// do the temporal super sampling by linearly accumulating previous samples with the current one:
+	vec4 resolved = vec4(HistoryColor.rgb + (CurrentColor.rgb - HistoryColor.rgb) * blendfactor, 1);
+	FinalAAResult.rgb = inverseTonemap(resolved.rgb);
+	FinalAAResult.a = 1.0;
 }

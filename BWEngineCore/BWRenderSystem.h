@@ -157,7 +157,10 @@ protected:
 	// 所以先用这个函数清理一下资源  随后再考虑是哪里出现了问题
 	virtual void ClearTextureResource();
 
+
 public:
+	bool IsEnableTemporalAA{ true };
+	float InExposeScale{ 0.0f };
 //////////////////////////////////////////
 protected:
 	// 全局数据

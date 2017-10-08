@@ -77,6 +77,14 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 			Renderable->getWorldTransforms(&WorldTrans);
 			RenderablePreWolrdMatrix.insert(std::pair<const BWRenderable*, BWMatrix4>(Renderable, WorldTrans));
 		}
+		// TemporalAA Jitter Update   这里暂时使用的是4次采样 可以看看Unreal  还使用了其他采样方式
+		AllFrameNum++;
+		const int SampleNum = 4;
+		float SamplesX[] = { -2.0f / 16.0f,  6.0 / 16.0f, 2.0 / 16.0f, -6.0 / 16.0f };
+		float SamplesY[] = { -6.0f / 16.0f, -2.0 / 16.0f, 6.0 / 16.0f,  2.0 / 16.0f };
+		int Index = AllFrameNum % SampleNum;
+		TemporalJitterPixelsX = SamplesX[Index];
+		TemporalJitterPixelsY = SamplesY[Index];
 	}
 
 	//-----------------------------------------------------------------------------
@@ -384,6 +392,14 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 				mProjectionMatrix[1][3] = -mProjectionMatrix[1][3];
 			}
 			mProjMatrixDirty = false;
+		}
+		
+		if (BWRoot::GetInstance()->getRenderSystem()->IsEnableTemporalAA)
+		{
+			int Width = getViewportWidth();
+			int Height = getViewportHeight();
+			mProjectionMatrix[2][0] += TemporalJitterPixelsX * 2.0 / Width;
+			mProjectionMatrix[2][1] += -TemporalJitterPixelsY * 2.0 / Height;
 		}
 		return mProjectionMatrix;
 	}

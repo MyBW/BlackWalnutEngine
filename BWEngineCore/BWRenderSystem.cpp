@@ -165,11 +165,12 @@ void BWRenderSystem::_endFrame()
 
 
 	//遮挡相关
+	
 
 	//天空盒
 	RenderSkyBox();
 
-	RenderMotionBlur();
+	//RenderMotionBlur();
 
 	RenderTemporalAA();
 
@@ -454,6 +455,16 @@ bool BWRenderSystem::InitRendererResource()
 	FinalRenderResult->SetIndex(0);
 	FinalRenderResult->createInternalResources();
 	
+	HistoryRT = BWTextureManager::GetInstance()->Create("HistoryRT", DEFAULT_RESOURCE_GROUP);
+	HistoryRT->setWidth(ABufferTexture->getWidth());
+	HistoryRT->setHeight(ABufferTexture->getHeight());
+	HistoryRT->setTextureType(TEX_TYPE_2D);
+	HistoryRT->setFormat(PF_FLOAT32_RGBA);
+	HistoryRT->setNumMipmaps(0);
+	HistoryRT->SetIndex(0);
+	HistoryRT->createInternalResources();
+
+
 	GDepthBuffer = GRenderTarget->getDepthRenderBuffer(std::string("DepthBuffer"));
 
 	AOSamplerTexture = BWTextureManager::GetInstance()->Create("AOSamplerTexture", DEFAULT_RESOURCE_GROUP);
@@ -1178,7 +1189,7 @@ void BWRenderSystem::RenderToneMap()
     static float TimeDlta = 0.0;
 	//TimeDlta += 0.03; 
 	LumAdapt += (AvgLum - LumAdapt) *(1 - std::pow(0.98f, 30.f * TimeDlta));
-
+	InExposeScale = AvgLum;
 	//Bloom
 	// Get The Bloom Area
 	PipelineState.GPUProgramUsage = ComputeBloomUsage;
@@ -1280,7 +1291,7 @@ void BWRenderSystem::RenderMotionBlur()
 
 void BWRenderSystem::RenderTemporalAA()
 {
-	return;
+	if (!IsEnableTemporalAA) return;
 	RSGraphicPipelineState PipelineState;
 	PipelineState.GPUProgramUsage = TemporalAAUsage;
 	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
@@ -1312,10 +1323,52 @@ void BWRenderSystem::RenderTemporalAA()
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = DumpTexture;
 	SetRenderTarget( TemporalAAUsage, RenderTarget, GDepthBuffer);
+	const float JitterX = BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->GetTemporalAAJitterX();
+	const float JitterY = BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->GetTemporalAAJitterY();
+	static const float SampleOffsets[9][2] =
+	{
+		{ -1.0f, -1.0f },
+		{ 0.0f, -1.0f },
+		{ 1.0f, -1.0f },
+		{ -1.0f,  0.0f },
+		{ 0.0f,  0.0f },
+		{ 1.0f,  0.0f },
+		{ -1.0f,  1.0f },
+		{ 0.0f,  1.0f },
+		{ 1.0f,  1.0f },
+	};
+	float Weights[9];
+	float WeightsPlus[5];
+	float TotalWeight = 0.0f;
+	float TotalWeightLow = 0.0f;
+	float TotalWeightPlus = 0.0f;
+	float FilterSize = 1.0;
 	int Width = FinalRenderResult->getWidth();
 	int Height = FinalRenderResult->getHeight();
+
+	for (int i = 0; i < 9; i++)
+	{
+		float PixelOffsetX = SampleOffsets[i][0] - JitterX;
+		float PixelOffsetY = SampleOffsets[i][1] - JitterY;
+		
+		PixelOffsetX /= FilterSize;
+		PixelOffsetY /= FilterSize;
+
+		Weights[i] = exp(-2.29f * (PixelOffsetX * PixelOffsetX + PixelOffsetY * PixelOffsetY));
+		TotalWeight += Weights[i];
+	}
+
+	WeightsPlus[0] = Weights[1];
+	WeightsPlus[1] = Weights[3];
+	WeightsPlus[2] = Weights[4];
+	WeightsPlus[3] = Weights[5];
+	WeightsPlus[4] = Weights[7];
+	TotalWeightPlus = Weights[1] + Weights[3] + Weights[4] + Weights[5] + Weights[7];
+	for (int i = 0; i < 5; i++) WeightsPlus[i] /= TotalWeightPlus;
+	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("PlusWeights", WeightsPlus, 5, 1);
 	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("Width", &Width, 1, 1);
 	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("Height", &Height, 1, 1);
+	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("InExposureScale", &InExposeScale, 1, 1);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
 	CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT

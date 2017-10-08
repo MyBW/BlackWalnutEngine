@@ -70,6 +70,9 @@ protected:
 	const BWRenderable* mCurrentRenderable;
     std::vector<const BWRenderable*> AllRenderableInThisFrame;
 	std::map<const BWRenderable*, BWMatrix4> RenderablePreWolrdMatrix;
+	int AllFrameNum{ 0 };
+	float TemporalJitterPixelsX{ 0 };
+	float TemporalJitterPixelsY{ 0 };
 	const BWCamera* mCurrentCamera;
 	bool mCameraRelativeRendering;
 	BWVector3 mCameraRelativePosition;
@@ -248,6 +251,8 @@ public:
 	virtual float getFOV() const;
 	virtual float getNearClipDistance() const;
 	virtual float getFarClipDistance() const;
+	FORCEINLINE float GetTemporalAAJitterX() const { return TemporalJitterPixelsX; }
+	FORCEINLINE float GetTemporalAAJitterY() const { return TemporalJitterPixelsY; }
 	virtual int getPassNumber(void) const;
 	virtual void setPassNumber(const int passNumber);
 	virtual void incPassNumber(void);
