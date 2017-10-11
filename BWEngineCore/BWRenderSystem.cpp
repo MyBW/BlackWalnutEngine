@@ -509,7 +509,7 @@ bool BWRenderSystem::InitRendererResource()
 	LoadGUPUsageAndGPUProgram(std::string("FilterImageGussiY"), FilterImageByGussiYUsage, FilterImageByGussiY);
 	LoadGUPUsageAndGPUProgram(std::string("TemporalAntiAliasing"), TemporalAAUsage, TemporalAAProgram);
 	LoadGUPUsageAndGPUProgram(std::string("MotionBlur"), MotionBlurUsage,MotionBlurProgram);
-
+	LoadGUPUsageAndGPUProgram(std::string("ScreenSpaceReflection"), ScreenSpaceProgramUsage, ScreenSpaceProgram);
 
 
 	DirectLightProgramUsage = mDirectionLightM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
@@ -1299,7 +1299,7 @@ void BWRenderSystem::RenderTemporalAA()
 	SetGraphicsPipelineState(PipelineState);
 	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
-		ToneMapProgramUsage->GetGpuProgramParameter()
+		ToneMapProgramUsage->GetGpuProgramParameter()//?????
 		);
 	BBufferTexture->SetIndex(0);
 	VelocityRT->SetIndex(1);
@@ -1323,6 +1323,7 @@ void BWRenderSystem::RenderTemporalAA()
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = DumpTexture;
 	SetRenderTarget( TemporalAAUsage, RenderTarget, GDepthBuffer);
+	// 这些本来使用Unreal中的算法的 后来改成了另一种更简单的方式 但是可以看看Unreal中相关的算法中使用的技巧
 	const float JitterX = BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->GetTemporalAAJitterX();
 	const float JitterY = BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->GetTemporalAAJitterY();
 	static const float SampleOffsets[9][2] =
@@ -1369,6 +1370,42 @@ void BWRenderSystem::RenderTemporalAA()
 	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("Width", &Width, 1, 1);
 	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("Height", &Height, 1, 1);
 	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("InExposureScale", &InExposeScale, 1, 1);
+	BWHighLevelGpuProgramPtr tmp;
+	RenderOperation(CubeMeshRenderOperation, tmp);
+	CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
+	CopyTextureToTexture(DumpTexture, 0, 0, FinalRenderResult, 0, 0);
+}
+
+
+void BWRenderSystem::RenderScreenSpaceReflection()
+{
+	RSGraphicPipelineState PipelineState;
+	PipelineState.GPUProgramUsage = ScreenSpaceProgramUsage;
+	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState <false, false>::GetStateHI();
+	SetGraphicsPipelineState(PipelineState);
+	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
+		ScreenSpaceProgramUsage->GetGpuProgramParameter()
+		);
+	BBufferTexture->SetIndex(0);
+	FinalRenderResult->SetIndex(1);
+	SetShaderTexture(TemporalAAProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(TemporalAAProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
+	DumpTexture->setWidth(FinalRenderResult->getWidth());
+	DumpTexture->setHeight(FinalRenderResult->getHeight());
+	DumpTexture->setFormat(FinalRenderResult->getFormat());
+	DumpTexture->setTextureType(TEX_TYPE_2D);
+	DumpTexture->setNumMipmaps(0);
+	DumpTexture->SetIndex(0);
+	DumpTexture->createInternalResources();
+
+	RSRenderTarget RenderTarget;
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = DumpTexture;
+	SetRenderTarget(TemporalAAUsage, RenderTarget, GDepthBuffer);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
 	CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT

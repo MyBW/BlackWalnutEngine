@@ -173,3 +173,8 @@
 	  fragment_shader_ref  MotionBlurFragment
 	}
 	
+	gpu_program RenderSystem_ScreenSpaceReflection
+	{
+	  vertex_shader_ref DefferDirectLightingVertex
+	  fragment_shader_ref ScreenSpaceReflectionFragment
+	}

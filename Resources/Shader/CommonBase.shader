@@ -239,9 +239,9 @@ fragment_shader MotionBlurFragment glsl
   Source MotionBlur.frag
 }
 
-
-
-
-
+fragment_shader ScreenSpaceReflectionFragment glsl
+{
+  Source ScreenSpaceReflection.frag
+}
 
 

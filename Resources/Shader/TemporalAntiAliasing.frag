@@ -236,7 +236,7 @@ void main()
    PreClipCoord.xy = BackVec;
    // 对History采样  这里使用的是双三线采样算法  可以仔细看一下
    vec4 HistoryColor = Texture2DSampleBicubic(HistoryRT , BackVec.xy,vec2(Width , Height));
-   HistoryColor = texture2D(HistoryRT , BackVec.xy );
+   //HistoryColor = texture2D(HistoryRT , BackVec.xy );
    HistoryColor.rgb = clamp(HistoryColor.rgb , MinNeighbor.rgb , MaxNeighbor.rgb);
    vec4 CurrentColor = Neighbor[4];
    
