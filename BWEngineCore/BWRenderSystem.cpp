@@ -174,6 +174,7 @@ void BWRenderSystem::_endFrame()
 
 	RenderTemporalAA();
 
+	RenderScreenSpaceReflection();
 	RenderToneMap();
 
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->EndFrame();
@@ -1385,13 +1386,14 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState <false, false>::GetStateHI();
 	SetGraphicsPipelineState(PipelineState);
 	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
-	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->
+		SetGPUAutoParameter(
 		ScreenSpaceProgramUsage->GetGpuProgramParameter()
 		);
 	BBufferTexture->SetIndex(0);
 	FinalRenderResult->SetIndex(1);
-	SetShaderTexture(TemporalAAProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(TemporalAAProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
 	DumpTexture->setWidth(FinalRenderResult->getWidth());
 	DumpTexture->setHeight(FinalRenderResult->getHeight());
@@ -1405,7 +1407,20 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = DumpTexture;
-	SetRenderTarget(TemporalAAUsage, RenderTarget, GDepthBuffer);
+
+	float StrideZCutoff = 600.f - 1.f;
+	float Thickness = 0.1f;
+	float MaxDistance = 60000.0f;
+	float StrideInPixel = 2.0f;
+	float MaxStepCount = 2000.0f;
+	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("StrideZCutoff", &StrideZCutoff, 1, 1);
+	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Thickness", &Thickness, 1, 1);
+	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("MaxDistance", &MaxDistance, 1, 1);
+	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("StrideInPixel", &StrideInPixel, 1, 1);
+	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("MaxStepCount", &MaxStepCount, 1, 1);
+
+
+	SetRenderTarget(ScreenSpaceProgramUsage, RenderTarget, GDepthBuffer);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
 	CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT

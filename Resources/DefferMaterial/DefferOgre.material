@@ -85,49 +85,6 @@ material Ogre/Cube
 }
 
 
-material Ogre/Tusks
-{
-	technique
-	{
-		pass
-		{
-			texture_unit
-			{
-				texture tusk.jpg
-			}
-			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
-			{
-			   param_named tex1 int 0
-			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
-			}
-		}
-	}
-}
-
-material Ogre/Eyes
-{
-	technique
-	{
-		pass
-		{
-			texture_unit
-			{
-				texture tusk.jpg
-			}
-			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
-			{
-			   param_named tex1 int 0
-			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
-			}
-		}
-	}
-}
-
-
 
 material SkyBox
 {
@@ -246,16 +203,14 @@ material Ogre/BaseMaterial
 	{
 		pass
 		{
-			texture_unit
-			{
-				texture GreenSkin.jpg
-			}
 			gpu_program_ref   RenderSystem_DefferDataProcess    GLSL
 			{
-			   param_named BaseColor int 0
 			   param_named_auto ModelMatrix    world_matrix
 			   param_named_auto ViewMatrix     view_matrix
 			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
 			}
 		}
 	}
@@ -665,6 +620,12 @@ material ScreenSpaceReflection
 			   param_named_auto PreModelMatrix pre_world_matrix
 			   param_named_auto PreViewMatrix  pre_view_matrix
 			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_auto ViewInversMatrix inverse_view_matrix
+			   param_named_auto ViewPositionWorldSpace camera_position
+			   param_named_auto FoV fov
+			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
+			   param_named_auto NearFar far_and_near_clip_distance
+			   param_named_auto ScreenWH viewport_width_and_height
 			}
 		}
 	}

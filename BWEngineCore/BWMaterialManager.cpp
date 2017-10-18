@@ -14,7 +14,8 @@ BWMaterialManager::BWMaterialManager() :
 , mDefulutAnisotropy(1)
 {
 	pattern = ".material";
-	BWResourceGroupManager::GetInstance()->RegisterScriptLoader(this);
+	order = 30;
+	BWResourceGroupManager::GetInstance()->RegisterScriptLoader(this , order);
 	BWResourceGroupManager::GetInstance()->RegisterResourceManager(pattern, this);
 }
 BWMaterialManager::~BWMaterialManager()

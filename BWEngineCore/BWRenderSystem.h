@@ -151,6 +151,10 @@ protected:
 	BWTexturePtr VelocityRT;
 	BWHighLevelGpuProgramPtr TemporalAAProgram;
 	BWGpuProgramUsagePtr TemporalAAUsage;
+	//Screen Space Reflection
+	BWHighLevelGpuProgramPtr ScreenSpaceProgram;
+	BWGpuProgramUsagePtr ScreenSpaceProgramUsage;
+
 	void SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage);
 
 	// 目前出现的问题是在Tonemap过程中最后一步中调用SetShaderTexture会影响到后面的各种纹理调用
@@ -293,6 +297,7 @@ protected:
 	void RenderToneMap();
 	void RenderMotionBlur();
 	void RenderTemporalAA();
+	void RenderScreenSpaceReflection();
 
 	void FilterTexture(BWTexturePtr SourceImage);
 	virtual void RenderLightsShadowMaps();

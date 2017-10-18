@@ -145,22 +145,31 @@ void BWResourceGroupManager::ParseResourceGroup(const std::string &groupName)
 
 		scriptLoader++;
 	}
-	std::map<BWScriptLoader*, SmartFileList>::iterator scriptloaderfilelist = parseFileList.begin();
-	while (scriptloaderfilelist != parseFileList.end())
+	scriptLoader = mScriptLoadMap.begin();
+	while (scriptLoader != mScriptLoadMap.end())
 	{
-		BWScriptLoader* scriptloader = scriptloaderfilelist->first;
-		BWResourceGroup::ResourceLoactionIndex::iterator filelist = scriptloaderfilelist->second.Get()->begin();
-		while (filelist != scriptloaderfilelist->second.Get()->end())
+		std::map<BWScriptLoader*, SmartFileList>::iterator scriptloaderfilelist = parseFileList.begin();
+		while (scriptloaderfilelist != parseFileList.end())
 		{
-			BWArchive* archive = filelist->second;
-			const BWDataStreamPrt datastream = archive->Open(filelist->first);
-			if (!datastream.IsNull())
+			BWScriptLoader* scriptloader = scriptloaderfilelist->first;
+			if (scriptloader->order == scriptLoader->first)
 			{
-				scriptloader->ParseScript(*(datastream.Get()),groupName);
+				BWResourceGroup::ResourceLoactionIndex::iterator filelist = scriptloaderfilelist->second.Get()->begin();
+				while (filelist != scriptloaderfilelist->second.Get()->end())
+				{
+					BWArchive* archive = filelist->second;
+					const BWDataStreamPrt datastream = archive->Open(filelist->first);
+					if (!datastream.IsNull())
+					{
+						scriptloader->ParseScript(*(datastream.Get()), groupName);
+					}
+					filelist++;
+				}
+				break;
 			}
-			filelist++;
+			scriptloaderfilelist++;
 		}
-		scriptloaderfilelist++;
+		scriptLoader++;
 	}
 	
 } 
