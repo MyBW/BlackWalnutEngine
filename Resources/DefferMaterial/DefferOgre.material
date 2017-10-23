@@ -604,13 +604,13 @@ material TemporalAntiAliasing
 }
 
 
-material ScreenSpaceReflection
+material ScreenSpaceRayTrack
 {
 	technique
 	{
 		pass
 		{
-			gpu_program_ref RenderSystem_ScreenSpaceReflection GLSL
+			gpu_program_ref RenderSystem_ScreenSpaceRayTrack GLSL
 			{
 			   param_named BBuffer int 0
 			   param_named FinalRenderResult int 1
@@ -631,3 +631,32 @@ material ScreenSpaceReflection
 	}
 }
 
+material ScreenSpaceReflection
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref RenderSystem_ScreenSpaceReflection GLSL
+			{
+			   param_named ABuffer int 0
+			   param_named BBuffer int 1
+			   param_named CBuffer int 2
+			   param_named FinalRenderResult int 3
+			   param_named RayTrackBuffer int 4
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_auto ViewInversMatrix inverse_view_matrix
+			   param_named_auto ViewPositionWorldSpace camera_position
+			   param_named_auto FoV fov
+			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
+			   param_named_auto NearFar far_and_near_clip_distance
+			   param_named_auto ScreenWH viewport_width_and_height
+			}
+		}
+	}
+}

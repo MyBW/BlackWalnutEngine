@@ -152,9 +152,10 @@ protected:
 	BWHighLevelGpuProgramPtr TemporalAAProgram;
 	BWGpuProgramUsagePtr TemporalAAUsage;
 	//Screen Space Reflection
-	BWHighLevelGpuProgramPtr ScreenSpaceProgram;
-	BWGpuProgramUsagePtr ScreenSpaceProgramUsage;
-
+	BWHighLevelGpuProgramPtr ScreenSpaceRayTrackProgram;
+	BWGpuProgramUsagePtr ScreenSpaceRayTrackProgramUsage;
+	BWHighLevelGpuProgramPtr ScreenSpaceReflectionProgram;
+	BWGpuProgramUsagePtr ScreenSpaceReflectionProgramUsage;
 	void SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage);
 
 	// 目前出现的问题是在Tonemap过程中最后一步中调用SetShaderTexture会影响到后面的各种纹理调用
@@ -164,6 +165,8 @@ protected:
 
 public:
 	bool IsEnableTemporalAA{ true };
+	bool IsEnableToneMap{ true };
+	bool IsEnableSSR{ true };
 	float InExposeScale{ 0.0f };
 //////////////////////////////////////////
 protected:
@@ -299,7 +302,10 @@ protected:
 	void RenderTemporalAA();
 	void RenderScreenSpaceReflection();
 
+
 	void FilterTexture(BWTexturePtr SourceImage);
+	void ScaleCopy(BWTexturePtr From, BWTexturePtr To, int MipmapLevel);
+	void GenerateTextureFilterdMipMap(BWTexturePtr SourceImage);
 	virtual void RenderLightsShadowMaps();
 	virtual void FinishLightsShadowMaps() {}
 	virtual void SetRenderShadowMapRenderTarget() { };

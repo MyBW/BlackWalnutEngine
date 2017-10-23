@@ -173,9 +173,15 @@ void BWRenderSystem::_endFrame()
 	//RenderMotionBlur();
 
 	RenderTemporalAA();
-
+	
 	RenderScreenSpaceReflection();
 	RenderToneMap();
+	//没有tonemap 就要有下面几句
+	/*RSGraphicPipelineState PipelineState;
+	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<true, true>::GetStateHI();
+	SetGraphicsPipelineState(PipelineState);
+	*/
 
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->EndFrame();
 
@@ -510,8 +516,8 @@ bool BWRenderSystem::InitRendererResource()
 	LoadGUPUsageAndGPUProgram(std::string("FilterImageGussiY"), FilterImageByGussiYUsage, FilterImageByGussiY);
 	LoadGUPUsageAndGPUProgram(std::string("TemporalAntiAliasing"), TemporalAAUsage, TemporalAAProgram);
 	LoadGUPUsageAndGPUProgram(std::string("MotionBlur"), MotionBlurUsage,MotionBlurProgram);
-	LoadGUPUsageAndGPUProgram(std::string("ScreenSpaceReflection"), ScreenSpaceProgramUsage, ScreenSpaceProgram);
-
+	LoadGUPUsageAndGPUProgram(std::string("ScreenSpaceRayTrack"), ScreenSpaceRayTrackProgramUsage, ScreenSpaceRayTrackProgram);
+	LoadGUPUsageAndGPUProgram(std::string("ScreenSpaceReflection"), ScreenSpaceReflectionProgramUsage, ScreenSpaceReflectionProgram);
 
 	DirectLightProgramUsage = mDirectionLightM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
 	BWMaterialPtr ImageBaseLightingMaterial = BWMaterialManager::GetInstance()->GetResource("ImageBaseLighting", "General");
@@ -1380,20 +1386,21 @@ void BWRenderSystem::RenderTemporalAA()
 
 void BWRenderSystem::RenderScreenSpaceReflection()
 {
+	if (!IsEnableSSR) return;
 	RSGraphicPipelineState PipelineState;
-	PipelineState.GPUProgramUsage = ScreenSpaceProgramUsage;
+	PipelineState.GPUProgramUsage = ScreenSpaceRayTrackProgramUsage;
 	PipelineState.BlendState = TStaticBlendStateHI<false>::GetStateHI();
 	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState <false, false>::GetStateHI();
 	SetGraphicsPipelineState(PipelineState);
 	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->
 		SetGPUAutoParameter(
-		ScreenSpaceProgramUsage->GetGpuProgramParameter()
+		ScreenSpaceRayTrackProgramUsage->GetGpuProgramParameter()
 		);
 	BBufferTexture->SetIndex(0);
 	FinalRenderResult->SetIndex(1);
-	SetShaderTexture(ScreenSpaceProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(ScreenSpaceProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceRayTrackProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceRayTrackProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
 	DumpTexture->setWidth(FinalRenderResult->getWidth());
 	DumpTexture->setHeight(FinalRenderResult->getHeight());
@@ -1411,20 +1418,76 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 	float StrideZCutoff = 600.f - 1.f;
 	float Thickness = 0.1f;
 	float MaxDistance = 60000.0f;
-	float StrideInPixel = 2.0f;
-	float MaxStepCount = 2000.0f;
-	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("StrideZCutoff", &StrideZCutoff, 1, 1);
-	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Thickness", &Thickness, 1, 1);
-	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("MaxDistance", &MaxDistance, 1, 1);
-	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("StrideInPixel", &StrideInPixel, 1, 1);
-	ScreenSpaceProgramUsage->GetGpuProgramParameter()->SetNamedConstant("MaxStepCount", &MaxStepCount, 1, 1);
+	float StrideInPixel = 8.0f;
+	float MaxStepCount = 700.0f;
+	ScreenSpaceRayTrackProgramUsage->GetGpuProgramParameter()->SetNamedConstant("StrideZCutoff", &StrideZCutoff, 1, 1);
+	ScreenSpaceRayTrackProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Thickness", &Thickness, 1, 1);
+	ScreenSpaceRayTrackProgramUsage->GetGpuProgramParameter()->SetNamedConstant("MaxDistance", &MaxDistance, 1, 1);
+	ScreenSpaceRayTrackProgramUsage->GetGpuProgramParameter()->SetNamedConstant("StrideInPixel", &StrideInPixel, 1, 1);
+	ScreenSpaceRayTrackProgramUsage->GetGpuProgramParameter()->SetNamedConstant("MaxStepCount", &MaxStepCount, 1, 1);
 
 
-	SetRenderTarget(ScreenSpaceProgramUsage, RenderTarget, GDepthBuffer);
+	SetRenderTarget(ScreenSpaceRayTrackProgramUsage, RenderTarget, GDepthBuffer);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
-	CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
-	CopyTextureToTexture(DumpTexture, 0, 0, FinalRenderResult, 0, 0);
+
+	
+	const float MipmapLevel = HelperFunction::GetMaxMipmaps(FinalRenderResult->getWidth(), FinalRenderResult->getHeight(), 1);
+	static BWTexturePtr DumpTextureForScale = BWTextureManager::GetInstance()->Create(std::string("DumpTextureForScale"), DEFAULT_RESOURCE_GROUP);
+	DumpTextureForScale->setWidth(FinalRenderResult->getWidth());
+	DumpTextureForScale->setHeight(FinalRenderResult->getHeight());// 2 的整数次幂
+	DumpTextureForScale->setFormat(FinalRenderResult->getFormat());
+	DumpTextureForScale->setTextureType(TEX_TYPE_2D);
+	DumpTextureForScale->setNumMipmaps(MipmapLevel - 1);
+	DumpTextureForScale->SetIndex(0);
+	DumpTextureForScale->createInternalResources();
+
+	//生成Mipmap有问题
+	CopyTextureToTexture(FinalRenderResult, 0, 0, DumpTextureForScale, 0, 0);
+	//ScaleCopy(FinalRenderResult,DumpTextureForScale, 0);
+	//GenerateTextureFilterdMipMap(DumpTextureForScale);
+	
+
+	
+	PipelineState.GPUProgramUsage = ScreenSpaceReflectionProgramUsage;
+	SetGraphicsPipelineState(PipelineState);
+	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->
+		SetGPUAutoParameter(
+			ScreenSpaceReflectionProgramUsage->GetGpuProgramParameter()
+			);
+	ABufferTexture->SetIndex(0);
+	BBufferTexture->SetIndex(1);
+	CBufferTexture->SetIndex(2);
+	DumpTextureForScale->SetIndex(3);
+	DumpTexture->SetIndex(4);
+
+	SetShaderTexture(ScreenSpaceReflectionProgram, ABufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceReflectionProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceReflectionProgram, CBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceReflectionProgram, DumpTextureForScale, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceReflectionProgram, DumpTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = FinalRenderResult;
+
+	float FadeEnd = 0.2;
+	float FadeStart = 0.2;
+	ScreenSpaceReflectionProgramUsage->GetGpuProgramParameter()->SetNamedConstant("MipLevelNum", &MipmapLevel, 1, 1);
+	ScreenSpaceReflectionProgramUsage->GetGpuProgramParameter()->SetNamedConstant("FadeEnd", &FadeEnd, 1, 1);
+	ScreenSpaceReflectionProgramUsage->GetGpuProgramParameter()->SetNamedConstant("FadeStart", &FadeStart, 1, 1);
+
+	SetRenderTarget(ScreenSpaceReflectionProgramUsage, RenderTarget, GDepthBuffer);
+	RenderOperation(CubeMeshRenderOperation, tmp);
+
+
+
+	CopyTextureToTexture(FinalRenderResult, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
+
+	//CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
+	//CopyTextureToTexture(DumpTexture, 0, 0, FinalRenderResult, 0, 0);
+	//CopyTextureToTexture(DumpTextureForScale, 0, 0, FinalRenderResult, 0, 0);
 }
 
 void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
@@ -1442,7 +1505,7 @@ void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
 	SetViewport(0, 0, SourceImage->getWidth(), SourceImage->getHeight());
 	SourceImage->SetIndex(0);
 	SetShaderTexture(FilterImageByGussiX, SourceImage, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
+	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTextureForFilter"), DEFAULT_RESOURCE_GROUP);
 	DumpTexture->setWidth(SourceImage->getWidth());
 	DumpTexture->setHeight(SourceImage->getHeight());
 	DumpTexture->setFormat(SourceImage->getFormat());
@@ -1475,6 +1538,55 @@ void BWRenderSystem::FilterTexture(BWTexturePtr SourceImage)
 	return;
 }
 
+
+void BWRenderSystem::ScaleCopy(BWTexturePtr From, BWTexturePtr To , int MipmapLevel)
+{
+	int Width;
+	int Hight;
+	RSGraphicPipelineState PipelineState;
+	RSRenderTarget RenderTarget;
+	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
+	PipelineState.GPUProgramUsage = EmptyGPUProgramUsage;
+	SetGraphicsPipelineState(PipelineState);
+	SetViewport(0, 0, To->getWidth(), To->getHeight());
+
+	From->SetIndex(0);
+	SetShaderTexture(EmptyGPUProgram, From, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
+
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = MipmapLevel;
+	RenderTarget.RenderTargetTexture = To;
+	// 可能是 GDepthBuffer 大小不对造成的渲染不正确
+	SetRenderTarget(EmptyGPUProgramUsage, RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_COLOUR);
+	Width = From->getWidth() ;
+	Hight = From->getHeight();
+	EmptyGPUProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Width", &Width, 1, 1);
+	EmptyGPUProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Hight", &Hight, 1, 1);
+	BWHighLevelGpuProgramPtr tmp;
+	RenderOperation(CubeMeshRenderOperation, tmp);
+}
+
+void BWRenderSystem::GenerateTextureFilterdMipMap(BWTexturePtr SourceImage)
+{
+	int Width = SourceImage->getWidth();
+	int Height = SourceImage->getHeight();
+	const int MipLevelNum = HelperFunction::GetMaxMipmaps(Width, Height, 1);
+
+	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTextureForMipMap"), DEFAULT_RESOURCE_GROUP);
+	DumpTexture->setWidth(SourceImage->getWidth());
+	DumpTexture->setHeight(SourceImage->getHeight());
+	DumpTexture->setFormat(SourceImage->getFormat());
+	DumpTexture->setTextureType(TEX_TYPE_2D);
+	DumpTexture->setNumMipmaps(0);
+	DumpTexture->createInternalResources();
+	CopyTextureToTexture(SourceImage, 0, 0, DumpTexture, 0, 0);
+	for (int i = 1; i < MipLevelNum ; i++)
+	{
+		ScaleCopy(DumpTexture, SourceImage, i);
+	}
+}
 void BWRenderSystem::BeginDeferLight()
 {
 	

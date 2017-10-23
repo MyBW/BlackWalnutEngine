@@ -239,9 +239,13 @@ fragment_shader MotionBlurFragment glsl
   Source MotionBlur.frag
 }
 
+fragment_shader ScreenSpaceRayTrackFragment glsl
+{
+  Source ScreenSpaceRayTrack.frag
+}
+
 fragment_shader ScreenSpaceReflectionFragment glsl
 {
   Source ScreenSpaceReflection.frag
 }
-
 

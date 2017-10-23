@@ -2627,8 +2627,15 @@ void GLRenderSystem::CopyTextureToTexture(BWTexturePtr SourceTexture, int Source
 	GLuint SourceFrameBuffer, DestinationFrameBuffer;
 	GLTexture* GLSourceTexture = dynamic_cast<GLTexture*>(SourceTexture.Get());
 	GLTexture* GLDestinationTexture = dynamic_cast<GLTexture*>(DestinationTexture.Get());
-	GLint Width = DestinationTexture->getWidth();
-	GLint Hieght = DestinationTexture->getHeight();
+	GLint DestWidth = DestinationTexture->getWidth() * std::pow(0.5, DestinationMipmapLevel);
+	GLint DestHieght = DestinationTexture->getHeight() * std::pow(0.5, DestinationMipmapLevel);
+	GLint SourceWidth = SourceTexture->getWidth()* std::pow(0.5, SourceMipmipLevel);
+	GLint SourceHight = SourceTexture->getHeight() * std::pow(0.5, SourceMipmipLevel);
+	if (DestHieght == 0) DestHieght = 1;
+	if (DestWidth == 0) DestWidth = 1;
+	if (SourceHight == 0) SourceHight = 1;
+	if (SourceWidth == 0) SourceWidth = 1;
+
 	GLint DTextureID = GLDestinationTexture->GetHIID();
 	TextureType DRenderTextureType = GLDestinationTexture->GetTextureType();
 
@@ -2662,8 +2669,8 @@ void GLRenderSystem::CopyTextureToTexture(BWTexturePtr SourceTexture, int Source
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, SourceFrameBuffer);
 	CHECK_GL_ERROR(glReadBuffer(GL_COLOR_ATTACHMENT0));
 
-	CHECK_GL_ERROR(glBlitFramebuffer(0, 0, Width, Hieght,
-		0, 0, Width, Hieght, GL_COLOR_BUFFER_BIT, GL_LINEAR));
+	CHECK_GL_ERROR(glBlitFramebuffer(0, 0, SourceWidth, SourceHight,
+		0, 0, DestWidth, DestHieght, GL_COLOR_BUFFER_BIT, GL_LINEAR));
 
 	glDeleteFramebuffers(1, &SourceFrameBuffer);
 	glDeleteFramebuffers(1, &DestinationFrameBuffer);
