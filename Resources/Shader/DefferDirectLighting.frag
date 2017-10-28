@@ -15,21 +15,6 @@ layout(binding = 0,std140) uniform CameraInfo
   vec2 ScreenWH ;
 };
 const float PI = 3.1415926 ;
-vec4 FromScreenToWorld(mat4 InViewInverse , vec2 InScreenPos , vec2 InScreenWH, float InFov , vec2 InNearFar , float InPrjPlaneWInverseH,float InCameraDepth)
-{
-    //gl_FragCoord  是以屏幕的左下角为原点的 并且在摄像机坐标系中 摄像机朝向的方向为Z的负方向
-   vec2 PrjPlaneHalfWH ;
-   PrjPlaneHalfWH.x = InNearFar.x * tan(InFov/2.0) ;
-   PrjPlaneHalfWH.y = PrjPlaneHalfWH.x / InPrjPlaneWInverseH ;
-   vec2 Pos = InScreenPos.xy /InScreenWH.xy * (PrjPlaneHalfWH * 2.0) ;
-   Pos.x = Pos.x -  PrjPlaneHalfWH.x ;
-   Pos.y = Pos.y - PrjPlaneHalfWH.y ;
-   vec3 CameraPrjPlanePos = vec3(Pos.xy , -InNearFar.x) ;
-   vec4 CameraSpacePos = vec4(CameraPrjPlanePos * (-InCameraDepth/InNearFar.x) , 1.0);
-   //return CameraSpacePos ;
-   return InViewInverse * CameraSpacePos ;
-}
-
 void ComputeAlbedoAndSpecular(in vec3 InBaseColor ,in float InMetalic ,in float InSpecular , out vec3 OutAlbedo, out vec3 OutSpecular)
 {
     OutAlbedo = InBaseColor *( 1 - InMetalic) ;
@@ -92,111 +77,17 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 }
 
 
-
-
-float RadicalInverse(int Base , int i)
+vec4 FromScreenToWorld(mat4 InViewInverse , vec2 ClipSpaceXY ,float InFov , float InPrjPlaneWInverseH,float InCameraDepth)
 {
-   float Digit , Radical , Inverse ;
-   float DBase = Base ;
-   Digit = Radical = 1.0/ DBase ;
-   Inverse = 0.0 ;
-   while(i != 0)
-   {
-      Inverse += Digit * (i % Base) ;
-    Digit *= Radical ;
-    i /= Base ;
-   }
-   return Inverse ;
+   vec2 Pos;
+   Pos.xy = ClipSpaceXY;
+   vec4 CameraSpacePos;
+   CameraSpacePos.x = Pos.x * InPrjPlaneWInverseH * tan(InFov/2.0f) * InCameraDepth;
+   CameraSpacePos.y = Pos.y * tan(InFov / 2.0f) * InCameraDepth;
+   CameraSpacePos.z = InCameraDepth;
+   CameraSpacePos.w = 1.0f;
+   return InViewInverse * CameraSpacePos;
 }
-
-float Hammersley(int Dimension , int Index , int NumberSamples)
-{
-    if(Dimension == 0)
-  {
-     float TmpNumberSamples = NumberSamples ;
-     return  Index / TmpNumberSamples ;
-  }
-  else
-  {
-     return RadicalInverse(2 , Index) ;
-  }
-}
-
-vec3 ImportanceSampleGGX(vec2 Xi , float Roughness , vec3 N)
-{
-    float a = Roughness * Roughness ;
-  float PHi = 2 * PI  * Xi.x ;
-  float CosTheta = sqrt((1-Xi.y) / (1 + (a * a - 1 ) * Xi.y)) ;
-  float SinTheta = sqrt( 1 - CosTheta * CosTheta) ;
-  vec3 H ;
-  H.x = SinTheta * cos(PHi) ;
-  H.y = SinTheta * sin(PHi) ;
-  H.z = CosTheta ;
-  
-  float d = (CosTheta * a * a - CosTheta)* CosTheta + 1;
-  float D = (a * a) /( PI * d * d) ;
-  float PDF =  D * CosTheta ;
-  
-  vec3 UpVector  ;
-  if(abs(N.z) < 0.999)
-  {
-    UpVector = vec3(0.0 ,0.0 ,1.0);
-  }
-  else
-  {
-    UpVector = vec3(1.0, 0.0, 0.0);
-  }
-   
-  vec3 TangentX = normalize(cross(UpVector , N)) ;
-  vec3 TangentY = cross(N , TangentX) ;
-  
-  return TangentX * H.x  + TangentY * H.y + N * H.z ;
-}
-float Saturate(float Value)
-{  
-   if(Value < 0.0) return 0.0 ;
-   if(Value > 1.0) return 1.0 ;
-   return Value ;
-}
-
-vec3 SpecularIBL(vec3 SpecularColor , float Roughness , vec3 N , vec3 V) 
-{
-
-   vec3 SpecularLighting = vec3(0.0 ,0.0 ,0.0) ;
-   const int NumberSamples = 1024 ;
-   for(int i = 0 ; i < NumberSamples ; i++)
-   {
-      vec2 Xi ;
-    Xi.x = Hammersley(0 , i, NumberSamples) ;
-    Xi.y = Hammersley(1 , i, NumberSamples) ;
-    vec3 H = ImportanceSampleGGX(Xi , Roughness , N) ;
-    H = normalize(H) ;
-    vec3 L = 2 * dot(V , H) * H - V ;
-    L =  normalize(L) ;
-    float NoV = Saturate(dot(N , V)) ;
-    float NoL = Saturate(dot(N , L)) ;
-    float NoH = Saturate(dot(N , H)) ;
-    float VoH = Saturate(dot(V , H)) ;
-    float HoL = Saturate(dot(L , H)) ;
-    if(NoL > 0)
-    {
-       vec3 EveColor ;//= texture(CubeMapTexture, L).rgb; 
-       float Fc = pow(1- VoH, 5) ;
-       vec3 FItem = SpecularColor + (1.0 - SpecularColor)*Fc ;
-       float GItem = GeometrySmith(N , V , L , Roughness) ;
-       float DItem = DistributionGGX(N , H, Roughness ) ;
-     SpecularLighting += EveColor * FItem * GItem * DItem /(4 * NoL * NoV + 0.001) * NoL ; 
-    }
-    
-   }
-   SpecularLighting = SpecularLighting / NumberSamples ;
-   return SpecularLighting ; 
-}
-
-vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
-{
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
-} 
 
 void main()
 {
@@ -228,10 +119,11 @@ void main()
    
    vec2 NF = vec2( -NearFar.x , -NearFar.y) ;
    vec3 ViewPos = ViewPositionWorldSpace ;
-   vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , gl_FragCoord.xy, ScreenWH, FoV, NF, PrjPlaneWInverseH, CameraSpaceDepth) ;
+   vec2 ClipXY = (vec2(1.0) - textureCoord.xy) * 2.0 - vec2(1.0);
+   vec4 WorldPos = FromScreenToWorld(ViewInversMatrix, ClipXY, FoV, PrjPlaneWInverseH, CameraSpaceDepth);
+   
+   
    vec3 ViewDirection = normalize(ViewPos - WorldPos.xyz);
-   
-   
    vec3 H = normalize(ViewDirection + LightDirection) ;
 
    float NoL = max(dot(Normal , LightDirection) , 0.0) ;
@@ -244,13 +136,8 @@ void main()
 
    vec3 Ks = F;
    vec3 Kd = vec3(1.0) - Ks ;
-   vec3 Diffuse = Kd * Albedo / PI * vec3(1.0) * (Occlusion);
+   vec3 Diffuse = Kd * Albedo / PI * vec3(1.0) * ( 1.0 - Occlusion);
    vec3 DirectLightColor = ( Diffuse + FinalSpecular) *LightColor * NoL;
-
-   vec3 FinalColor = DirectLightColor ;
-   //float gamma = 2.2 ;
-   //FinalColor = FinalColor / (FinalColor + vec3(1.0)) ;
-   //FinalColor = pow(FinalColor , vec3(1.0/gamma)) ;
-   gl_FragColor.xyz = FinalColor;
+   gl_FragColor.xyz = DirectLightColor;
    gl_FragColor.a = 1.0;
 }

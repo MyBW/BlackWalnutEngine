@@ -89,6 +89,10 @@ fragment_shader  DefferDataProcessFragment glsl
 {
    Source  DefferDataProcess.frag
 }
+fragment_shader  ClearDefferBufferDataFragment glsl
+{
+   Source  ClearDefferBufferData.frag
+}
 
 vertex_shader  DefferDirectLightingVertex glsl
 {

@@ -1,0 +1,54 @@
+
+
+float Saturate(float Value)
+{  
+   if(Value < 0.0) return 0.0 ;
+   if(Value > 1.0) return 1.0 ;
+   return Value ;
+}
+
+
+vec3 ComputerNormal(vec2 InNormalXY)
+{
+   vec3 Normal ;
+   float sinThta = sin(InNormalXY.x) ;
+   float cosThta = cos(InNormalXY.x) ;
+   float sinPh = sin(InNormalXY.y ) ;
+   float cosPh = cos(InNormalXY.y ) ;
+   Normal.x = sinThta * cosPh ;
+   Normal.y = sinThta * sinPh ;
+   Normal.z = cosThta ;
+   return Normal;
+}
+
+void ComputeAlbedoAndSpecular(in vec3 InBaseColor ,in float InMetalic ,in float InSpecular , out vec3 OutAlbedo, out vec3 OutSpecular)
+{
+    OutAlbedo = InBaseColor *( 1 - InMetalic) ;
+    float DielectircSpecular = mix(0.0 , 0.08 , InSpecular) ;
+    OutSpecular = mix(vec3(DielectircSpecular) , InBaseColor , InMetalic) ;
+}
+
+
+vec4 FromScreenToWorld(mat4 InViewInverse , vec2 ClipSpaceXY ,float InFov , float InPrjPlaneWInverseH,float InCameraDepth)
+{
+   vec2 Pos;
+   Pos.xy = ClipSpaceXY;
+   vec4 CameraSpacePos;
+   CameraSpacePos.x = Pos.x * InPrjPlaneWInverseH * tan(InFov/2.0f) * InCameraDepth;
+   CameraSpacePos.y = Pos.y * tan(InFov / 2.0f) * InCameraDepth;
+   CameraSpacePos.z = InCameraDepth;
+   CameraSpacePos.w = 1.0f;
+   return InViewInverse * CameraSpacePos;
+}
+
+vec4 FromScreenToCamera(vec2 ClipSpaceXY ,float InFov , float InPrjPlaneWInverseH,float InCameraDepth)
+{
+   vec2 Pos;
+   Pos.xy = ClipSpaceXY;
+   vec4 CameraSpacePos;
+   CameraSpacePos.x = Pos.x * InPrjPlaneWInverseH * tan(InFov/2.0f) * InCameraDepth;
+   CameraSpacePos.y = Pos.y * tan(InFov / 2.0f) * InCameraDepth;
+   CameraSpacePos.z = InCameraDepth;
+   CameraSpacePos.w = 1.0f;
+   return CameraSpacePos;
+}

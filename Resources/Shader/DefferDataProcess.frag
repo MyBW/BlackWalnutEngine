@@ -1,4 +1,5 @@
 #version 430 core
+uniform float TestRoughness ;
 in vec2 TextureCoord ;
 in vec3 OutNormal;
 in vec3 OutTangent ;
@@ -42,8 +43,9 @@ void main()
    
 
    //Roughness  And Metalic
-   CBuffer.r = 0.2;
+   CBuffer.r = TestRoughness;
    CBuffer.g = 0.8;
+   CBuffer.bw = vec2(0.0);
    // Motion Blur
    vec3 NDCPos = (ClipCoord / ClipCoord.w).xyz ;
    vec3 PreNDXPos = (PreClipCoord / PreClipCoord.w).xyz;

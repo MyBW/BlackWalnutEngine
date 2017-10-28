@@ -16,20 +16,20 @@ layout(binding = 0,std140) uniform CameraInfo
 };
 uniform float SHCoefficient[36];
 const float PI = 3.1415926 ;
-vec4 FromScreenToWorld(mat4 InViewInverse , vec2 InScreenPos , vec2 InScreenWH, float InFov , vec2 InNearFar , float InPrjPlaneWInverseH,float InCameraDepth)
+
+
+vec4 FromScreenToWorld(mat4 InViewInverse , vec2 ClipSpaceXY ,float InFov , float InPrjPlaneWInverseH,float InCameraDepth)
 {
-    //gl_FragCoord  是以屏幕的左下角为原点的 并且在摄像机坐标系中 摄像机朝向的方向为Z的负方向
-   vec2 PrjPlaneHalfWH ;
-   PrjPlaneHalfWH.x = InNearFar.x * tan(InFov/2.0) ;
-   PrjPlaneHalfWH.y = PrjPlaneHalfWH.x / InPrjPlaneWInverseH ;
-   vec2 Pos = InScreenPos.xy /InScreenWH.xy * (PrjPlaneHalfWH * 2.0) ;
-   Pos.x = Pos.x -  PrjPlaneHalfWH.x ;
-   Pos.y = Pos.y - PrjPlaneHalfWH.y ;
-   vec3 CameraPrjPlanePos = vec3(Pos.xy , -InNearFar.x) ;
-   vec4 CameraSpacePos = vec4(CameraPrjPlanePos * (-InCameraDepth/InNearFar.x) , 1.0);
-   //return CameraSpacePos ;
-   return InViewInverse * CameraSpacePos ;
+   vec2 Pos;
+   Pos.xy = ClipSpaceXY;
+   vec4 CameraSpacePos;
+   CameraSpacePos.x = Pos.x * InPrjPlaneWInverseH * tan(InFov/2.0f) * InCameraDepth;
+   CameraSpacePos.y = Pos.y * tan(InFov / 2.0f) * InCameraDepth;
+   CameraSpacePos.z = InCameraDepth;
+   CameraSpacePos.w = 1.0f;
+   return InViewInverse * CameraSpacePos;
 }
+
 
 void ComputeAlbedoAndSpecular(in vec3 InBaseColor ,in float InMetalic ,in float InSpecular , out vec3 OutAlbedo, out vec3 OutSpecular)
 {
@@ -188,7 +188,10 @@ void main()
    
    vec2 NF = vec2( -NearFar.x , -NearFar.y) ;
    vec3 ViewPos = ViewPositionWorldSpace ;
-   vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , gl_FragCoord.xy, ScreenWH, FoV, NF, PrjPlaneWInverseH, CameraSpaceDepth) ;
+   
+   vec2 ClipXY = (vec2(1.0) - textureCoord.xy) * 2.0 - vec2(1.0);
+   vec4 WorldPos = FromScreenToWorld(ViewInversMatrix, ClipXY, FoV, PrjPlaneWInverseH, CameraSpaceDepth);
+   
    vec3 ViewDirection = normalize(ViewPos - WorldPos.xyz);
    float NoV = max(dot(Normal , ViewDirection) , 0.0) ;   
    
@@ -201,13 +204,14 @@ void main()
   // Use Diffuse Light Eve Map To Render 
    //vec3 InDirectLightDiffuseColor = InKd * Albedo * texture(IBL_Diffuse_Light, Normal).rgb / PI;
    
-  //Use SH To Simulate Diffuse Light 
-     vec3 InDirectLightDiffuseColor = InKd * Albedo* GetIndirectLightDifffuseColor(Normal)/ PI * Occlusion;
-    
+  //Use SH To Simulate Diffuse Light  This Is Just For SkyLighting 
+  //   vec3 InDirectLightDiffuseColor = InKd * Albedo* GetIndirectLightDifffuseColor(Normal)/ PI * Occlusion;
+       vec3 InDirectLightDiffuseColor = vec3(0.0);
 
    vec3 R = reflect(-ViewDirection , Normal) ;
    vec2 Brdf = texture(IBL_LUT, vec2( 1 - NoV , Roughness)).xy ; // LUT 有问题
-   vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R , Roughness * 6.0 /* Mip Num*/).rgb ;
+   //vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R , Roughness * 6.0 /* Mip Num*/).rgb ;
+   vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R ,5.0).rgb ;
    vec3 InDirectLightSpecularPart2 = InF * Brdf.x + Brdf.y ;
    vec3 InDirectLightSpecular = InDirectLightSpecularPart1 * InDirectLightSpecularPart2 ;
    vec3 FinalColor = InDirectLightDiffuseColor + InDirectLightSpecular ;
@@ -217,5 +221,6 @@ void main()
    
    //FinalColor = FinalColor;
    gl_FragColor.xyz = FinalColor;
-   gl_FragColor.a = 1.0;
+   gl_FragColor.xyz = InDirectLightSpecularPart1;
+   gl_FragColor.a = 0.5;
 }

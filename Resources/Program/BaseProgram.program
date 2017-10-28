@@ -46,6 +46,12 @@
 	  fragment_shader_ref  DefferDataProcessFragment
 	}
 	
+	gpu_program RenderSystem_ClearDefferBufferData GLSL
+	{
+	  vertex_shader_ref    DefferDataProcessVertex
+	  fragment_shader_ref  ClearDefferBufferDataFragment
+	}
+	
 	gpu_program RenderSystem_DefferDataProcessWihtTextureInput GLSL
 	{
 	  vertex_shader_ref   DefferDataProcessVertex

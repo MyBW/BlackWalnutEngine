@@ -1,0 +1,251 @@
+
+
+
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+} 
+
+
+vec3 SpecularIBL(vec3 SpecularColor , float Roughness , vec3 N , vec3 V) 
+{
+
+   vec3 SpecularLighting = vec3(0.0 ,0.0 ,0.0) ;
+   const int NumberSamples = 1024 ;
+   for(int i = 0 ; i < NumberSamples ; i++)
+   {
+      vec2 Xi ;
+    Xi.x = Hammersley(0 , i, NumberSamples) ;
+    Xi.y = Hammersley(1 , i, NumberSamples) ;
+    vec3 H = ImportanceSampleGGX(Xi , Roughness , N) ;
+    H = normalize(H) ;
+    vec3 L = 2 * dot(V , H) * H - V ;
+    L =  normalize(L) ;
+    float NoV = Saturate(dot(N , V)) ;
+    float NoL = Saturate(dot(N , L)) ;
+    float NoH = Saturate(dot(N , H)) ;
+    float VoH = Saturate(dot(V , H)) ;
+    float HoL = Saturate(dot(L , H)) ;
+    if(NoL > 0)
+    {
+       vec3 EveColor ;//= texture(CubeMapTexture, L).rgb; 
+       float Fc = pow(1- VoH, 5) ;
+       vec3 FItem = SpecularColor + (1.0 - SpecularColor)*Fc ;
+       float GItem = GeometrySmith(N , V , L , Roughness) ;
+       float DItem = DistributionGGX(N , H, Roughness ) ;
+     SpecularLighting += EveColor * FItem * GItem * DItem /(4 * NoL * NoV + 0.001) * NoL ; 
+    }
+    
+   }
+   SpecularLighting = SpecularLighting / NumberSamples ;
+   return SpecularLighting ; 
+}
+
+vec3 ImportanceSampleGGX(vec2 Xi , float Roughness , vec3 N)
+{
+    float a = Roughness * Roughness ;
+  float PHi = 2 * PI  * Xi.x ;
+  float CosTheta = sqrt((1-Xi.y) / (1 + (a * a - 1 ) * Xi.y)) ;
+  float SinTheta = sqrt( 1 - CosTheta * CosTheta) ;
+  vec3 H ;
+  H.x = SinTheta * cos(PHi) ;
+  H.y = SinTheta * sin(PHi) ;
+  H.z = CosTheta ;
+  
+  float d = (CosTheta * a * a - CosTheta)* CosTheta + 1;
+  float D = (a * a) /( PI * d * d) ;
+  float PDF =  D * CosTheta ;
+  
+  vec3 UpVector  ;
+  if(abs(N.z) < 0.999)
+  {
+    UpVector = vec3(0.0 ,0.0 ,1.0);
+  }
+  else
+  {
+    UpVector = vec3(1.0, 0.0, 0.0);
+  }
+   
+  vec3 TangentX = normalize(cross(UpVector , N)) ;
+  vec3 TangentY = cross(N , TangentX) ;
+  
+  return TangentX * H.x  + TangentY * H.y + N * H.z ;
+}
+
+
+float Hammersley(int Dimension , int Index , int NumberSamples)
+{
+    if(Dimension == 0)
+  {
+     float TmpNumberSamples = NumberSamples ;
+     return  Index / TmpNumberSamples ;
+  }
+  else
+  {
+     return RadicalInverse(2 , Index) ;
+  }
+}
+
+
+float RadicalInverse(int Base , int i)
+{
+   float Digit , Radical , Inverse ;
+   float DBase = Base ;
+   Digit = Radical = 1.0/ DBase ;
+   Inverse = 0.0 ;
+   while(i != 0)
+   {
+      Inverse += Digit * (i % Base) ;
+    Digit *= Radical ;
+    i /= Base ;
+   }
+   return Inverse ;
+}
+////////////////////////////////////////////////////Image Base Light SH
+
+
+struct FThreeBandSHVector
+{
+	vec4  V0;
+	vec4  V1;
+	float  V2;
+};
+
+
+struct FThreeBandSHVectorRGB
+{
+	FThreeBandSHVector R;
+	FThreeBandSHVector G;
+	FThreeBandSHVector B;
+};
+
+
+
+float  DotSH3(FThreeBandSHVector A,FThreeBandSHVector B)
+{
+	float  Result = dot(A.V0, B.V0);
+	Result += dot(A.V1, B.V1);
+	Result += A.V2 * B.V2;
+	return Result;
+}
+
+vec3  DotSH3RGB(FThreeBandSHVectorRGB A,FThreeBandSHVector B)
+{
+	vec3  Result = vec3(0.0, 0.0, 0.0);
+	Result.r = DotSH3(A.R,B);
+	Result.g = DotSH3(A.G,B);
+	Result.b = DotSH3(A.B,B);
+	return Result;
+}
+
+
+
+FThreeBandSHVector SHBasisFunction3( vec3  InputVector)
+{
+	FThreeBandSHVector Result;
+
+	Result.V0.x = 0.282095f;
+	Result.V0.y = -0.488603f * InputVector.y;
+	Result.V0.z = 0.488603f * InputVector.z;
+	Result.V0.w = -0.488603f * InputVector.x;
+
+	vec3  VectorSquared = InputVector * InputVector;
+	Result.V1.x = 1.092548f * InputVector.x * InputVector.y;
+	Result.V1.y = -1.092548f * InputVector.y * InputVector.z;
+	Result.V1.z = 0.315392f * (3.0f * VectorSquared.z - 1.0f);
+	Result.V1.w = -1.092548f * InputVector.x * InputVector.z;
+	Result.V2 = 0.546274f * (VectorSquared.x - VectorSquared.y);
+
+	return Result;
+}
+FThreeBandSHVector CalcDiffuseTransferSH3( vec3 Normal, float  Exponent)
+{
+	FThreeBandSHVector Result = SHBasisFunction3(Normal);
+
+
+
+	float  L0 = 2 * PI / (1 + 1 * Exponent );
+	float  L1 = 2 * PI / (2 + 1 * Exponent );
+	float  L2 = Exponent * 2 * PI / (3 + 4 * Exponent + Exponent * Exponent );
+	float  L3 = (Exponent - 1) * 2 * PI / (8 + 6 * Exponent + Exponent * Exponent );
+
+
+	Result.V0.x *= L0;
+	Result.V0.yzw *= L1;
+	Result.V1.xyzw *= L2;
+	Result.V2 *= L2;
+
+	return Result;
+}
+
+vec3 GetIndirectLightDifffuseColor(vec3 Normal)
+{
+	    FThreeBandSHVectorRGB CachedSH;
+		int ColorIndex = 0 ;
+		CachedSH.R.V0.xyzw = vec4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
+		CachedSH.R.V1 = vec4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
+		CachedSH.R.V2 = SHCoefficient[ColorIndex + 32];
+		
+		ColorIndex = 1 ;
+		CachedSH.G.V0 = vec4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
+		CachedSH.G.V1 = vec4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
+		CachedSH.G.V2 = SHCoefficient[ColorIndex + 32];
+		
+		ColorIndex = 2 ;
+		CachedSH.B.V0 = vec4(SHCoefficient[ColorIndex + 0], SHCoefficient[ColorIndex + 4], SHCoefficient[ColorIndex + 8], SHCoefficient[ColorIndex + 12]);
+		CachedSH.B.V1 = vec4(SHCoefficient[ColorIndex + 16], SHCoefficient[ColorIndex + 20], SHCoefficient[ColorIndex + 24], SHCoefficient[ColorIndex + 28]);
+		CachedSH.B.V2 = SHCoefficient[ColorIndex + 32];
+		
+
+		FThreeBandSHVector DiffuseTransferSH = CalcDiffuseTransferSH3(Normal, 1);
+		
+		vec3 OutDiffuseLighting = max( vec3(0,0,0), DotSH3RGB(CachedSH, DiffuseTransferSH));
+		return OutDiffuseLighting;
+		
+}
+
+///////////////////////////////////////////////////Direct Lighting Function
+float DistributionGGX(vec3 N, vec3 H, float roughness)
+{
+    float a      = roughness*roughness;
+    float a2     = a*a;
+    float NdotH  = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH*NdotH;
+  
+    float nom   = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+  
+    return nom / denom;
+}
+
+
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+
+    float nom   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+  
+    return nom / denom;
+}
+
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2  = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1  = GeometrySchlickGGX(NdotL, roughness);
+  
+    return ggx1 * ggx2;
+}
+
+
+
+vec3 FresnelSchlick(float NdotV , vec3 F0)
+{
+  return F0 + (1.0 - F0)*pow(1.0 - NdotV , 5.0) ;
+}
