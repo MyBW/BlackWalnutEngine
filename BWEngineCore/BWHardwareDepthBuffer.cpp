@@ -1,8 +1,8 @@
 #include "BWHardwareDepthBuffer.h"
 #include "Math.h"
-BWHardwareDepthBuffer::BWHardwareDepthBuffer(size_t width, size_t height, size_t depth,
+BWHardwareDepthBuffer::BWHardwareDepthBuffer(const std::string& Name, size_t width, size_t height, size_t depth,
 	BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer)
-	:BWHardwareBuffer(usage, useSystemMemory, useShadowBuffer)
+	:BWHardwareBuffer(Name,usage, useSystemMemory, useShadowBuffer)
 	, mWidth(width)
 	, mHeight(height)
 	, mDepth(depth)

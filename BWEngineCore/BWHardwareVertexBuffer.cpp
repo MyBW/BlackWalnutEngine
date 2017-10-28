@@ -1,13 +1,13 @@
 #include "BWHardwareVertexBuffer.h"
 #include "BWColorValue.h"
 #include "BWShadowHardwareBuffer.h"
-BWHardwareVertexBuffer::BWHardwareVertexBuffer(BWHardwareBufferManagerBase *manager, size_t vertexSize, size_t vertexNum, BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer)
-:BWHardwareBuffer(usage, false, useShadowBuffer), mVertexSize(vertexSize), mVertexNum(vertexNum)
+BWHardwareVertexBuffer::BWHardwareVertexBuffer(BWHardwareBufferManagerBase *manager,const std::string &Name, size_t vertexSize, size_t vertexNum, BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer)
+:BWHardwareBuffer(Name, usage, false, useShadowBuffer), mVertexSize(vertexSize), mVertexNum(vertexNum)
 {
 	mSizeInBytes = mVertexSize * vertexNum;
 	if (mUseShadowBuffer)
 	{
-		mShadowHardwareBuffer = new BWVertexShadowHardwareBuffer(manager, vertexSize, vertexNum, usage, false);
+		mShadowHardwareBuffer = new BWVertexShadowHardwareBuffer(manager, Name, vertexSize, vertexNum, usage, false);
 	}
 }
 size_t BWHardwareVertexBuffer::getVertexNum() const

@@ -1,8 +1,8 @@
 #include "BWHardwarePixelBuffer.h"
 #include "BWImage.h"
-BWHardwarePixelBuffer::BWHardwarePixelBuffer(size_t width, size_t height, size_t depth, PixelFormat format,
+BWHardwarePixelBuffer::BWHardwarePixelBuffer(const std::string &Name, size_t width, size_t height, size_t depth, PixelFormat format,
 	BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer)
-	:BWHardwareBuffer(usage, useSystemMemory, useShadowBuffer),
+	:BWHardwareBuffer(Name, usage, useSystemMemory, useShadowBuffer),
 	mWidth(width),
 	mHeight(height),
 	mDepth(depth),

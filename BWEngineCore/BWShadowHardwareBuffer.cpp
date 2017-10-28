@@ -1,9 +1,18 @@
 #include "BWShadowHardwareBuffer.h"
 
-BWVertexShadowHardwareBuffer::BWVertexShadowHardwareBuffer(BWHardwareBufferManagerBase *manager, size_t vertexSize, size_t vertexNum, Usage usage, bool isSystemMemory)
-:BWHardwareVertexBuffer(manager, vertexSize, vertexNum, usage, false, false)
+BWVertexShadowHardwareBuffer::BWVertexShadowHardwareBuffer(BWHardwareBufferManagerBase *manager,const std::string &Name, size_t vertexSize, size_t vertexNum, Usage usage, bool isSystemMemory)
+:BWHardwareVertexBuffer(manager, Name, vertexSize, vertexNum, usage, false, false)
 {
 	mData = new unsigned char[mSizeInBytes];
+}
+
+BWVertexShadowHardwareBuffer::~BWVertexShadowHardwareBuffer()
+{
+	if (mData)
+	{
+		delete[] mData;
+	}
+	mData = nullptr;
 }
 
 void *BWVertexShadowHardwareBuffer::lockImp(size_t offset, size_t length, BWHardwareBuffer::LockOptions option)
@@ -25,8 +34,8 @@ void BWVertexShadowHardwareBuffer::unlock()
 }
 
 
-BWIndexShadowHardwareBuffer::BWIndexShadowHardwareBuffer(BWHardwareBufferManagerBase * manager, IndexType indexType, size_t indexNum, Usage usage, bool isUseSystem)
-:BWHardwareIndexBuffer(manager, indexType, indexNum, usage, isUseSystem, false)
+BWIndexShadowHardwareBuffer::BWIndexShadowHardwareBuffer(BWHardwareBufferManagerBase * manager, const std::string& Name, IndexType indexType, size_t indexNum, Usage usage, bool isUseSystem)
+:BWHardwareIndexBuffer(manager, Name, indexType, indexNum, usage, isUseSystem, false)
 {
 	mData = new unsigned char[mSizeInBytes];
 }

@@ -8,9 +8,9 @@ class BWHardwareBufferManagerBase
 public:
 	typedef std::list<BWHardwareIndexBuffer*> HardwareIndexBufferList;   // 这两个都是用的是指针 而不是智能指针 合理么？
 	typedef std::list<BWHardwareVertexBuffer*> HardwareVertexBufferList;
-	virtual BWHardwareIndexBufferPtr createIndexBuffer(BWHardwareIndexBuffer::IndexType type, size_t numIndexs,
+	virtual BWHardwareIndexBufferPtr createIndexBuffer(const std::string &Name , BWHardwareIndexBuffer::IndexType type, size_t numIndexs,
 	BWHardwareBuffer::Usage usage, bool useShadowBuffer = false) = 0;
-	virtual BWHardwareVertexBufferPtr createVertexBuffer(unsigned int size, unsigned int count,
+	virtual BWHardwareVertexBufferPtr createVertexBuffer(const std::string &Name, unsigned int size, unsigned int count,
 		BWHardwareBuffer::Usage usage, bool useShadowBuffer = false) = 0;
 protected:
 	HardwareIndexBufferList mHardwareIndexBufferList;
@@ -23,9 +23,9 @@ class BWHardwareBufferManager : public BWHardwareBufferManagerBase , BWSingleton
 public:
 	BWHardwareBufferManager(BWHardwareBufferManagerBase *managerImp);
 	static BWHardwareBufferManager* GetInstance();
-    BWHardwareVertexBufferPtr createVertexBuffer(unsigned int size, unsigned int count, 
+    BWHardwareVertexBufferPtr createVertexBuffer(const std::string& Name, unsigned int size, unsigned int count,
 		BWHardwareBuffer::Usage usage, bool useShadowBuffer /* = false */);
-	BWHardwareIndexBufferPtr createIndexBuffer(BWHardwareIndexBuffer::IndexType type, size_t numIndexs, 
+	BWHardwareIndexBufferPtr createIndexBuffer(const std::string& Name, BWHardwareIndexBuffer::IndexType type, size_t numIndexs, 
 		BWHardwareBuffer::Usage usage, bool useShadowBuffer /* = false */);
 protected:
 	static BWHardwareBufferManager* instance;

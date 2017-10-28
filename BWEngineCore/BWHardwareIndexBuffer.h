@@ -11,7 +11,7 @@ public:
 		IT_16BIT ,
 		IT_32BIT
 	};
-	BWHardwareIndexBuffer(BWHardwareBufferManagerBase *manager , IndexType indxType,  size_t numberIndex,  
+	BWHardwareIndexBuffer(BWHardwareBufferManagerBase *manager, const std::string& Name, IndexType indxType, size_t numberIndex,
 		Usage  usage , bool isUseSystemMemory , bool isUseShadowBuffer);
 	size_t getIndexSize() const;
 	IndexType getIndexType() const;

@@ -1,7 +1,7 @@
 #include "BWHardwareBuffer.h"
 #include <assert.h>
 #include <memory>
-BWHardwareBuffer::BWHardwareBuffer(Usage usage, bool systemMemory, bool isUseShadowBuffer)
+BWHardwareBuffer::BWHardwareBuffer(const std::string& Name, Usage usage, bool systemMemory, bool isUseShadowBuffer)
 :mUsage(usage)
 , mUseShadowBuffer(isUseShadowBuffer)
 , mSizeInBytes(0)
@@ -10,9 +10,16 @@ BWHardwareBuffer::BWHardwareBuffer(Usage usage, bool systemMemory, bool isUseSha
 , mShadowUpdated(false)
 , mLockStart(0)
 , mLockLenth(0)
+,mName(Name)
 {
 
 }
+
+BWHardwareBuffer::~BWHardwareBuffer()
+{
+
+}
+
 void * BWHardwareBuffer::lock(size_t offset, size_t length, BWHardwareBuffer::LockOptions option)
 {
 	assert(!isLock());

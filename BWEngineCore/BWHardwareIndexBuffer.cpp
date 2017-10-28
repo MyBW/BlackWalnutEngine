@@ -1,7 +1,7 @@
 #include "BWHardwareIndexBuffer.h"
 #include "BWShadowHardwareBuffer.h"
-BWHardwareIndexBuffer::BWHardwareIndexBuffer(BWHardwareBufferManagerBase *manager, IndexType indxType, size_t numberIndex, Usage usage, bool isUseSystemMemory, bool isUseShadowBuffer)
-:BWHardwareBuffer(usage, false, isUseShadowBuffer), mIndexType(indxType), mIndexNum(numberIndex)
+BWHardwareIndexBuffer::BWHardwareIndexBuffer(BWHardwareBufferManagerBase *manager, const std::string& Name, IndexType indxType, size_t numberIndex, Usage usage, bool isUseSystemMemory, bool isUseShadowBuffer)
+:BWHardwareBuffer(Name, usage, false, isUseShadowBuffer), mIndexType(indxType), mIndexNum(numberIndex)
 {
 	switch (mIndexType)
 	{
@@ -18,7 +18,7 @@ BWHardwareIndexBuffer::BWHardwareIndexBuffer(BWHardwareBufferManagerBase *manage
 	mSizeInBytes = mIndexSize * mIndexNum;
 	if (isUseShadowBuffer)
 	{
-		mShadowHardwareBuffer = new BWIndexShadowHardwareBuffer(manager, mIndexType, mIndexNum, usage, isUseSystemMemory);
+		mShadowHardwareBuffer = new BWIndexShadowHardwareBuffer( manager, Name, mIndexType, mIndexNum, usage, isUseSystemMemory);
 	}
 }
 

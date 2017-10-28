@@ -5,7 +5,7 @@
 class BWVertexShadowHardwareBuffer : public BWHardwareVertexBuffer
 {
 public:
-	BWVertexShadowHardwareBuffer(BWHardwareBufferManagerBase *manager , size_t vertexSize , size_t vertexNum ,
+	BWVertexShadowHardwareBuffer(BWHardwareBufferManagerBase *manager ,const std::string &Name, size_t vertexSize , size_t vertexNum ,
 		Usage usage , bool isSystemMemory );
 	~BWVertexShadowHardwareBuffer();
 	void* lock(size_t offset, size_t length, BWHardwareBuffer::LockOptions option);
@@ -20,7 +20,7 @@ private:
 class BWIndexShadowHardwareBuffer : public BWHardwareIndexBuffer
 {
 public:
-	BWIndexShadowHardwareBuffer(BWHardwareBufferManagerBase * manager, IndexType indexType, size_t indexNum, Usage usage, bool isUseSystem);
+	BWIndexShadowHardwareBuffer(BWHardwareBufferManagerBase * manager, const std::string& Name, IndexType indexType, size_t indexNum, Usage usage, bool isUseSystem);
 	void *lock(size_t offset, size_t length, BWHardwareBuffer::LockOptions option);
 	void unlock();
 protected:

@@ -31,7 +31,7 @@ protected:
 	virtual void * lockImp(size_t  offset, size_t lenth, LockOptions option);
 	virtual void _clearSliceRTT(size_t zoffset) { assert(0); }
 public:
-	BWHardwarePixelBuffer(size_t width , size_t height , size_t depth , PixelFormat format 
+	BWHardwarePixelBuffer(const std::string &Name, size_t width , size_t height , size_t depth , PixelFormat format 
 		, BWHardwareBuffer::Usage usage , bool useSystemMemory , bool useShadowBuffer);
 	virtual ~BWHardwarePixelBuffer();
 	using BWHardwareBuffer::lock;

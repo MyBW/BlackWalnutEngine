@@ -148,7 +148,7 @@ void BWMeshSerializerImp::readMeshLodUsageGenerated(BWDataStreamPrt& stream,
 		if (idx32Bit)
 		{
 			indexData->mIndexBuffer = BWHardwareBufferManager::GetInstance()->
-				createIndexBuffer(BWHardwareIndexBuffer::IT_32BIT, indexData->mIndexCount,
+				createIndexBuffer(pMesh->getName(), BWHardwareIndexBuffer::IT_32BIT, indexData->mIndexCount,
 				pMesh->mIndexBufferUsage, pMesh->mIndexBufferShadowed);
 			unsigned int* pIdx = static_cast<unsigned int*>(
 				indexData->mIndexBuffer->lock(
@@ -163,7 +163,7 @@ void BWMeshSerializerImp::readMeshLodUsageGenerated(BWDataStreamPrt& stream,
 		else
 		{
 			indexData->mIndexBuffer = BWHardwareBufferManager::GetInstance()->
-				createIndexBuffer(BWHardwareIndexBuffer::IT_16BIT, indexData->mIndexCount,
+				createIndexBuffer(pMesh->getName(), BWHardwareIndexBuffer::IT_16BIT, indexData->mIndexCount,
 				pMesh->mIndexBufferUsage, pMesh->mIndexBufferShadowed);
 			unsigned short* pIdx = static_cast<unsigned short*>(
 				indexData->mIndexBuffer->lock(
@@ -505,7 +505,9 @@ void BWMeshSerializerImp::readSubMesh(BWDataStreamPrt &dataStream, BWMesh *mesh)
 	{
 		if (idx32bit)
 		{
-			ibuf = BWHardwareBufferManager::GetInstance()->createIndexBuffer(BWHardwareIndexBuffer::IT_32BIT,
+			ibuf = BWHardwareBufferManager::GetInstance()->createIndexBuffer(
+				mesh->getName(),
+				BWHardwareIndexBuffer::IT_32BIT,
 				subMesh->mIndexData->mIndexCount,
 				mesh->mIndexBufferUsage,
 				mesh->mIndexBufferShadowed);
@@ -515,7 +517,9 @@ void BWMeshSerializerImp::readSubMesh(BWDataStreamPrt &dataStream, BWMesh *mesh)
 		}
 		else
 		{
-			ibuf = BWHardwareBufferManager::GetInstance()->createIndexBuffer(BWHardwareIndexBuffer::IT_16BIT,
+			ibuf = BWHardwareBufferManager::GetInstance()->createIndexBuffer(
+				mesh->getName(),
+				BWHardwareIndexBuffer::IT_16BIT,
 				subMesh->mIndexData->mIndexCount,
 				mesh->mIndexBufferUsage,
 				mesh->mIndexBufferShadowed);
@@ -684,7 +688,7 @@ void BWMeshSerializerImp::readGeometryVertexBuffer(BWDataStreamPrt &dataStream, 
 		assert(0);
     }
 	BWHardwareVertexBufferPtr vbuf;
-	vbuf = BWHardwareBufferManager::GetInstance()->createVertexBuffer(
+	vbuf = BWHardwareBufferManager::GetInstance()->createVertexBuffer( mesh->getName(),
 		vertexSize, vertexData->mVertexCount, mesh->mVertextBufferUsage, mesh->mVertexBufferShadowed);
 	void * buf = vbuf->lock(BWHardwareBuffer::HBL_DISCARD);
 	dataStream->Read(buf, vertexData->mVertexCount * vertexSize);

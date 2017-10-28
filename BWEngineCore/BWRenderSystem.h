@@ -85,7 +85,7 @@ public:
 	virtual BWRenderWindow* _createRenderWindow(const std::string &name, unsigned int width, unsigned int height, bool fullScreen, const NameValuePairList* miscParam = 0) = 0;
 	virtual BWRenderTarget* createRenderTarget(const std::string &name) = 0;
 
-	virtual void bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage);
+	//virtual void bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage);
 
 
 
@@ -156,6 +156,10 @@ protected:
 	BWGpuProgramUsagePtr ScreenSpaceRayTrackProgramUsage;
 	BWHighLevelGpuProgramPtr ScreenSpaceReflectionProgram;
 	BWGpuProgramUsagePtr ScreenSpaceReflectionProgramUsage;
+	BWHighLevelGpuProgramPtr ClearGBufferProgram;
+	BWGpuProgramUsagePtr ClearGBufferProgramUsage;
+
+
 	void SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage);
 
 	// 目前出现的问题是在Tonemap过程中最后一步中调用SetShaderTexture会影响到后面的各种纹理调用
@@ -167,6 +171,7 @@ public:
 	bool IsEnableTemporalAA{ true };
 	bool IsEnableToneMap{ true };
 	bool IsEnableSSR{ true };
+	bool IsEnableSSAO{ true };
 	float InExposeScale{ 0.0f };
 //////////////////////////////////////////
 protected:
@@ -272,6 +277,7 @@ protected:
 
 	BWMaterialPtr mDirectionLightM;
 	BWGpuProgramUsagePtr  DirectLightProgramUsage;
+	BWHighLevelGpuProgramPtr DirectLightProgram;
 
 	BWMeshPrt mCubeMesh;
 	BWMaterialPtr mPointLightM;
@@ -325,7 +331,7 @@ protected:
 	
 	BWMaterialPtr mSkyBoxM;
 	BWGpuProgramUsagePtr  mSkyBoxGpuPrgramUsage;
-	BWHighLevelGpuProgramPtr mSkyBoxGLSLProgram;
+	BWHighLevelGpuProgramPtr mSkyBoxProgram;
 	void RenderSkyBox();
 
 	BWMaterialPtr mProcessEvnMap;

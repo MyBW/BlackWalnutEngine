@@ -157,24 +157,26 @@ void BWRenderSystem::_endFrame()
 {
 	//延迟渲染相关  
 
-	RenderAmbientOcclusion();
+    RenderAmbientOcclusion();
 	//光照相关
-	RenderLights();
+	//RenderLights();
 
 	RenderInDirectLights();
 
 
 	//遮挡相关
-	
+
 
 	//天空盒
 	RenderSkyBox();
 
 	//RenderMotionBlur();
 
-	RenderTemporalAA();
+
+	//RenderTemporalAA();
 	
-	RenderScreenSpaceReflection();
+	//RenderScreenSpaceReflection();
+
 	RenderToneMap();
 	//没有tonemap 就要有下面几句
 	/*RSGraphicPipelineState PipelineState;
@@ -193,8 +195,11 @@ void BWRenderSystem::_endFrame()
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = BWRenderSystem::FinalRenderResult;
 	SetRenderTarget(nullptr, RenderTarget, GDepthBuffer);
-	ClearRenderTarget(FBT_COLOUR|FBT_DEPTH);
-	GRenderTarget->clearRenderTarget();
+	ClearRenderTarget(FBT_COLOUR);
+	//GRenderTarget->clearRenderTarget();  // 使用下面这种方式的时候 可能出现残影 注释掉SSR的时候 这种现象消失 但是 如果使用 GRenderTarget->clearRenderTarget(); 则不会出现任何问题 
+
+	SetupGBufferRenderTarget(ClearGBufferProgramUsage);
+	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH | FBT_STENCIL);
 }
 
 void BWRenderSystem::setAmbientLight(float r, float g, float b)
@@ -351,6 +356,7 @@ void BWRenderSystem::SetupGBufferRenderTarget(BWGpuProgramUsagePtr GPUUsage)
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = VelocityRT;
 	RenderTargets.RenderTargets.push_back(RenderTarget);
+
 	SetRenderTargets(RenderTargets);
 }
 
@@ -378,13 +384,12 @@ void BWRenderSystem::unbindGpuProgram(GpuProgramType GPT)
 		mGeometryProgramBound = false;
 	}
 }
-void BWRenderSystem::bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage)
-{
-	assert(0);
-}
+//void BWRenderSystem::bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage)
+//{
+//	assert(0);
+//}
 bool BWRenderSystem::InitRendererResource()
 {
-
 	auto LoadGUPUsageAndGPUProgram = [](std::string &MaterialName, BWGpuProgramUsagePtr& GPUUsage, BWHighLevelGpuProgramPtr& GPUProgram)
 	{
 		BWMaterialPtr Material = BWMaterialManager::GetInstance()->GetResource(MaterialName, "General");
@@ -399,81 +404,43 @@ bool BWRenderSystem::InitRendererResource()
 		GPUProgram->Load();
 	};
 
+	auto Create2DRenderTexture = [](std::string &TextureName , BWTexturePtr& Texture , int Width, int Hieght , PixelFormat Format)
+	{
+		Texture = BWTextureManager::GetInstance()->Create(TextureName, DEFAULT_RESOURCE_GROUP);
+		Texture->setHeight(Hieght);
+		Texture->setWidth(Width);
+		Texture->setTextureType(TEX_TYPE_2D);
+		Texture->setFormat(Format);
+		Texture->setNumMipmaps(0);
+		Texture->SetIndex(0);
+		Texture->createInternalResources();
+	};
 	GRenderTarget = createRenderTarget("GRenderTarget");
 	GRenderTarget->setWidth(1024);
 	GRenderTarget->setHeight(768);
 
-	BWTexturePtr texture = BWTextureManager::GetInstance()->Create("ABuffer", DEFAULT_RESOURCE_GROUP);
-	texture->setHeight(GRenderTarget->getHeight());
-	texture->setWidth(GRenderTarget->getWidth());
-	GRenderTarget->addTextureBuffer(texture, 0);
-	texture = BWTextureManager::GetInstance()->Create("BBuffer", DEFAULT_RESOURCE_GROUP);
-	texture->setHeight(GRenderTarget->getHeight());
-	texture->setWidth(GRenderTarget->getWidth());
-	GRenderTarget->addTextureBuffer(texture, 0);
-	texture = BWTextureManager::GetInstance()->Create("CBuffer", DEFAULT_RESOURCE_GROUP);
-	texture->setHeight(GRenderTarget->getHeight());
-	texture->setWidth(GRenderTarget->getWidth());
-	GRenderTarget->addTextureBuffer(texture, 0);
-	// 暂时使用这种方式来获得VelocityRT Buffer 随后  看看Unreal如何实现的
-	VelocityRT = BWTextureManager::GetInstance()->Create("VelocityRT", DEFAULT_RESOURCE_GROUP);
-	VelocityRT->setHeight(GRenderTarget->getHeight());
-	VelocityRT->setWidth(GRenderTarget->getWidth());
-	GRenderTarget->addTextureBuffer(VelocityRT, 0);
-
-
-	GRenderTarget->createDepthBuffer(std::string("DepthBuffer"));
-	GRenderTarget->createPixelBuffer(std::string("FinalRenderResult"));
-
-	AmbientOcclusionMaterial = BWMaterialManager::GetInstance()->GetResource("AmbientOcclusion", "General");
-	AmbientOcclusionProgramUage = AmbientOcclusionMaterial->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-	AmbientOcclusionGPUProgram = AmbientOcclusionProgramUage->GetHighLevelGpuProgram();
-	AmbientOcclusionGPUProgram->Load();
+	int WindowsWidth = 1024;
+	int WindowsHeight = 768;
+	Create2DRenderTexture(std::string("ABuffer"), ABufferTexture, WindowsWidth, WindowsHeight, PF_FLOAT32_RGBA);
+	Create2DRenderTexture(std::string("BBuffer"), BBufferTexture, WindowsWidth, WindowsHeight, PF_FLOAT32_RGBA);
+	Create2DRenderTexture(std::string("CBuffer"), CBufferTexture, WindowsWidth, WindowsHeight, PF_FLOAT32_RGBA);
+	Create2DRenderTexture(std::string("VelocityRT"), VelocityRT, WindowsWidth, WindowsHeight, PF_FLOAT32_RGBA);
+	Create2DRenderTexture(std::string("FinalRenderReslutColor"), FinalRenderResult, WindowsWidth, WindowsHeight, PF_BYTE_RGBA);
+	Create2DRenderTexture(std::string("HistoryRT"), HistoryRT, WindowsWidth, WindowsHeight, PF_FLOAT32_RGBA);
+	GDepthBuffer = new GLHardwareDepthBuffer("DepthBuffer", WindowsWidth, WindowsHeight, 0, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
+	
 
 	mPointLightMesh = BWMeshManager::GetInstance()->load("sphere.mesh", "General");
 	mCubeMesh = BWMeshManager::GetInstance()->load("cube.mesh", "General");
-
-
-	//mDirectionLightM = BWMaterialManager::GetInstance()->GetResource("DirectLightDefferRendering", "General");
-	mDirectionLightM = BWMaterialManager::GetInstance()->GetResource("Ogre/BaseDirectLightingMaterial", "General");
-	if (mDirectionLightM.IsNull())
-	{
-		Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : cant get the mDirectionLightM material");
-		return false;
-	}
-	mPointLightM = BWMaterialManager::GetInstance()->GetResource("PointLightDefferLightting", "General");
-	if (mPointLightM.IsNull())
-	{
-		Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : cant get the mDirectionLightM material");
-		return false;
-	}
-
-
-	ABufferTexture = GRenderTarget->getTextureBuffer("ABuffer");
-	BBufferTexture = GRenderTarget->getTextureBuffer("BBuffer");
-	CBufferTexture = GRenderTarget->getTextureBuffer("CBuffer");
-
-	FinalRenderResult = BWTextureManager::GetInstance()->Create("FinalRenderReslutColor", DEFAULT_RESOURCE_GROUP);
-	FinalRenderResult->setWidth(ABufferTexture->getWidth());
-	FinalRenderResult->setHeight(ABufferTexture->getHeight());
-	FinalRenderResult->setTextureType(TEX_TYPE_2D);
-	FinalRenderResult->setFormat(PF_BYTE_RGBA);
-	FinalRenderResult->setNumMipmaps(0);
-	FinalRenderResult->SetIndex(0);
-	FinalRenderResult->createInternalResources();
+	mCubeMesh->getSubMesh(0)->_getRenderOperation(CubeMeshRenderOperation);
 	
-	HistoryRT = BWTextureManager::GetInstance()->Create("HistoryRT", DEFAULT_RESOURCE_GROUP);
-	HistoryRT->setWidth(ABufferTexture->getWidth());
-	HistoryRT->setHeight(ABufferTexture->getHeight());
-	HistoryRT->setTextureType(TEX_TYPE_2D);
-	HistoryRT->setFormat(PF_FLOAT32_RGBA);
-	HistoryRT->setNumMipmaps(0);
-	HistoryRT->SetIndex(0);
-	HistoryRT->createInternalResources();
-
-
-	GDepthBuffer = GRenderTarget->getDepthRenderBuffer(std::string("DepthBuffer"));
-
+	////LoadGUPUsageAndGPUProgram(std::string("Ogre/BaseDirectLightingMaterial"), DirectLightGLSLPrgramUsage, DirectLightGLSLProgram);
+	//mPointLightM = BWMaterialManager::GetInstance()->GetResource("PointLightDefferLightting", "General");
+	//if (mPointLightM.IsNull())
+	//{
+	//	Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : cant get the mDirectionLightM material");
+	//	return false;
+	//}
 	AOSamplerTexture = BWTextureManager::GetInstance()->Create("AOSamplerTexture", DEFAULT_RESOURCE_GROUP);
 	AOSamplerTexture->setWidth(4);
 	AOSamplerTexture->setHeight(4);
@@ -490,22 +457,8 @@ bool BWRenderSystem::InitRendererResource()
 	}
 	AOSamplerTexture->CreateInternalResourcesWithData(SamplerData.data());
 
-	ToneMapTexture = BWTextureManager::GetInstance()->Create("ToneMapTexture", DEFAULT_RESOURCE_GROUP);
-	ToneMapTexture->setWidth(FinalRenderResult->getWidth() / 2);
-	ToneMapTexture->setHeight(FinalRenderResult->getHeight()/ 2);
-	ToneMapTexture->setTextureType(TEX_TYPE_2D);
-	ToneMapTexture->setFormat(PF_FLOAT32_RGB);
-	ToneMapTexture->setNumMipmaps(0);
-	ToneMapTexture->createInternalResources();
-	BloomTexture = BWTextureManager::GetInstance()->Create("BloomTexture", DEFAULT_RESOURCE_GROUP);
-	BloomTexture->setWidth(FinalRenderResult->getWidth() / 2);
-	BloomTexture->setHeight(FinalRenderResult->getHeight()/ 2);
-	BloomTexture->setTextureType(TEX_TYPE_2D);
-	BloomTexture->setFormat(PF_FLOAT32_RGB);
-	BloomTexture->setNumMipmaps(0);
-	BloomTexture->createInternalResources();
-
-	
+	Create2DRenderTexture(std::string("BloomTexture"), BloomTexture, FinalRenderResult->getWidth() / 2, FinalRenderResult->getHeight() / 2, PF_FLOAT32_RGB);
+	Create2DRenderTexture(std::string("ToneMapTexture"), ToneMapTexture, FinalRenderResult->getWidth() / 2, FinalRenderResult->getHeight() / 2, PF_FLOAT32_RGB);
 	
 
 	LoadGUPUsageAndGPUProgram(std::string("ScaleCopy"), EmptyGPUProgramUsage, EmptyGPUProgram);
@@ -518,14 +471,12 @@ bool BWRenderSystem::InitRendererResource()
 	LoadGUPUsageAndGPUProgram(std::string("MotionBlur"), MotionBlurUsage,MotionBlurProgram);
 	LoadGUPUsageAndGPUProgram(std::string("ScreenSpaceRayTrack"), ScreenSpaceRayTrackProgramUsage, ScreenSpaceRayTrackProgram);
 	LoadGUPUsageAndGPUProgram(std::string("ScreenSpaceReflection"), ScreenSpaceReflectionProgramUsage, ScreenSpaceReflectionProgram);
+	LoadGUPUsageAndGPUProgram(std::string("ClearDefferDataBuffer"), ClearGBufferProgramUsage, ClearGBufferProgram);
+	LoadGUPUsageAndGPUProgram(std::string("AmbientOcclusion"), AmbientOcclusionProgramUage, AmbientOcclusionGPUProgram);
+	LoadGUPUsageAndGPUProgram(std::string("Ogre/BaseDirectLightingMaterial"), DirectLightProgramUsage, DirectLightProgram);
+	LoadGUPUsageAndGPUProgram(std::string("ImageBaseLighting"), ImageBaseLightingUsage, ImageBaseLighting);
+	LoadGUPUsageAndGPUProgram(std::string("SkyBox"), mSkyBoxGpuPrgramUsage, mSkyBoxProgram);
 
-	DirectLightProgramUsage = mDirectionLightM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-	BWMaterialPtr ImageBaseLightingMaterial = BWMaterialManager::GetInstance()->GetResource("ImageBaseLighting", "General");
-	ImageBaseLightingMaterial->Load();
-	ImageBaseLightingUsage = ImageBaseLightingMaterial->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-	ImageBaseLighting = ImageBaseLightingUsage->GetHighLevelGpuProgram();
-	ImageBaseLighting->Load();
-	
 	//阴影相关
 	/*ShadowMapTarget = createRenderTarget("ShadowRenderTarget");
 	ShadowMapTarget->setWidth(1024);
@@ -545,19 +496,6 @@ bool BWRenderSystem::InitRendererResource()
 		return false;
 	}*/
 
-	mSkyBoxM = BWMaterialManager::GetInstance()->GetResource("SkyBox", "General");
-	if (mSkyBoxM.IsNull())
-	{
-		Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : cant get the mSkyBoxM material");
-		return false;
-	}
-	mSkyBoxM->Load();
-	mSkyBoxGpuPrgramUsage = mSkyBoxM->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-
-	BWMeshPrt mCubeMesh = GetCubeMesh();
-	BWSubMesh *mCubeSubMesh = mCubeMesh->getSubMesh(0);
-	mCubeSubMesh->_getRenderOperation(CubeMeshRenderOperation);
-
 	BWQuaternion Quaterniton;
 	BWMatrix4 ViewMatrixs[6];
 	//以下的方向都是相对世界坐标系来说的 左手坐标系 这里要注意旋转角度的正负对方向的影响
@@ -575,7 +513,6 @@ bool BWRenderSystem::InitRendererResource()
 	ViewMatrixs[5] = BWMatrix4::makeViewMatrix(BWVector3D(0.0, 0.0, 0.0), Quaterniton, nullptr); //-Z
 
 
-
 	mProcessEvnMap = BWMaterialManager::GetInstance()->GetResource("ProcessEnvMap", "General");
 	if (mProcessEvnMap.IsNull())
 	{
@@ -587,7 +524,6 @@ bool BWRenderSystem::InitRendererResource()
 	mProcessEvnMapGpuPrgramUsage = mProcessEvnMap->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
 	mProcessEvnMapProgram = mProcessEvnMapGpuPrgramUsage->GetHighLevelGpuProgram();
 	mProcessEvnMapProgram->Load();
-
 
 
 	//从Equirectangular HRD 产生 CubeMap环境贴图
@@ -616,7 +552,7 @@ bool BWRenderSystem::InitRendererResource()
 	HDRCubeMap->setNumMipmaps(0);
 	HDRCubeMap->createInternalResources();
 	BWHardwareDepthBufferPtr TmpDepthBuffer =
-		new GLHardwareDepthBuffer("TempRenderTarget", HDRCubeMap->getWidth(), HDRCubeMap->getHeight(), 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
+		new GLHardwareDepthBuffer("TempRenderTarget", HDRCubeMap->getWidth(), HDRCubeMap->getHeight(), 0,BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
 	TmpDepthBuffer->SetIsWithStencil(false);
 
 
@@ -643,7 +579,6 @@ bool BWRenderSystem::InitRendererResource()
 	}
 	// 从Equirectangular HRD 产生 CubeMap环境贴图 End
 
-
 	//Use SH To Convolution The EnvMap
 	BWHighLevelGpuProgramPtr SHConvolution;
 	BWHighLevelGpuProgramPtr AccumulateDiffuse;
@@ -651,37 +586,22 @@ bool BWRenderSystem::InitRendererResource()
 	BWGpuProgramUsagePtr SHConvolutonUsage;
 	BWGpuProgramUsagePtr AccumulateUsage;
 	BWGpuProgramUsagePtr AccumulateReadCubeFaceUsage;
+	BWTexturePtr GatherSHReslut;
 
-	BWMaterialPtr SHMaterial = BWMaterialManager::GetInstance()->GetResource("SHConvolution", "General");
-	SHMaterial->Load();
-	SHConvolutonUsage = SHMaterial->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-	SHConvolution = SHConvolutonUsage->GetHighLevelGpuProgram();
-	SHConvolution->Load();
-
-	BWMaterialPtr AccumulateDiffuseMaterial = BWMaterialManager::GetInstance()->GetResource("AccumulateDiffuse", "General");
-	AccumulateDiffuseMaterial->Load();
-	AccumulateUsage = AccumulateDiffuseMaterial->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-	AccumulateDiffuse = AccumulateUsage->GetHighLevelGpuProgram();
-	AccumulateDiffuse->Load();
-
-
-	BWMaterialPtr AccumulateReadCubeMapMaterial = BWMaterialManager::GetInstance()->GetResource("AccumulateReadCubeMap", "General");
-	AccumulateReadCubeMapMaterial->Load();
-	AccumulateReadCubeFaceUsage = AccumulateReadCubeMapMaterial->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-	AccumulateReadCubeFace = AccumulateReadCubeFaceUsage->GetHighLevelGpuProgram();
-	AccumulateReadCubeFace->Load();
-
+	LoadGUPUsageAndGPUProgram(std::string("SHConvolution"), SHConvolutonUsage, SHConvolution);
+	LoadGUPUsageAndGPUProgram(std::string("AccumulateDiffuse"), AccumulateUsage, AccumulateDiffuse);
+	LoadGUPUsageAndGPUProgram(std::string("AccumulateReadCubeMap"), AccumulateReadCubeFaceUsage, AccumulateReadCubeFace);
+	Create2DRenderTexture(std::string("GatherSHReslut"), GatherSHReslut, SHVector.MaxBasis, 1, PF_FLOAT32_RGBA);
 
 	float Sampler01[4] = { 0.0f ,0.0f ,0.0f, 0.0f };
 	float Sampler23[4] = { 0.0f ,0.0f ,0.0f, 0.0f };
-	BWTexturePtr GatherSHReslut;
 	float Mask[TSHVector<3>::MaxBasis];
 	const int CubeMapWidth = mProcessEvnMapTexture->getWidth();
 	const int CubeMapHigh = mProcessEvnMapTexture->getHeight();
 	const int MipLevelNum = HelperFunction::GetMaxMipmaps(CubeMapWidth, CubeMapHigh, 1);
 	int CurrentMipLevel = 0;
 	BWHardwareDepthBufferPtr SHDepthBuffer =
-		new GLHardwareDepthBuffer("TempRenderTarget", CubeMapWidth, CubeMapHigh, 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
+		new GLHardwareDepthBuffer("TempRenderTarget", CubeMapWidth, CubeMapHigh, 0, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
 	SHDepthBuffer->SetIsWithStencil(false);
 	for (int TextureIndx = 0; TextureIndx < 2; TextureIndx++)
 	{
@@ -695,14 +615,6 @@ bool BWRenderSystem::InitRendererResource()
 		AccumulationCubeMaps[TextureIndx]->SetIndex(0);
 		AccumulationCubeMaps[TextureIndx]->createInternalResources();
 	}
-	GatherSHReslut = BWTextureManager::GetInstance()->Create("GatherSHReslut", "General");
-	GatherSHReslut->setTextureType(TEX_TYPE_2D);
-	GatherSHReslut->setFormat(PF_FLOAT32_RGBA);
-	GatherSHReslut->setHeight(1);
-	GatherSHReslut->setWidth(SHVector.MaxBasis);
-	GatherSHReslut->setNumMipmaps(0);
-	GatherSHReslut->SetIndex(0);
-	GatherSHReslut->createInternalResources();
 
 	for (int i = 0; i < SHVector.MaxBasis; i++)
 	{
@@ -711,7 +623,6 @@ bool BWRenderSystem::InitRendererResource()
 		{
 			Mask[k] = i == k ? 1.0f : 0.0f;
 		}
-		//PipeLineState.GPUProgram = SHConvolution;
 		PipeLineState.GPUProgramUsage = SHConvolutonUsage;
 		RenderTarget.RenderTargetTexture = AccumulationCubeMaps[CurrentMipLevel % 2];
 
@@ -723,19 +634,15 @@ bool BWRenderSystem::InitRendererResource()
 		{
 			RenderTarget.Index = CubeFace;
 			RenderTarget.MipmapLevel = CurrentMipLevel;
-			SetRenderTarget( SHConvolutonUsage,RenderTarget, TmpDepthBuffer);
+			SetRenderTarget(SHConvolutonUsage, RenderTarget, TmpDepthBuffer);
 			SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("Mask0", Mask, 4, 1);
 			SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("Mask1", &Mask[4], 4, 1);
 			SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("Mask2", &Mask[8], 1, 1);
 			SHConvolutonUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[CubeFace]);
-			//SHConvolution->SetGPUProgramParameters(SHConvolutonUsage->GetGpuProgramParameter());
 			ClearRenderTarget(FBT_DEPTH);
-			//RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(SHConvolution.Get()));
 			BWHighLevelGpuProgramPtr tmp;
-			//RenderOperation(CubeMeshRenderOperation, SHConvolution);
 			RenderOperation(CubeMeshRenderOperation, tmp);
 		}
-		//PipeLineState.GPUProgram = AccumulateDiffuse;
 		PipeLineState.GPUProgramUsage = AccumulateUsage;
 		for (CurrentMipLevel = 1; CurrentMipLevel < MipLevelNum; CurrentMipLevel++)
 		{
@@ -767,16 +674,12 @@ bool BWRenderSystem::InitRendererResource()
 				AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("Sample23", Sampler23, 4, 1);
 				AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("CubeFace", &CubeFace, 1, 1);
 				AccumulateUsage->GetGpuProgramParameter()->SetNamedConstant("MipMapLevel", &PreMipLevel, 1, 1);
-				//AccumulateDiffuse->SetGPUProgramParameters(AccumulateUsage->GetGpuProgramParameter());
-				SetRenderTarget(AccumulateUsage ,RenderTarget, TmpDepthBuffer);
+				SetRenderTarget(AccumulateUsage, RenderTarget, TmpDepthBuffer);
 				ClearRenderTarget(FBT_DEPTH);
-				//RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(AccumulateDiffuse.Get()));
-				//RenderOperation(CubeMeshRenderOperation, AccumulateDiffuse);
 				BWHighLevelGpuProgramPtr tmp;
 				RenderOperation(CubeMeshRenderOperation, tmp);
 			}
 		}
-		//PipeLineState.GPUProgram = AccumulateReadCubeFace;
 		PipeLineState.GPUProgramUsage = AccumulateReadCubeFaceUsage;
 		SetViewport(0, 0, SHVector.MaxBasis, 1);
 		SetScissor(true, i, 0, i + 1, 1);
@@ -791,8 +694,6 @@ bool BWRenderSystem::InitRendererResource()
 		CurrentMipLevel--;
 		AccumulateReadCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[0]);
 		AccumulateReadCubeFaceUsage->GetGpuProgramParameter()->SetNamedConstant("MipMapLevel", &CurrentMipLevel, 1, 1);
-		//AccumulateReadCubeFace->SetGPUProgramParameters(AccumulateReadCubeFaceUsage->GetGpuProgramParameter());
-		//RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(AccumulateReadCubeFace.Get()));
 		BWHighLevelGpuProgramPtr tmp;
 		RenderOperation(CubeMeshRenderOperation, tmp);
 		SetScissor(false);
@@ -811,10 +712,10 @@ bool BWRenderSystem::InitRendererResource()
 
 	BWPixelBox PixelBox(SHVector.MaxBasis, 1, 0, PixelFormat::PF_FLOAT32_RGBA, SHVector.V);
 	ReadSurfaceData(GatherSHReslut, 0, 0, PixelBox);
+	
+	
 
-
-
-
+	
 	IBL_Diffuse_Cube_Map = BWTextureManager::GetInstance()->Create("IBL_Diffuse_Cube_Map", "General");
 	IBL_Diffuse_Cube_Map->setTextureType(TEX_TYPE_CUBE_MAP);
 	IBL_Diffuse_Cube_Map->setFormat(PF_FLOAT32_RGB);
@@ -824,12 +725,11 @@ bool BWRenderSystem::InitRendererResource()
 	IBL_Diffuse_Cube_Map->createInternalResources();
 	HDRCubeMap->SetIndex(0);
 	BWHardwareDepthBufferPtr TmpDepthBuffer1 =
-		new GLHardwareDepthBuffer("TempRenderTarget1", IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight(), 0, nullptr, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
+		new GLHardwareDepthBuffer("TempRenderTarget1", IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight(), 0,BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
 	TmpDepthBuffer1->SetIsWithStencil(false);
 	SetShaderTexture(mProcessEvnMapProgram, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
 	SetViewport(0, 0, IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight());
-	//PipeLineState.GPUProgram = mProcessEvnMapProgram;
 	PipeLineState.GPUProgramUsage = mProcessEvnMapGpuPrgramUsage;
 	SetGraphicsPipelineState(PipeLineState);
 
@@ -846,37 +746,26 @@ bool BWRenderSystem::InitRendererResource()
 	}
 
 	//环境贴图对高光处理
-	mPreprocessEvnMapForSpecular = BWMaterialManager::GetInstance()->GetResource("ProcessEnvMapForSpecular", "General");
-	if (mPreprocessEvnMapForSpecular.IsNull())
-	{
-		Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : cant get the mProcessEvnMap material");
-		return false;
-	}
-	mPreprocessEvnMapForSpecular->Load();
-	mProcessEvnMapForSpecularGpuPrgramUsage = mPreprocessEvnMapForSpecular->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-	mProcessEvnMapForSpecularProgram = mProcessEvnMapForSpecularGpuPrgramUsage->GetHighLevelGpuProgram();
-	mProcessEvnMapForSpecularProgram->Load();
+	LoadGUPUsageAndGPUProgram(std::string("ProcessEnvMapForSpecular"), mProcessEvnMapForSpecularGpuPrgramUsage, mProcessEvnMapForSpecularProgram);
 
 	const int RoughnessLevel = 7;
+	int IBL_Width = 512;
+	int IBL_Height = 512;
 	IBL_Specular_Cube_Map = BWTextureManager::GetInstance()->Create("IBL_Specular_Cube_Map", "General");
 	IBL_Specular_Cube_Map->setTextureType(TEX_TYPE_CUBE_MAP);
 	IBL_Specular_Cube_Map->setFormat(PF_FLOAT32_RGB);
-	IBL_Specular_Cube_Map->setWidth(mProcessEvnMapTexture->getWidth());
-	IBL_Specular_Cube_Map->setHeight(mProcessEvnMapTexture->getHeight());
+	IBL_Specular_Cube_Map->setWidth(IBL_Width);
+	IBL_Specular_Cube_Map->setHeight(IBL_Height);
 	IBL_Specular_Cube_Map->setNumMipmaps(RoughnessLevel);
 	IBL_Specular_Cube_Map->createInternalResources();
-
-
-	int Width = mProcessEvnMapTexture->getWidth();
-	int Height = mProcessEvnMapTexture->getHeight();
-	//PipeLineState.GPUProgram = mProcessEvnMapForSpecularProgram;
 	PipeLineState.GPUProgramUsage = mProcessEvnMapForSpecularGpuPrgramUsage;
 	SetGraphicsPipelineState(PipeLineState);
 
+	int Width = IBL_Specular_Cube_Map->getWidth();
+	int Height = IBL_Specular_Cube_Map->getHeight();
 	HDRCubeMap->SetIndex(0);
 	SetShaderTexture(mProcessEvnMapForSpecularProgram, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	RenderTarget.RenderTargetTexture = IBL_Specular_Cube_Map;
-	//RenderTarget.DepthAndStencil = TmpDepthBuffer1;
 	for (int mip = 0; mip < RoughnessLevel; mip++)
 	{
 		int MipWidth = Width * std::pow(0.5, mip);
@@ -887,7 +776,7 @@ bool BWRenderSystem::InitRendererResource()
 		for (int i = 0; i < 6; i++)
 		{
 			RenderTarget.Index = i;
-			SetRenderTarget(mProcessEvnMapForSpecularGpuPrgramUsage ,RenderTarget, TmpDepthBuffer1);
+			SetRenderTarget(mProcessEvnMapForSpecularGpuPrgramUsage, RenderTarget, TmpDepthBuffer1);
 			mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
 			mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("roughness", &roughness, 1, 1);
 			ClearRenderTarget(FBT_DEPTH);
@@ -895,30 +784,11 @@ bool BWRenderSystem::InitRendererResource()
 			RenderOperation(CubeMeshRenderOperation, tmp);
 		}
 	}
-
-
-
+	
 	//计算LUT
-	mPreprocessEvnMapLUT = BWMaterialManager::GetInstance()->GetResource("PreprocessEvnMapLUT", "General");
-	if (mPreprocessEvnMapLUT.IsNull())
-	{
-		Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : cant get the mProcessEvnMap material");
-		return false;
-	}
-	mPreprocessEvnMapLUT->Load();
-	mProcessEvnMapLUTGpuPrgramUsage = mPreprocessEvnMapLUT->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-	mProcessEvnMapLUTProgram = mProcessEvnMapLUTGpuPrgramUsage->GetHighLevelGpuProgram();
-	mProcessEvnMapLUTProgram->Load();
-
-	IBL_LUT = BWTextureManager::GetInstance()->Create("IBL_LUT", "General");
-	IBL_LUT->setTextureType(TEX_TYPE_2D);
-	IBL_LUT->setWidth(512);
-	IBL_LUT->setHeight(512);
-	IBL_LUT->setNumMipmaps(0);
-	IBL_LUT->createInternalResources();
+	LoadGUPUsageAndGPUProgram(std::string("PreprocessEvnMapLUT"), mProcessEvnMapLUTGpuPrgramUsage, mProcessEvnMapLUTProgram);
+	Create2DRenderTexture(std::string("IBL_LUT"), IBL_LUT, 512, 512, PF_FLOAT32_RGB);
 	SetViewport(0, 0, 512, 512);
-
-	//PipeLineState.GPUProgram = mProcessEvnMapLUTProgram;
 	PipeLineState.GPUProgramUsage = mProcessEvnMapLUTGpuPrgramUsage;
 	SetGraphicsPipelineState(PipeLineState);
 	RenderTarget.Index = 0;
@@ -926,10 +796,8 @@ bool BWRenderSystem::InitRendererResource()
 	RenderTarget.RenderTargetTexture = IBL_LUT;
 	SetRenderTarget(mProcessEvnMapLUTGpuPrgramUsage, RenderTarget, TmpDepthBuffer1);
 	ClearRenderTarget(FBT_DEPTH);
-	//RenderOperation(CubeMeshRenderOperation, dynamic_cast<GLSLGpuProgram*>(mProcessEvnMapLUTProgram.Get()));
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
-
 	return true;
 }
 
@@ -1034,6 +902,7 @@ void BWRenderSystem::RenderLightsShadowMaps()
 
 void BWRenderSystem::RenderAmbientOcclusion()
 {
+	if (!IsEnableSSAO) return;
 	RSGraphicPipelineState Pipeline;
 	static std::vector<float> SamplerDir;
 	if (SamplerDir.size() == 0)
@@ -1100,6 +969,7 @@ void BWRenderSystem::RenderInDirectLights()
 	RSGraphicPipelineState PipelineState;
 	PipelineState.GPUProgramUsage = ImageBaseLightingUsage;
 	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
+	//直接光照和间接光照的混合比例问题 随后可以参考Unreal
 	PipelineState.BlendState = TStaticBlendStateHI<true, SBO_ADD, SBF_ONE, SBF_ONE>::GetStateHI();
 	SetGraphicsPipelineState(PipelineState);
 
@@ -1130,6 +1000,7 @@ void BWRenderSystem::RenderInDirectLights()
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = BWRenderSystem::FinalRenderResult;
 	SetRenderTarget(ImageBaseLightingUsage, RenderTarget,GDepthBuffer);
+	//Unreal 中只在SkyLighting中使用了SH来模拟  其他IBL只使用了镜面环境光照 这里我们没有使用SH系数
 	ImageBaseLightingUsage->GetGpuProgramParameter()->SetNamedConstant("SHCoefficient", SHVector.V, 36, 1);
 	
 	BWHighLevelGpuProgramPtr tmp;
@@ -1485,6 +1356,15 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 
 	CopyTextureToTexture(FinalRenderResult, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
 
+
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = DumpTextureForScale;
+	SetRenderTarget(nullptr, RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
+	RenderTarget.RenderTargetTexture = DumpTexture;
+	SetRenderTarget(nullptr, RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
 	//CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
 	//CopyTextureToTexture(DumpTexture, 0, 0, FinalRenderResult, 0, 0);
 	//CopyTextureToTexture(DumpTextureForScale, 0, 0, FinalRenderResult, 0, 0);
@@ -1611,6 +1491,7 @@ void BWRenderSystem::RenderSkyBox()
 
 	SetGraphicsPipelineState(PipeLine);
 	SetShaderTexture(mSkyBoxGpuPrgramUsage->GetHighLevelGpuProgram(), HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
 	SetRenderTarget(mSkyBoxGpuPrgramUsage, RenderTarget, GDepthBuffer);
 	RenderOperation(CubeMeshRenderOperation, tmp);
 

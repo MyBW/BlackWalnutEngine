@@ -90,7 +90,7 @@ void BWFBXImporter::ImportFBX(const std::string& FileName, BWMesh* Mesh)
 				}
 			}
 			BWHardwareVertexBufferPtr vbuf;
-			vbuf = BWHardwareBufferManager::GetInstance()->createVertexBuffer(
+			vbuf = BWHardwareBufferManager::GetInstance()->createVertexBuffer( FileName,
 				VertexByteSize, TriangleNum * TRIANGLE_VERTEX_COUNT ,
 				BWHardwareBuffer::Usage::HBU_DYNAMIC, false
 			);
@@ -101,7 +101,9 @@ void BWFBXImporter::ImportFBX(const std::string& FileName, BWMesh* Mesh)
 
 			BWHardwareIndexBufferPtr ibuf;
 			SubMesh->getIndexData()->mIndexCount = VertexNum;
-			ibuf = BWHardwareBufferManager::GetInstance()->createIndexBuffer(BWHardwareIndexBuffer::IT_32BIT,
+			ibuf = BWHardwareBufferManager::GetInstance()->createIndexBuffer(
+				SubMesh->getParent()->getName(),
+				BWHardwareIndexBuffer::IT_32BIT,
 				SubMesh->getIndexData()->mIndexCount,
 				BWHardwareBuffer::Usage::HBU_DYNAMIC,
 				false);

@@ -8,7 +8,7 @@ class BWHardwareBufferManagerBase;
 class BWHardwareVertexBuffer : public BWHardwareBuffer
 {
 public:
-	BWHardwareVertexBuffer(BWHardwareBufferManagerBase *manager, size_t vertexSize, size_t vertexNum,
+	BWHardwareVertexBuffer(BWHardwareBufferManagerBase *manager,const std::string& Name, size_t vertexSize, size_t vertexNum,
 		BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer);
 	size_t getVertexSize() const;
 	size_t getVertexNum() const;
