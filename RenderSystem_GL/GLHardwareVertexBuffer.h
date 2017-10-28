@@ -5,7 +5,7 @@
 class GLHardwareVertexBuffer : public BWHardwareVertexBuffer
 {
 public:
-	GLHardwareVertexBuffer(BWHardwareBufferManagerBase *manager, size_t vertexSize, size_t vertexNum,
+	GLHardwareVertexBuffer(BWHardwareBufferManagerBase *manager,const std::string &Name, size_t vertexSize, size_t vertexNum,
 		Usage usage, bool isSystemMemory, bool isUseShadowBuffer);
 	GLuint getGLHardwareBufferID() const;
 

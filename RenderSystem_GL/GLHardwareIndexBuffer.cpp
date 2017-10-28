@@ -1,8 +1,8 @@
 #include "GLHardwareIndexBuffer.h"
 #include "GL/include/glew.h"
 #include "GLHardwareBufferManager.h"
-GLHardwareIndexBuffer::GLHardwareIndexBuffer(BWHardwareBufferManagerBase *manager, IndexType indexType, size_t indexNum, Usage usage, bool isUseSystemBuffer, bool isUseShadowBuffer)
-:BWHardwareIndexBuffer(manager, indexType, indexNum, usage, isUseSystemBuffer, isUseShadowBuffer)
+GLHardwareIndexBuffer::GLHardwareIndexBuffer(BWHardwareBufferManagerBase *manager, const std::string& Name, IndexType indexType, size_t indexNum, Usage usage, bool isUseSystemBuffer, bool isUseShadowBuffer)
+:BWHardwareIndexBuffer(manager,Name, indexType, indexNum, usage, isUseSystemBuffer, isUseShadowBuffer)
 {
 	glGenBuffers(1, &mBufferID);
 	if (!mBufferID)
@@ -12,6 +12,12 @@ GLHardwareIndexBuffer::GLHardwareIndexBuffer(BWHardwareBufferManagerBase *manage
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBufferID);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mSizeInBytes, NULL, GLHardwareBufferManager::getGLUsage(usage));
 }
+
+GLHardwareIndexBuffer::~GLHardwareIndexBuffer()
+{
+	glDeleteBuffers(1, &mBufferID);
+}
+
 GLuint GLHardwareIndexBuffer::getGLBufferID() const
 {
 	return mBufferID;

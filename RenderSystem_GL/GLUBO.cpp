@@ -2,7 +2,7 @@
 #include "GLPreDefine.h"
 
 GLUniformBufferObject::GLUniformBufferObject(const UBOInfor & ubo, Usage usage):
-BWHardwareBuffer(usage , false , false)
+BWHardwareBuffer(ubo.mUBOName, usage, false , false)
 {
 	CHECK_GL_ERROR(glGenBuffers(1, &mID));
 	mData.mContentMember = ubo.mContentMember;
@@ -12,6 +12,11 @@ BWHardwareBuffer(usage , false , false)
 	mData.mType = new GLint[ubo.mContentMember.size()];
 	mUBOName = ubo.mUBOName;
 	mBinding = ubo.mBinding;
+}
+
+GLUniformBufferObject::~GLUniformBufferObject()
+{
+	glDeleteBuffers(1, &mID);
 }
 
 void GLUniformBufferObject::initUBO(GLuint program)

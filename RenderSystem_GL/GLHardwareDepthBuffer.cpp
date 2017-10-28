@@ -5,11 +5,9 @@
 #include "../BWEngineCore/BWLog.h"
 #include "GLPreDefine.h"
 GLHardwareDepthBuffer::GLHardwareDepthBuffer(const std::string &name, size_t width, size_t height, size_t depth,
-	BWRenderTarget* renderTarget, BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer)
-	:BWHardwareDepthBuffer(width, height, depth, usage, useSystemMemory, useShadowBuffer)
+	BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer)
+	:BWHardwareDepthBuffer(name ,width, height, depth, usage, useSystemMemory, useShadowBuffer)
 {
-
-	mName = name;
 	glGenTextures(1, &mDepthBufferID);
 	glBindTexture(GL_TEXTURE_2D, mDepthBufferID);
 	if (IsWithStencil)

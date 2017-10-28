@@ -41,17 +41,17 @@ GLenum GLHardwareBufferManager::getGLType(unsigned int type)
 	}
 	return 0;
 }
-BWHardwareIndexBufferPtr GLHardwareBufferManager::createIndexBuffer(BWHardwareIndexBuffer::IndexType type, size_t numIndexs,
+BWHardwareIndexBufferPtr GLHardwareBufferManager::createIndexBuffer(const std::string& Name, BWHardwareIndexBuffer::IndexType type, size_t numIndexs,
 	BWHardwareBuffer::Usage usage, bool useShadowBuffer)
 {
-	BWHardwareIndexBuffer *tmp = new GLHardwareIndexBuffer(this, type, numIndexs, usage, false, useShadowBuffer);
+	BWHardwareIndexBuffer *tmp = new GLHardwareIndexBuffer(this, Name, type, numIndexs, usage, false, useShadowBuffer);
 	mHardwareIndexBufferList.push_back(tmp);
 	return tmp;
 }
-BWHardwareVertexBufferPtr GLHardwareBufferManager::createVertexBuffer(unsigned int vertexSize, unsigned int count,
+BWHardwareVertexBufferPtr GLHardwareBufferManager::createVertexBuffer(const std::string& Name, unsigned int vertexSize, unsigned int count,
 	BWHardwareBuffer::Usage usage, bool useShadowBuffer)
 {
-	BWHardwareVertexBuffer *tmp = new GLHardwareVertexBuffer(this, vertexSize, count, usage, false, useShadowBuffer);
+	BWHardwareVertexBuffer *tmp = new GLHardwareVertexBuffer( this, Name,vertexSize, count, usage, false, useShadowBuffer);
 	mHardwareVertexBufferList.push_back(tmp);
 	return tmp;
 }

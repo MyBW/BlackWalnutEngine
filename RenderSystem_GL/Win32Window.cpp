@@ -168,10 +168,6 @@ bool WIn32Window::InitWindow()
 		Log::GetInstance()->logMessage("WIn32Window::InitWindow()  Cant Get RenderBuffer ");
 		return false;
 	}
-	ABufferTexture = GBuffer->getTextureBuffer("BaseColorMap");
-	BBufferTexture = GBuffer->getTextureBuffer("NormalMap");
-	CBufferTexture = GBuffer->getTextureBuffer("PositionMap");
-
 	//这里生成的点光源的延迟光照
 	mPointLightDefferLightingMaterial = BWMaterialManager::GetInstance()->GetResource("PointLightDefferLightting", "General");
 	if (mPointLightDefferLightingMaterial.IsNull())

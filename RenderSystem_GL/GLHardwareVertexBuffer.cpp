@@ -2,8 +2,8 @@
 #include "GLHardwareBufferManager.h"
 #include "GL/include/glew.h"
 #include "GLPreDefine.h"
-GLHardwareVertexBuffer::GLHardwareVertexBuffer(BWHardwareBufferManagerBase *manager, size_t vertexSize, size_t vertexNum, Usage usage, bool isSystemMemory, bool isUseShadowBuffer)
-:BWHardwareVertexBuffer(manager , vertexSize , vertexNum , usage , isSystemMemory , isUseShadowBuffer)
+GLHardwareVertexBuffer::GLHardwareVertexBuffer(BWHardwareBufferManagerBase *manager, const std::string &Name, size_t vertexSize, size_t vertexNum, Usage usage, bool isSystemMemory, bool isUseShadowBuffer)
+:BWHardwareVertexBuffer(manager , Name, vertexSize , vertexNum , usage , isSystemMemory , isUseShadowBuffer)
 {
 	glGenBuffers(1, &mBufferID);
 	glBindBuffer(GL_ARRAY_BUFFER, mBufferID);

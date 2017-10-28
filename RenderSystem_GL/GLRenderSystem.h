@@ -55,7 +55,7 @@ public:
 	virtual BWRenderTarget* createRenderTarget(const std::string &name);
 	virtual void DestroyRenderTarget(const std::string &name);
 	virtual void bindGpuProgram(BWGpuProgram *GpuProgamr);
-	virtual void bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage);
+	//virtual void bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage);
 	static void GLtranspose(GpuConstantType type, void *data);
 
 	bool InitRendererResource() override;
@@ -137,7 +137,7 @@ protected:
 	
 	void RenderOperation(BWRenderOperation & RenderOperation, GLSLGpuProgram * GPUProgram);
 	void RenderRenderOperationWithPointLight(BWRenderOperation &RenderOperation);
-	void RenderRenderOperationWithSkyBox(BWRenderOperation &RenderOperation);
+	//void RenderRenderOperationWithSkyBox(BWRenderOperation &RenderOperation);
 private:
 	GLenum mTextureType[OGRE_MAX_TEXTURE_LAYERS];
 	size_t mTextureCoordIndex[OGRE_MAX_TEXTURE_LAYERS];

@@ -7,7 +7,7 @@
 class GLHardwareIndexBuffer : public BWHardwareIndexBuffer
 {
 public:
-	GLHardwareIndexBuffer(BWHardwareBufferManagerBase *manager , IndexType indexType ,  size_t indexNum , Usage usage , bool isUseSystemBuffer , bool isUseShadowBuffer);
+	GLHardwareIndexBuffer(BWHardwareBufferManagerBase *manager , const std::string& Name, IndexType indexType ,  size_t indexNum , Usage usage , bool isUseSystemBuffer , bool isUseShadowBuffer);
 	~GLHardwareIndexBuffer();
 	GLuint getGLBufferID() const;
 protected:

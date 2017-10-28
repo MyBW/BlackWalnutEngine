@@ -1555,25 +1555,25 @@ void GLRenderSystem::bindGpuProgram(BWGpuProgram *GpuProgamr)
 	assert(0);
 	// 绑定操作
 }
-void GLRenderSystem::bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage)
-{
-	if (gpuPrgramUsage)
-	{
-		if (mGPUProgram.Get())
-		{
-			unbindGpuProgram(mGPUProgram->GetType());
-		}
-		mGPUProgram = gpuPrgramUsage->GetGpuProgram();
-		GLSLGpuProgram* glslProgram = dynamic_cast<GLSLGpuProgram*>(mGPUProgram.Get());
-		glslProgram->bind();
-		// 设置各种renderbuffer  这里是设置延迟渲染的Buffer  如果想改成非延时渲染 这里使用
-		//GLRenderTarget* renderTarget = dynamic_cast<GLRenderTarget*>(mActiveRenderTarget);
-		GLRenderTarget* renderTarget = dynamic_cast<GLRenderTarget*>(GRenderTarget);
-		NameLocation fragmentOutNameLocation = glslProgram->getFragmentOutNameLocation();
-		renderTarget->setDrawBuffers(fragmentOutNameLocation);
-		glslProgram->SetGPUProgramParameters(gpuPrgramUsage->GetGpuProgramParameter());
-	}
-}
+//void GLRenderSystem::bindGPUProgramUsage(BWGpuProgramUsage*gpuPrgramUsage)
+//{
+//	if (gpuPrgramUsage)
+//	{
+//		if (mGPUProgram.Get())
+//		{
+//			unbindGpuProgram(mGPUProgram->GetType());
+//		}
+//		mGPUProgram = gpuPrgramUsage->GetGpuProgram();
+//		GLSLGpuProgram* glslProgram = dynamic_cast<GLSLGpuProgram*>(mGPUProgram.Get());
+//		glslProgram->bind();
+//		// 设置各种renderbuffer  这里是设置延迟渲染的Buffer  如果想改成非延时渲染 这里使用
+//		//GLRenderTarget* renderTarget = dynamic_cast<GLRenderTarget*>(mActiveRenderTarget);
+//		GLRenderTarget* renderTarget = dynamic_cast<GLRenderTarget*>(GRenderTarget);
+//		NameLocation fragmentOutNameLocation = glslProgram->getFragmentOutNameLocation();
+//		renderTarget->setDrawBuffers(fragmentOutNameLocation);
+//		glslProgram->SetGPUProgramParameters(gpuPrgramUsage->GetGpuProgramParameter());
+//	}
+//}
 void GLRenderSystem::GLtranspose(GpuConstantType type, void *data) 
 {
 	switch (type)
@@ -1609,8 +1609,10 @@ void GLRenderSystem::GLtranspose(GpuConstantType type, void *data)
 
 bool GLRenderSystem::InitRendererResource()
 {
+	
 	if (BWRenderSystem::InitRendererResource())
 	{
+		return true;
 		BWPass* pass = mDirectionLightM->getTechnique(0)->GetPass(0);
 		DirectLightGLSLPrgramUsage = pass->getGPUProgramUsage();
 		DirectLightGLSLProgram = dynamic_cast<GLSLGpuProgram*>(DirectLightGLSLPrgramUsage->GetGpuProgram().Get());
@@ -2752,42 +2754,42 @@ void GLRenderSystem::RenderRenderOperationWithPointLight(BWRenderOperation &Rend
 	}
 	glDrawElements(primType, RenderOperation.indexData->mIndexCount, indexType, NULL);
 }
-void GLRenderSystem::RenderRenderOperationWithSkyBox(BWRenderOperation &RenderOperation)
-{
-	if (!RenderOperation.useIndexes)
-	{
-		return;
-	}
-	class GLSLGpuProgram* mSkyBoxGLSLProgram = dynamic_cast<GLSLGpuProgram*>(mSkyBoxGpuPrgramUsage->GetGpuProgram().Get());
-	mSkyBoxGLSLProgram->bindingBuffer(RenderOperation.indexData, RenderOperation.vertexData);
-
-	// 这里设置各种状态 只用进行深度渲染 其他的都不用
-	GLint primType;
-	bool useAdjacenty = false;
-	GLenum indexType = (RenderOperation.indexData->mIndexBuffer->getIndexType() == BWHardwareIndexBuffer::IT_16BIT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
-	switch (RenderOperation.operationType)
-	{
-	case  BWRenderOperation::OT_POINT_LIST:
-		primType = GL_POINT;
-		break;
-	case BWRenderOperation::OT_LINE_LIST:
-		primType = useAdjacenty ? GL_LINES_ADJACENCY : GL_LINES;
-		break;
-	case  BWRenderOperation::OT_LINE_STRIP:
-		primType = useAdjacenty ? GL_LINE_STRIP_ADJACENCY : GL_LINE_STRIP;
-		break;
-	case  BWRenderOperation::OT_TRIANGLE_LIST:
-		primType = useAdjacenty ? GL_TRIANGLES_ADJACENCY : GL_TRIANGLES;
-		break;
-	case  BWRenderOperation::OT_TRIANGLE_STRIP:
-		primType = useAdjacenty ? GL_TRIANGLE_STRIP_ADJACENCY : GL_TRIANGLE_STRIP;
-	case BWRenderOperation::OT_TRIGANLE_FAN:
-		primType = GL_TRIANGLE_FAN;
-	default:
-		break;
-	}
-	glDrawElements(primType, RenderOperation.indexData->mIndexCount, indexType, NULL);
-}
+//void GLRenderSystem::RenderRenderOperationWithSkyBox(BWRenderOperation &RenderOperation)
+//{
+//	if (!RenderOperation.useIndexes)
+//	{
+//		return;
+//	}
+//	class GLSLGpuProgram* mSkyBoxProgram = dynamic_cast<GLSLGpuProgram*>(mSkyBoxGpuPrgramUsage->GetGpuProgram().Get());
+//	mSkyBoxProgram->bindingBuffer(RenderOperation.indexData, RenderOperation.vertexData);
+//
+//	// 这里设置各种状态 只用进行深度渲染 其他的都不用
+//	GLint primType;
+//	bool useAdjacenty = false;
+//	GLenum indexType = (RenderOperation.indexData->mIndexBuffer->getIndexType() == BWHardwareIndexBuffer::IT_16BIT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+//	switch (RenderOperation.operationType)
+//	{
+//	case  BWRenderOperation::OT_POINT_LIST:
+//		primType = GL_POINT;
+//		break;
+//	case BWRenderOperation::OT_LINE_LIST:
+//		primType = useAdjacenty ? GL_LINES_ADJACENCY : GL_LINES;
+//		break;
+//	case  BWRenderOperation::OT_LINE_STRIP:
+//		primType = useAdjacenty ? GL_LINE_STRIP_ADJACENCY : GL_LINE_STRIP;
+//		break;
+//	case  BWRenderOperation::OT_TRIANGLE_LIST:
+//		primType = useAdjacenty ? GL_TRIANGLES_ADJACENCY : GL_TRIANGLES;
+//		break;
+//	case  BWRenderOperation::OT_TRIANGLE_STRIP:
+//		primType = useAdjacenty ? GL_TRIANGLE_STRIP_ADJACENCY : GL_TRIANGLE_STRIP;
+//	case BWRenderOperation::OT_TRIGANLE_FAN:
+//		primType = GL_TRIANGLE_FAN;
+//	default:
+//		break;
+//	}
+//	glDrawElements(primType, RenderOperation.indexData->mIndexCount, indexType, NULL);
+//}
 void GLRenderSystem::FinishLightsShadowMaps()
 {
 

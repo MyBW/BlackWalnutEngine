@@ -6,7 +6,7 @@
 #include "GLPreDefine.h"
 GLHardwarePixelBuffer::GLHardwarePixelBuffer(const std::string &name ,unsigned int width , unsigned int height, PixelFormat format ,
 	BWRenderTarget *creator)
-	:BWHardwarePixelBuffer(width, height, 0, format, HBU_STATIC , false , false)
+	:BWHardwarePixelBuffer(name, width, height, 0, format, HBU_STATIC , false , false)
 {
 	glGenRenderbuffers(1, &mRenderbufferID);
 	glBindRenderbuffer(GL_RENDERBUFFER, mRenderbufferID);
@@ -23,8 +23,6 @@ GLHardwarePixelBuffer::GLHardwarePixelBuffer(const std::string &name ,unsigned i
 	//}
 	mInternalFormat = GL_RGBA;
 	CHECK_GL_ERROR(glRenderbufferStorage(GL_RENDERBUFFER,mInternalFormat, width, height));
-
-	mName = name;
 	//mBufferType = type;
 	mWidth = width;
 	mHeight = height;

@@ -120,7 +120,7 @@ BWHardwareStencilBufferPtr GLRenderTarget::_createHardwareStencilBufferImp(const
 }
 BWHardwareDepthBufferPtr GLRenderTarget::_createHardwareDepthBufferImp(const std::string &name, BWRenderTarget *creator)
 {
-	return new GLHardwareDepthBuffer(name, creator->getWidth(), creator->getHeight(),0,  creator , BWHardwareBuffer::Usage::HBU_DYNAMIC , false , false);
+	return new GLHardwareDepthBuffer(name, creator->getWidth(), creator->getHeight(),0,BWHardwareBuffer::Usage::HBU_DYNAMIC , false , false);
 }
 
 bool GLRenderTarget::_removeHardwareDepthBufferImp(BWHardwareDepthBufferPtr depthBuffer)

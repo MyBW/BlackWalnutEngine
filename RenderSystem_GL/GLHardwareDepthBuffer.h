@@ -6,7 +6,7 @@ class GLHardwareDepthBuffer :public BWHardwareDepthBuffer
 {
 public:
 	GLHardwareDepthBuffer(const std::string &name, size_t width, size_t height, size_t depth,
-		BWRenderTarget* renderTarget, BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer);
+		BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer);
 	~GLHardwareDepthBuffer();
 
 	virtual bool attachToRenderTarget(BWRenderTarget* renderTarget) override;
