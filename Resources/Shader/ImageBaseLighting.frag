@@ -210,8 +210,7 @@ void main()
 
    vec3 R = reflect(-ViewDirection , Normal) ;
    vec2 Brdf = texture(IBL_LUT, vec2( 1 - NoV , Roughness)).xy ; // LUT 有问题
-   //vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R , Roughness * 6.0 /* Mip Num*/).rgb ;
-   vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R ,5.0).rgb ;
+   vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R , Roughness * 6.0 /* Mip Num*/).rgb ;
    vec3 InDirectLightSpecularPart2 = InF * Brdf.x + Brdf.y ;
    vec3 InDirectLightSpecular = InDirectLightSpecularPart1 * InDirectLightSpecularPart2 ;
    vec3 FinalColor = InDirectLightDiffuseColor + InDirectLightSpecular ;
@@ -221,6 +220,5 @@ void main()
    
    //FinalColor = FinalColor;
    gl_FragColor.xyz = FinalColor;
-   gl_FragColor.xyz = InDirectLightSpecularPart1;
    gl_FragColor.a = 0.5;
 }
