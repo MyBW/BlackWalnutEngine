@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include "..\RenderSystem_GL\GLHardwareDepthBuffer.h"
 #include "BWStringConverter.h"
+#include "..\RenderSystem_GL\GLTexture.h"
+#include "..\RenderSystem_GL\GLPreDefine.h"
 BWRenderSystem* BWRenderSystem::instance = NULL;
 static const BWTexturePtr sNullTexPtr;
 BWRenderSystem::BWRenderSystem():mDisableTexUnitFrom(0)
@@ -159,7 +161,7 @@ void BWRenderSystem::_endFrame()
 
     RenderAmbientOcclusion();
 	//光照相关
-	//RenderLights();
+	RenderLights();
 
 	RenderInDirectLights();
 
@@ -746,11 +748,23 @@ bool BWRenderSystem::InitRendererResource()
 	}
 
 	//环境贴图对高光处理
+
+
+	///  test code 
+	GLint CurrentFrameBuffer;
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &CurrentFrameBuffer);
+	if (CurrentFrameBuffer)
+	{
+		GLuint OldFrameBuffer = GLuint(CurrentFrameBuffer);
+		glDeleteFramebuffers(1, &OldFrameBuffer);
+	}
+	///  test code end
+
 	LoadGUPUsageAndGPUProgram(std::string("ProcessEnvMapForSpecular"), mProcessEvnMapForSpecularGpuPrgramUsage, mProcessEvnMapForSpecularProgram);
 
 	const int RoughnessLevel = 7;
-	int IBL_Width = 512;
-	int IBL_Height = 512;
+	int IBL_Width = 1024;
+	int IBL_Height = 1024;
 	IBL_Specular_Cube_Map = BWTextureManager::GetInstance()->Create("IBL_Specular_Cube_Map", "General");
 	IBL_Specular_Cube_Map->setTextureType(TEX_TYPE_CUBE_MAP);
 	IBL_Specular_Cube_Map->setFormat(PF_FLOAT32_RGB);
@@ -773,13 +787,14 @@ bool BWRenderSystem::InitRendererResource()
 		SetViewport(0, 0, MipWidth, MipHeight);
 		RenderTarget.MipmapLevel = mip;
 		float roughness = mip / float(RoughnessLevel - 1);
+		TmpDepthBuffer1->SetHardwareBufferSize(MipWidth, MipHeight);
 		for (int i = 0; i < 6; i++)
 		{
 			RenderTarget.Index = i;
 			SetRenderTarget(mProcessEvnMapForSpecularGpuPrgramUsage, RenderTarget, TmpDepthBuffer1);
 			mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
 			mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("roughness", &roughness, 1, 1);
-			ClearRenderTarget(FBT_DEPTH);
+			ClearRenderTarget(FBT_DEPTH| FBT_COLOUR);
 			BWHighLevelGpuProgramPtr tmp;
 			RenderOperation(CubeMeshRenderOperation, tmp);
 		}
@@ -789,6 +804,7 @@ bool BWRenderSystem::InitRendererResource()
 	LoadGUPUsageAndGPUProgram(std::string("PreprocessEvnMapLUT"), mProcessEvnMapLUTGpuPrgramUsage, mProcessEvnMapLUTProgram);
 	Create2DRenderTexture(std::string("IBL_LUT"), IBL_LUT, 512, 512, PF_FLOAT32_RGB);
 	SetViewport(0, 0, 512, 512);
+	TmpDepthBuffer1->SetHardwareBufferSize(512, 512);
 	PipeLineState.GPUProgramUsage = mProcessEvnMapLUTGpuPrgramUsage;
 	SetGraphicsPipelineState(PipeLineState);
 	RenderTarget.Index = 0;
@@ -992,7 +1008,15 @@ void BWRenderSystem::RenderInDirectLights()
 	SetShaderTexture(ImageBaseLighting, ABufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, CBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(ImageBaseLighting, IBL_Specular_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	//SetShaderTexture(ImageBaseLighting, IBL_Specular_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
+	{//带有Mipmap的cubemap 只能使用以下方式来绑定  随后查查原因
+		GLTexture* RenderTexuture = dynamic_cast<GLTexture*>(IBL_Specular_Cube_Map.Get());
+		CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE3));
+		CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, RenderTexuture->GetHIID()));
+	}
+	
+
 	SetShaderTexture(ImageBaseLighting, IBL_LUT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
 	RSRenderTarget RenderTarget;
