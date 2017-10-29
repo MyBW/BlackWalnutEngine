@@ -334,7 +334,7 @@ bool GLSLGpuProgram::SetParameter(const std::string &name, void *value, GpuConst
 		{
 			finaldata[i] = tmpdata[i];
 		}
-		GLRenderSystem::GLtranspose(ConstantType, finaldata);
+		GLRenderSystem::GLtranspose(ConstantType, finaldata); //这里不使用glUniform函数传入的时候来转化矩阵是因为使用UBO的时候也需要转换
 		value = (void*)(finaldata);
 	}
 	UBOMap::iterator itor = mUBOMap.begin();
