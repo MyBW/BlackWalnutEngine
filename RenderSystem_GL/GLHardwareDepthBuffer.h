@@ -19,6 +19,7 @@ protected:
 	virtual void* lockImp(size_t offset, size_t length, BWHardwareBuffer::LockOptions option) override;
 	virtual void  unLockImp() override;
 	void SetBufferSizeImp(int Width, int Heigh) override;
+	void SetBufferMipmapImp(int InMipmapLevelNum) override;
 private:
 	GLuint mDepthBufferID;
 	GLenum mInternalFormat;

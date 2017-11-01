@@ -1723,6 +1723,53 @@ void GLRenderSystem::SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRen
 }
 
 
+void GLRenderSystem::SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget)
+{
+	if (InRenderTarget.RenderTargetTexture.Get() &&
+		InRenderTarget.DepthBuffer.Get())
+	{
+		GLint CurrentFrameBuffer;
+		GLTexture* RenderTexuture = dynamic_cast<GLTexture*>(InRenderTarget.RenderTargetTexture.Get());
+		glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &CurrentFrameBuffer);
+		if (CurrentFrameBuffer)
+		{
+			GLuint OldFrameBuffer = GLuint(CurrentFrameBuffer);
+			glDeleteFramebuffers(1, &OldFrameBuffer);
+		}
+
+		GLuint NewFrameBuffer = 0;
+		static GLuint tmpFrameBuffferID = 0; //目前还没有FrameBuffer的管理机制 暂时这里处理
+		glDeleteFramebuffers(1, &tmpFrameBuffferID);
+		glGenFramebuffers(1, &NewFrameBuffer);
+		tmpFrameBuffferID = NewFrameBuffer;
+
+		CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, NewFrameBuffer));
+		GLint TextureID = RenderTexuture->GetHIID();
+		TextureType RenderTextureType = RenderTexuture->GetTextureType();
+		int Index = InRenderTarget.Index;
+		int MipLevel = InRenderTarget.MipmapLevel;
+		if (RenderTextureType == TEX_TYPE_2D)
+		{
+			CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TextureID, MipLevel));  //暂时使用2D纹理
+		}
+		if (RenderTextureType == TEX_TYPE_CUBE_MAP)
+		{
+			CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Index, TextureID, MipLevel));
+		}
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+		GLHardwareDepthBuffer* DepthBuffer = dynamic_cast<GLHardwareDepthBuffer*>(InRenderTarget.DepthBuffer.Get());
+		GLint DepthID = DepthBuffer->GetHIID();
+		GLenum DepthAttachment = DepthBuffer->GetAttachment();;
+		glFramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachment, GL_TEXTURE_2D, DepthID, InRenderTarget.DepthMipmapLevel);
+		GLenum statues = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (statues != GL_FRAMEBUFFER_COMPLETE)//某个绑定到attachment上的元素无效
+		{
+			Log::GetInstance()->logMessage("GLTexture::attachToRenderTarget() : Error");
+		}
+	}
+}
+
 void GLRenderSystem::SetRenderTargets(RSRenderTargets& InRenderTargets)
 {
 	GLint CurrentFrameBuffer;
@@ -1922,9 +1969,6 @@ void GLRenderSystem::SetGraphicsPipelineStateImmediately(RSGraphicPipelineState&
 
 void GLRenderSystem::SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler)
 {
-	// Warning!!! glActiveTexture的使用有一定的要求 
-	// Warning!!! 所有的绑定的glBindTexture都会影响glActiveTexture的使用
-	// Warning!!! 也就说 即使你在glbindFrameBuffer下使用glBindTexture 也会将原来的glActiveTexture中bind的Texture替换掉
 	GLTexture* TextureHI = dynamic_cast<GLTexture*>(Texture.Get());
 	if (TextureHI)
 	{
@@ -1947,9 +1991,8 @@ void GLRenderSystem::SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTex
 			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_WRAP_R, GLSampler->RAdd_Mode));
 			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_WRAP_S, GLSampler->SAdd_Mode));
 			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_WRAP_T, GLSampler->TAdd_Mode));
-			//CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MIN_FILTER, GLSampler->Fileter)); 这种使用方式有问题
-			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MIN_FILTER, GLSampler->MinFilter)); 
+			CHECK_GL_ERROR(glTexParameteri(Type, GL_TEXTURE_MAG_FILTER, GLSampler->MagFilter));
 		}
 	}
 	
@@ -2132,10 +2175,12 @@ DepthAndStencilStateHIRef GLRenderSystem::CreateDepthAndStencilHI(DepthAndStenci
 SamplerStateHIRef GLRenderSystem::CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer)
 {
 	GLStaticSamplerState* RenderState = new GLStaticSamplerState();
-	RenderState->Fileter = Helper::GetGLFilterOptions(Initializer.Filter);
+	RenderState->MinFilter = Helper::GetGLFilterOptions(Initializer.MinFilter , Initializer.MipFilter);
+	RenderState->MagFilter = Helper::GetGLFilterOptions(Initializer.MagFilter);
 	RenderState->RAdd_Mode = Helper::GetGLTextureSwap(Initializer.RAdd_Mode);
 	RenderState->SAdd_Mode = Helper::GetGLTextureSwap(Initializer.SAdd_Mode);
 	RenderState->TAdd_Mode = Helper::GetGLTextureSwap(Initializer.TAdd_Mode);
+	RenderState->MipBias = Initializer.MipBias;
 	return RenderState;
 }
 

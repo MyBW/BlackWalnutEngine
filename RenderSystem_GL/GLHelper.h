@@ -32,6 +32,7 @@ namespace Helper
 		case CULL_ANTICLOCKWISE: return GL_BACK;
 		}
 		Check(0);
+		return 0;
 	}
 	GLenum GetGLTextureType(TextureType _TextureType)
 	{
@@ -61,37 +62,35 @@ namespace Helper
 		}
 		Check(0);
 	}
-	GLenum GetGLFilterOptions(FilterOptions Filter)
+	GLenum GetGLFilterOptions(FilterOptions Filter , FilterOptions MipFilter = FO_NONE)
 	{
+		GLenum FinalOperation = 0;
 		switch (Filter)
 		{
+		case FO_BILINEAR:
+		case FO_TRILINEAR:
 		case FO_ANISOTROPIC:
 		case FO_LINEAR:
-			switch (Filter)
+			switch (MipFilter)
 			{
+			case FO_NONE: FinalOperation = GL_LINEAR; return FinalOperation;
+			case FO_BILINEAR:
+			case FO_TRILINEAR:
 			case FO_ANISOTROPIC:
-			case FO_LINEAR:
-				return GL_LINEAR_MIPMAP_LINEAR;
-			case FO_NONE:
-				return GL_LINEAR;
-			case FO_POINT:
-				return GL_LINEAR_MIPMAP_NEAREST;
-			default:
-				break;
+			case FO_LINEAR: FinalOperation = GL_LINEAR_MIPMAP_LINEAR; return FinalOperation;
+			case FO_POINT: FinalOperation = GL_LINEAR_MIPMAP_NEAREST; return FinalOperation;
 			}
 			break;
-
 		case FO_NONE:
 		case FO_POINT:
-			switch (Filter)
+			switch (MipFilter)
 			{
+			case FO_NONE: FinalOperation = GL_NEAREST;  return FinalOperation;
+			case FO_BILINEAR:
+			case FO_TRILINEAR:
 			case FO_ANISOTROPIC:
-			case FO_LINEAR:
-				return GL_LINEAR_MIPMAP_LINEAR;
-			case FO_NONE:
-				return GL_NEAREST;
-			case FO_POINT:
-				return GL_LINEAR_MIPMAP_NEAREST;
+			case FO_LINEAR: FinalOperation = GL_NEAREST_MIPMAP_LINEAR; return FinalOperation;
+			case FO_POINT: FinalOperation = GL_NEAREST_MIPMAP_NEAREST; return FinalOperation;
 			}
 			break;
 		}

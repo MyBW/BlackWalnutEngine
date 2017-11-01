@@ -65,6 +65,7 @@ public:
 	void SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight) override;
 	void SetScissor(bool IsEnable, int ScissorX  = 0 , int ScissorY = 0, int ScissorWidth  = 0 , int ScissorHigh = 0 ) override;
 	void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget, BWHardwareDepthBufferPtr DepthBuffer) override;
+	void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget) override;
 	void SetRenderTargets(RSRenderTargets& InRenderTargets) override;
 	void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
 	void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler) override;

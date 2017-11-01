@@ -21,7 +21,8 @@ public:
 class GLStaticSamplerState : public SamplerStateHI
 {
 public:
-	GLenum Fileter;
+	GLenum MinFilter;
+	GLenum MagFilter;
 	GLenum RAdd_Mode;
 	GLenum SAdd_Mode;
 	GLenum TAdd_Mode;

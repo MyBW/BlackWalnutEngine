@@ -71,6 +71,7 @@ bool GLSLShader::compileShader()
 
 		return mIsCompileFinish;
 	}
+	return true;
 }
 GpuNamedConstantsPtr GLSLShader::getNamedConstant() const
 {
@@ -265,7 +266,8 @@ void GLSLShader::createInConstant(std::string &inConstant)
 void GLSLShader::createNamedConstant()
 {
 	// 这里并没有考虑layout关键字
-
+	
+	bool IsTargetFile = (mFileName == std::string("PreprocessEvnMap.vert"));
 	if (compileShader() && mIsCreateNamedConstant == false)
 	{
 		namedConstantes->clearData();

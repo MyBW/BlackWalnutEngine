@@ -4,6 +4,7 @@
 #include "GLRenderTarget.h"
 #include "../BWEngineCore/BWLog.h"
 #include "GLPreDefine.h"
+#include "GLPixelUtil.h"
 GLHardwareDepthBuffer::GLHardwareDepthBuffer(const std::string &name, size_t width, size_t height, size_t depth,
 	BWHardwareBuffer::Usage usage, bool useSystemMemory, bool useShadowBuffer)
 	:BWHardwareDepthBuffer(name ,width, height, depth, usage, useSystemMemory, useShadowBuffer)
@@ -126,4 +127,33 @@ void GLHardwareDepthBuffer::SetBufferSizeImp(int Width, int Heigh)
 	{
 		CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL));
 	}
+}
+
+void GLHardwareDepthBuffer::SetBufferMipmapImp(int InMipmapLevelNum)
+{
+	size_t maxMipmaps = GLPixelUtil::getMaxMipmaps(mWidth, mHeight, 1);
+	if (MipmapLevelNum > maxMipmaps)
+	{
+		MipmapLevelNum = maxMipmaps;
+	}
+	if (MipmapLevelNum == 0)
+	{
+		MipmapLevelNum = 1;
+	}
+	GLint CurrentBindTextureID;
+	GLenum CurrentTextureType =  TEX_TYPE_2D ;
+	glGetIntegerv(CurrentTextureType, &CurrentBindTextureID);
+	glBindTexture(GL_TEXTURE_2D, mDepthBufferID);
+	CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0));
+	CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, MipmapLevelNum - 1));//从0开始计数//开启这一项后会导致绑定到framebuffer上出现问题
+	for (int mip = 0; mip < MipmapLevelNum; mip++)
+	{
+		int MipWidth = mWidth * std::pow(0.5, mip);
+		int MipHeight = mHeight  * std::pow(0.5, mip);
+		CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, mip, mInternalFormat, MipWidth, MipHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL));
+	}
+	
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, CurrentBindTextureID);
+	return;
 }
