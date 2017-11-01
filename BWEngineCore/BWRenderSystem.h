@@ -24,6 +24,9 @@ struct RSRenderTarget
 	int MipmapLevel;
 	BWTexturePtr RenderTargetTexture;
 	BWTexturePtr ShaderableTexture;
+
+	int DepthMipmapLevel;
+	BWHardwareDepthBufferPtr DepthBuffer;
 };
 
 struct RSRenderTargets
@@ -103,6 +106,7 @@ public:
 	virtual void SetViewport(int ViewportX , int ViewportY , int ViewportWidth, int ViewportHight);
 	virtual void SetScissor(bool IsEnable, int ScissorX = 0, int ScissorY = 0, int ScissorWidth = 0, int ScissorHigh = 0);
 	virtual void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget, BWHardwareDepthBufferPtr DepthBuffer) { };
+	virtual void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget){ }
 	virtual void SetRenderTargets(RSRenderTargets& InRenderTargets) {};
 
 	virtual void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState);

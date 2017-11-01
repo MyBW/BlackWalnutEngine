@@ -175,9 +175,9 @@ void BWRenderSystem::_endFrame()
 	//RenderMotionBlur();
 
 
-	//RenderTemporalAA();
+	RenderTemporalAA();
 	
-	//RenderScreenSpaceReflection();
+	RenderScreenSpaceReflection();
 
 	RenderToneMap();
 	//没有tonemap 就要有下面几句
@@ -408,7 +408,7 @@ bool BWRenderSystem::InitRendererResource()
 
 	auto Create2DRenderTexture = [](std::string &TextureName , BWTexturePtr& Texture , int Width, int Hieght , PixelFormat Format)
 	{
-		Texture = BWTextureManager::GetInstance()->Create(TextureName, DEFAULT_RESOURCE_GROUP);
+		Texture = BWTextureManager::GetInstance()->Create(TextureName, "General");
 		Texture->setHeight(Hieght);
 		Texture->setWidth(Width);
 		Texture->setTextureType(TEX_TYPE_2D);
@@ -443,7 +443,7 @@ bool BWRenderSystem::InitRendererResource()
 	//	Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : cant get the mDirectionLightM material");
 	//	return false;
 	//}
-	AOSamplerTexture = BWTextureManager::GetInstance()->Create("AOSamplerTexture", DEFAULT_RESOURCE_GROUP);
+	AOSamplerTexture = BWTextureManager::GetInstance()->Create("AOSamplerTexture", "General");
 	AOSamplerTexture->setWidth(4);
 	AOSamplerTexture->setHeight(4);
 	AOSamplerTexture->setTextureType(TEX_TYPE_2D);
@@ -729,6 +729,10 @@ bool BWRenderSystem::InitRendererResource()
 	BWHardwareDepthBufferPtr TmpDepthBuffer1 =
 		new GLHardwareDepthBuffer("TempRenderTarget1", IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight(), 0,BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
 	TmpDepthBuffer1->SetIsWithStencil(false);
+
+
+
+
 	SetShaderTexture(mProcessEvnMapProgram, HDRCubeMap, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
 	SetViewport(0, 0, IBL_Diffuse_Cube_Map->getWidth(), IBL_Diffuse_Cube_Map->getHeight());
@@ -750,15 +754,6 @@ bool BWRenderSystem::InitRendererResource()
 	//环境贴图对高光处理
 
 
-	///  test code 
-	GLint CurrentFrameBuffer;
-	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &CurrentFrameBuffer);
-	if (CurrentFrameBuffer)
-	{
-		GLuint OldFrameBuffer = GLuint(CurrentFrameBuffer);
-		glDeleteFramebuffers(1, &OldFrameBuffer);
-	}
-	///  test code end
 
 	LoadGUPUsageAndGPUProgram(std::string("ProcessEnvMapForSpecular"), mProcessEvnMapForSpecularGpuPrgramUsage, mProcessEvnMapForSpecularProgram);
 
@@ -794,7 +789,7 @@ bool BWRenderSystem::InitRendererResource()
 			SetRenderTarget(mProcessEvnMapForSpecularGpuPrgramUsage, RenderTarget, TmpDepthBuffer1);
 			mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("ViewMatrix", ViewMatrixs[i]);
 			mProcessEvnMapForSpecularGpuPrgramUsage->GetGpuProgramParameter()->SetNamedConstant("roughness", &roughness, 1, 1);
-			ClearRenderTarget(FBT_DEPTH| FBT_COLOUR);
+			ClearRenderTarget(FBT_DEPTH | FBT_COLOUR);
 			BWHighLevelGpuProgramPtr tmp;
 			RenderOperation(CubeMeshRenderOperation, tmp);
 		}
@@ -953,7 +948,7 @@ void BWRenderSystem::RenderAmbientOcclusion()
 	BBufferTexture->SetIndex(0);
 	AOSamplerTexture->SetIndex(1);
 	SetShaderTexture(AmbientOcclusionGPUProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(AmbientOcclusionGPUProgram, AOSamplerTexture, TStaticSamplerState<FO_LINEAR,SAM_REPEAT , SAM_REPEAT , SAM_REPEAT>::GetStateHI());
+	SetShaderTexture(AmbientOcclusionGPUProgram, AOSamplerTexture, TStaticSamplerState<FO_LINEAR, FO_POINT, FO_NONE, SAM_REPEAT , SAM_REPEAT , SAM_REPEAT>::GetStateHI());
 
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
@@ -1008,15 +1003,7 @@ void BWRenderSystem::RenderInDirectLights()
 	SetShaderTexture(ImageBaseLighting, ABufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, CBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	//SetShaderTexture(ImageBaseLighting, IBL_Specular_Cube_Map, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-
-	{//带有Mipmap的cubemap 只能使用以下方式来绑定  随后查查原因
-		GLTexture* RenderTexuture = dynamic_cast<GLTexture*>(IBL_Specular_Cube_Map.Get());
-		CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE3));
-		CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_CUBE_MAP, RenderTexuture->GetHIID()));
-	}
-	
-
+	SetShaderTexture(ImageBaseLighting, IBL_Specular_Cube_Map, TStaticSamplerState<FO_POINT, FO_POINT, FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ImageBaseLighting, IBL_LUT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
 	RSRenderTarget RenderTarget;
@@ -1038,7 +1025,6 @@ void BWRenderSystem::RenderInDirectLights()
 
 void BWRenderSystem::RenderToneMap()
 {
-	
 	int Width; 
 	int Hight;
 	RSGraphicPipelineState PipelineState;

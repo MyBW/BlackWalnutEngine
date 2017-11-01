@@ -82,24 +82,44 @@ using SamplerStateHIP = SamplerStateHI*;
 using SamplerStateHIRef = SmartPointer<SamplerStateHI>;
 struct StaticSamplerStateInitializer 
 {
-	FilterOptions Filter;
+	FilterOptions MinFilter;
+	FilterOptions MagFilter;
+	FilterOptions MipFilter;
 	SamplerAddressMode RAdd_Mode;
 	SamplerAddressMode SAdd_Mode;
 	SamplerAddressMode TAdd_Mode;
 
 	int MipBias;
 };
-template<FilterOptions Filter = FO_POINT,
+template<
+	    FilterOptions MinFilter = FO_POINT,
+	    FilterOptions MagFilter = FO_POINT,
+	    FilterOptions MipFilter = FO_NONE,
 		SamplerAddressMode RAdd_Mode = SAM_CLAMP,
 		SamplerAddressMode SAdd_Mode = SAM_CLAMP,
 	    SamplerAddressMode TAdd_Mode = SAM_CLAMP,
 	     int MipBias = 0
 		>
-class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<Filter, RAdd_Mode, SAdd_Mode, TAdd_Mode>, SamplerStateHIRef, SamplerStateHIP>
+class TStaticSamplerState : public TStaticStateHI<TStaticSamplerState<MinFilter,MagFilter, MipFilter, RAdd_Mode, SAdd_Mode, TAdd_Mode>, SamplerStateHIRef, SamplerStateHIP>
 {
 public:
 	static SamplerStateHIRef CreateHI();
 };
+
+template<
+	FilterOptions MinFilter /*= FO_POINT*/,
+	FilterOptions MagFilter /*= FO_POINT*/,
+	FilterOptions MipFilter /*= FO_NONE*/,
+	SamplerAddressMode RAdd_Mode /*= SAM_CLAMP*/,
+	SamplerAddressMode SAdd_Mode /*= SAM_CLAMP*/,
+	SamplerAddressMode TAdd_Mode /*= SAM_CLAMP*/,
+	int MipBias /*= 0
+   */>
+	SamplerStateHIRef TStaticSamplerState<MinFilter, MagFilter, MipFilter, RAdd_Mode, SAdd_Mode, TAdd_Mode, MipBias>::CreateHI()
+{
+	StaticSamplerStateInitializer Initializer = { MinFilter,MagFilter, MipFilter, RAdd_Mode, SAdd_Mode, TAdd_Mode, MipBias };
+	return BWRoot::GetInstance()->mActiveRenderSystem->CreateSamplerStateHI(Initializer);
+}
 
 class BlendStateHI : public StateHI
 {

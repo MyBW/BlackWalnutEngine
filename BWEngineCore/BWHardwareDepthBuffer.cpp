@@ -19,3 +19,9 @@ void BWHardwareDepthBuffer::SetHardwareBufferSize(int Width, int Height)
 	SetBufferSizeImp(mWidth, mHeight);
 }
 
+void BWHardwareDepthBuffer::SetHardwareBufferMipmap(int InMipmapLevelNum)
+{
+	MipmapLevelNum = InMipmapLevelNum;
+	SetBufferMipmapImp(InMipmapLevelNum);
+}
+

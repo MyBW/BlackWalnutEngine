@@ -17,17 +17,6 @@ template<bool IsEnableDepthTest /*= true*/,
 }
 
 
-template<FilterOptions Filter /*= FO_POINT*/,
-	SamplerAddressMode RAdd_Mode /*= SAM_CLAMP*/,
-	SamplerAddressMode SAdd_Mode /*= SAM_CLAMP*/,
-	SamplerAddressMode TAdd_Mode /*= SAM_CLAMP*/,
-	int MipBias /*= 0
-				*/>
-SamplerStateHIRef TStaticSamplerState<Filter, RAdd_Mode, SAdd_Mode, TAdd_Mode, MipBias>::CreateHI()
-{
-	StaticSamplerStateInitializer Initializer = { Filter, RAdd_Mode, SAdd_Mode, TAdd_Mode, MipBias };
-	return BWRoot::GetInstance()->mActiveRenderSystem->CreateSamplerStateHI(Initializer);
-}
 
 
 template < bool IsEnableBlend /*= false*/,
