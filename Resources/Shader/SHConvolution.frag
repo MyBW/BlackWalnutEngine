@@ -13,8 +13,6 @@ struct FThreeBandSHVector
 	vec4  V1;
 	float  V2;
 };
-
-
 vec2 SampleSphericalMap(vec3 v)
 {
     vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
@@ -42,7 +40,6 @@ FThreeBandSHVector SHBasisFunction3( vec3  InputVector)
 
 	return Result;
 }
-
 
 void main()
 {
