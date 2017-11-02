@@ -1910,9 +1910,9 @@ void GLRenderSystem::SetGraphicsPipelineState(RSGraphicPipelineState& InPipeline
 		Helper::SetIsEnableState(BlendState->IsEnableBlend, GL_BLEND);
 		if (BlendState->IsSepatate == GL_TRUE)
 		{
-			glBlendEquationSeparate(BlendState->RGBBlendEquation, BlendState->AlphaBlendEquation);
-			glBlendFuncSeparate(BlendState->RGBFactorS, BlendState->RGBFactorD,
-				BlendState->AlphaFactorS, BlendState->AlphaFactorD);
+			CHECK_GL_ERROR(glBlendEquationSeparate(BlendState->RGBBlendEquation, BlendState->AlphaBlendEquation));
+			CHECK_GL_ERROR(glBlendFuncSeparate(BlendState->RGBFactorS, BlendState->RGBFactorD,
+				BlendState->AlphaFactorS, BlendState->AlphaFactorD));
 		}
 		else
 		{
