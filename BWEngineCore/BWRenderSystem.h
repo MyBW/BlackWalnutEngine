@@ -177,6 +177,8 @@ public:
 	bool IsEnableSSR{ true };
 	bool IsEnableSSAO{ true };
 	float InExposeScale{ 0.0f };
+	float CubemapMaxMip{ 6.0f };
+	float ExposureBias{ 4.0 };
 //////////////////////////////////////////
 protected:
 	// 全局数据

@@ -757,7 +757,7 @@ bool BWRenderSystem::InitRendererResource()
 
 	LoadGUPUsageAndGPUProgram(std::string("ProcessEnvMapForSpecular"), mProcessEvnMapForSpecularGpuPrgramUsage, mProcessEvnMapForSpecularProgram);
 
-	const int RoughnessLevel = 7;
+	const int RoughnessLevel = CubemapMaxMip + 1;
 	int IBL_Width = 1024;
 	int IBL_Height = 1024;
 	IBL_Specular_Cube_Map = BWTextureManager::GetInstance()->Create("IBL_Specular_Cube_Map", "General");
@@ -980,8 +980,7 @@ void BWRenderSystem::RenderInDirectLights()
 	RSGraphicPipelineState PipelineState;
 	PipelineState.GPUProgramUsage = ImageBaseLightingUsage;
 	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
-	//直接光照和间接光照的混合比例问题 随后可以参考Unreal
-	PipelineState.BlendState = TStaticBlendStateHI<true, SBO_ADD, SBF_ONE, SBF_ONE>::GetStateHI();
+	PipelineState.BlendState = TStaticBlendStateHI<true, SBO_ADD, SBF_ONE, SBF_ONE ,true ,SBO_ADD , SBF_ONE , SBF_ONE>::GetStateHI();
 	SetGraphicsPipelineState(PipelineState);
 
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
@@ -1013,6 +1012,7 @@ void BWRenderSystem::RenderInDirectLights()
 	SetRenderTarget(ImageBaseLightingUsage, RenderTarget,GDepthBuffer);
 	//Unreal 中只在SkyLighting中使用了SH来模拟  其他IBL只使用了镜面环境光照 这里我们没有使用SH系数
 	ImageBaseLightingUsage->GetGpuProgramParameter()->SetNamedConstant("SHCoefficient", SHVector.V, 36, 1);
+	ImageBaseLightingUsage->GetGpuProgramParameter()->SetNamedConstant("CubemapMaxMip", &CubemapMaxMip, 1, 1);
 	
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
@@ -1124,6 +1124,7 @@ void BWRenderSystem::RenderToneMap()
 	//ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("AverageLum", &LumAdapt, 1, 1);
 	ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("AvgLum", &AvgLum, 1, 1);
 	ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Key", &Key, 1, 1);
+	ToneMapProgramUsage->GetGpuProgramParameter()->SetNamedConstant("ExposureBias", &ExposureBias, 1, 1);
 
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
