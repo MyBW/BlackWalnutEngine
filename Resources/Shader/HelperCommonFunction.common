@@ -2,11 +2,10 @@
 
 float Saturate(float Value)
 {  
-   if(Value < 0.0) return 0.0 ;
-   if(Value > 1.0) return 1.0 ;
-   return Value ;
+   Value = max(Value , 0.0);
+   Value = min(Value, 1.0);
+   return Value;
 }
-
 
 vec3 ComputerNormal(vec2 InNormalXY)
 {
@@ -20,14 +19,6 @@ vec3 ComputerNormal(vec2 InNormalXY)
    Normal.z = cosThta ;
    return Normal;
 }
-
-void ComputeAlbedoAndSpecular(in vec3 InBaseColor ,in float InMetalic ,in float InSpecular , out vec3 OutAlbedo, out vec3 OutSpecular)
-{
-    OutAlbedo = InBaseColor *( 1 - InMetalic) ;
-    float DielectircSpecular = mix(0.0 , 0.08 , InSpecular) ;
-    OutSpecular = mix(vec3(DielectircSpecular) , InBaseColor , InMetalic) ;
-}
-
 
 vec4 FromScreenToWorld(mat4 InViewInverse , vec2 ClipSpaceXY ,float InFov , float InPrjPlaneWInverseH,float InCameraDepth)
 {
@@ -51,4 +42,21 @@ vec4 FromScreenToCamera(vec2 ClipSpaceXY ,float InFov , float InPrjPlaneWInverse
    CameraSpacePos.z = InCameraDepth;
    CameraSpacePos.w = 1.0f;
    return CameraSpacePos;
+}
+
+
+vec3 ComputeDiffuseColor(vec3 BaseColor , float Metalic)
+{
+  return BaseColor - BaseColor * Metalic;
+}
+
+vec3 ComputeSpecularColor(vec3 BaseColor , float Specular, float Metalic)
+{
+  return mix(vec3(Specular * 0.08) , BaseColor , Metalic);
+}
+
+float ComputeReflectionCaptureMipFromRoughness(float Roughness, float CubemapMaxMip)
+{
+   float LevelFrom1X1 = 1 - 1.2 * log2(Roughness);
+   return CubemapMaxMip - 1 - LevelFrom1X1;
 }

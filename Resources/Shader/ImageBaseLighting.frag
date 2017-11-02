@@ -5,6 +5,7 @@ uniform sampler2D BBuffer ;
 uniform sampler2D CBuffer;
 uniform samplerCube IBL_Specular_Light;
 uniform sampler2D  IBL_LUT;
+layout(location = 0) out vec4 OutColor;
 layout(binding = 0,std140) uniform CameraInfo
 {
   mat4 ViewInversMatrix;
@@ -15,6 +16,7 @@ layout(binding = 0,std140) uniform CameraInfo
   vec2 ScreenWH ;
 };
 uniform float SHCoefficient[36];
+uniform float CubemapMaxMip;
 const float PI = 3.1415926 ;
 
 
@@ -162,6 +164,24 @@ vec3 GetIndirectLightDifffuseColor(vec3 Normal)
 }
 
 
+float ComputeReflectionCaptureMipFromRoughness(float Roughness, float CubemapMaxMip)
+{
+   float LevelFrom1X1 = 1 - 1.2 * log2(Roughness);
+   return CubemapMaxMip - 1 - LevelFrom1X1;
+}
+
+
+vec3 ComputeDiffuseColor(vec3 BaseColor , float Metalic)
+{
+  return BaseColor - BaseColor * Metalic;
+}
+
+vec3 ComputeSpecularColor(vec3 BaseColor , float Specular, float Metalic)
+{
+  return mix(vec3(Specular * 0.08) , BaseColor , Metalic);
+}
+
+
 void main()
 {
 
@@ -181,44 +201,43 @@ void main()
    float Metalic = EffectData.g ;
    float Roughness = EffectData.r ;
    float Occlusion = EffectData.w;
+
+
+   vec3 DiffuseColor = ComputeDiffuseColor(BaseColor, Metalic);
+   vec3 SpecularColor = ComputeSpecularColor(BaseColor ,Specular ,Metalic) ;
+  
    
-   
-   vec3 Albedo , RealSpecular ;
-   ComputeAlbedoAndSpecular(BaseColor , Metalic , Specular , Albedo , RealSpecular) ;
-   
-   vec2 NF = vec2( -NearFar.x , -NearFar.y) ;
-   vec3 ViewPos = ViewPositionWorldSpace ;
-   
+
+   vec3 ViewPos = ViewPositionWorldSpace ;   
    vec2 ClipXY = (vec2(1.0) - textureCoord.xy) * 2.0 - vec2(1.0);
    vec4 WorldPos = FromScreenToWorld(ViewInversMatrix, ClipXY, FoV, PrjPlaneWInverseH, CameraSpaceDepth);
    
    vec3 ViewDirection = normalize(ViewPos - WorldPos.xyz);
    float NoV = max(dot(Normal , ViewDirection) , 0.0) ;   
    
-   vec3 InF = fresnelSchlickRoughness(max(dot(Normal , ViewDirection), 0.0) , RealSpecular , Roughness) ;  // 使用不同的Freshnel
+   vec3 InF = fresnelSchlickRoughness(max(dot(Normal , ViewDirection), 0.0) , SpecularColor , Roughness) ;  // This Freshnel Function Is Different With Direct Light 
    
   
    vec3 InKs = InF ;
    vec3 InKd = vec3(1.0) - InKs ;
    
   // Use Diffuse Light Eve Map To Render 
-   //vec3 InDirectLightDiffuseColor = InKd * Albedo * texture(IBL_Diffuse_Light, Normal).rgb / PI;
+  //vec3 InDirectLightDiffuseColor = InKd * DiffuseColor * texture(IBL_Diffuse_Light, Normal).rgb / PI;
    
   //Use SH To Simulate Diffuse Light  This Is Just For SkyLighting 
-  //   vec3 InDirectLightDiffuseColor = InKd * Albedo* GetIndirectLightDifffuseColor(Normal)/ PI * Occlusion;
+  //   vec3 InDirectLightDiffuseColor = InKd * DiffuseColor* GetIndirectLightDifffuseColor(Normal)/ PI * Occlusion;
        vec3 InDirectLightDiffuseColor = vec3(0.0);
 
    vec3 R = reflect(-ViewDirection , Normal) ;
+
    vec2 Brdf = texture(IBL_LUT, vec2( 1 - NoV , Roughness)).xy ; // LUT 有问题
-   vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R , Roughness * 6.0 /* Mip Num*/).rgb ;
-   vec3 InDirectLightSpecularPart2 = InF * Brdf.x + Brdf.y ;
+
+
+   float MipLevel = ComputeReflectionCaptureMipFromRoughness(Roughness , CubemapMaxMip);
+   vec3 InDirectLightSpecularPart1 = textureLod(IBL_Specular_Light, R , MipLevel).rgb ;
+   vec3 InDirectLightSpecularPart2 = InF * Brdf.x + Brdf.y ;                        // 其实这里直接用SpecularColor效果差别不大
    vec3 InDirectLightSpecular = InDirectLightSpecularPart1 * InDirectLightSpecularPart2 ;
    vec3 FinalColor = InDirectLightDiffuseColor + InDirectLightSpecular ;
-   
-
-   //FinalColor = InDirectLightDiffuseColor;
-   
-   //FinalColor = FinalColor;
-   gl_FragColor.xyz = FinalColor;
-   gl_FragColor.a = 0.5;
+   OutColor.xyz = FinalColor;
+   OutColor.a = 0.0;
 }

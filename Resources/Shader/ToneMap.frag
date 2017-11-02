@@ -4,6 +4,7 @@ uniform sampler2D SrcTexture ;
 uniform sampler2D BloomTexture;
 uniform float AvgLum;
 uniform float Key;
+uniform float ExposureBias;
 const vec4 Lumfact = vec4(0.27,0.67,0.06,0.0);
 layout(location = 0) out vec4 DestTexture;
 
@@ -29,7 +30,6 @@ void main()
 	Color += texture2D(BloomTexture, textureCoord.xy);
 	Color *= Key * Lum/AvgLum;
 	
-	float ExposureBias = 2.0f;
     Color.xyz = Uncharted2Tonemap(ExposureBias * Color.xyz);
 	
     vec3 WhiteScale = 1.0f/Uncharted2Tonemap(vec3(W));

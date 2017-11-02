@@ -249,3 +249,50 @@ vec3 FresnelSchlick(float NdotV , vec3 F0)
 {
   return F0 + (1.0 - F0)*pow(1.0 - NdotV , 5.0) ;
 }
+
+
+//////Unreal Shading Code
+
+vec3 F_Schlick(vec3 SpecularColor, float VoH)
+{
+  float Fc = pow(1.0 - VoH , 5.0);
+
+  return vec3(Saturate(50.0 * SpecularColor.g) * Fc) +  (1.0 - Fc) * SpecularColor ;
+}
+
+float D_GGX(float Roughness, float NoH)
+{
+  float a = Roughness * Roughness;
+  float a2 = a * a;
+  float d = (NoH * a2 - NoH) * NoH + 1;
+  return a2/(PI * d * d);
+}
+float Vis_Smith(float Roughness , float NoV, float NoL)
+{
+  float a = Roughness * Roughness;
+  float a2 = a * a;
+  float Vis_SmithV = NoV + sqrt(NoV * (NoV - NoV * a2) + a2) ;
+  float Vis_SmithL = NoL + sqrt(NoL * (NoL - NoL * a2) + a2) ;
+  return 1.0/(Vis_SmithV * Vis_SmithL);
+}
+float Vis_SmitJointApprox(float Roughness , float NoV, float NoL)
+{
+  float a = Roughness * Roughness;
+  float Vis_SmithV = NoL *(NoV *(1 - a) + a) ;
+  float Vis_SmithL = NoV *(NoL *(1 - a) + a);
+  return 0.5 * 1.0/(Vis_SmithV + Vis_SmithL) ; 
+}
+vec3  StandarSahding(vec3 DiffuseColor , vec3 SpecularColor, vec3 LobeRoughness , vec3 LobeEnergy, vec3 L, vec3 V , vec3 N)
+{
+   float Roughness = LobeRoughness[1];
+   vec3 H = normalize(V + L) ;
+   float NoL = Saturate(dot(N , L)) ;
+   float NoV = Saturate(dot(N , V) + 1e-5) ;
+   float HoV = Saturate(dot(H , V));
+   float HoN = Saturate(dot(H , N));
+   vec3 F = F_Schlick( SpecularColor, HoV) ;
+   float DItem = D_GGX(Roughness, HoN) * LobeEnergy[1];
+   float GItem = Vis_Smith(Roughness, NoV, NoL) ;
+   vec3 Diffuse = DiffuseColor / PI ;
+   return Diffuse * LobeEnergy[2] + (DItem * GItem) * F;
+}
