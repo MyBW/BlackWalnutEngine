@@ -156,7 +156,10 @@ vec3  StandarSahding(vec3 DiffuseColor , vec3 SpecularColor, vec3 LobeRoughness 
    float HoN = Saturate(dot(H , N));
    vec3 F = F_Schlick( SpecularColor, HoV) ;
    float DItem = D_GGX(Roughness, HoN) * LobeEnergy[1];
-   float GItem = Vis_Smith(Roughness, NoV, NoL) ;
+   // Unreal Vis_Smith Will Return Bad Data On The Fianl Line .  Only When Light Direction Is vec3(0.0 , -1.0 ,-1.0) Is Return Right.
+   // But This Function Can Give Better Reslut !
+   //float GItem = Vis_Smith(Roughness, NoV, NoL) ;
+   float GItem = GeometrySmith(N , V , L , Roughness);
    vec3 Diffuse = DiffuseColor / PI ;
    return Diffuse * LobeEnergy[2] + (DItem * GItem) * F;
 }
