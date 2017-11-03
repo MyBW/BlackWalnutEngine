@@ -15,6 +15,7 @@ public:
 	GLenum GetGLTextureTarget();
 	GLenum getTextureBufferAttachment() const;
 	GLuint GetHIID(){ return mTextureID; }
+	void Resize(int Width, int Height) override;
 	FORCEINLINE void SetHIID(GLuint NewHIID) { mTextureID = NewHIID; }
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget ,int Index , int MipLevel = 0) override;
 	static void do_image_io(std::string &name, std::string &groupName, std::string &ext, ImageVectorPtr &images, BWTexture *texture);
@@ -27,7 +28,7 @@ protected:
 	void createRenderTexture();
 	void createInternalResourcesImpl(const void *Data) override;
 	void freeInternalResourcesImpl();
-
+	void ResizeInteranl(int Width, int Height , const void *Data = nullptr);
 	void createInternalResourcesWithImageImpl(const ConstImagePtrList& images) override;
 
 	void prepareImpl();

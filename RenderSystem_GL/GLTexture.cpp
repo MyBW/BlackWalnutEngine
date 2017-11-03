@@ -46,6 +46,47 @@ void GLTexture::freeInternalResourcesImpl()
 {
 
 }
+
+void GLTexture::ResizeInteranl(int Width, int Height ,const void *Data)
+{
+	mWidth = Width; mHeight = Height;
+	size_t maxMipmaps = GLPixelUtil::getMaxMipmaps(mWidth, mHeight, mDepth);
+	mNumMipmaps = mNumRequestedMipmaps;
+	if (mNumMipmaps > maxMipmaps)
+	{
+		mNumMipmaps = maxMipmaps;
+	}
+	if (mNumMipmaps == 0)
+	{
+		mNumMipmaps = 1;
+	}
+	if (mTextureType == TEX_TYPE_2D)
+	{
+		GLenum InternalFormat, Format;
+		switch (mFormat)
+		{
+		case PF_B8G8R8A8:    InternalFormat = GL_RGBA8; Format = GL_RGBA; break;
+		case PF_FLOAT32_RGB: InternalFormat = GL_RGB32F; Format = GL_RGB; break;
+		case PF_FLOAT32_R:   InternalFormat = GL_R32F; Format = GL_R; break;
+		default:
+			InternalFormat = GL_RGBA32F; Format = GL_RGBA; break;
+		}
+		glTexImage2D(GL_TEXTURE_2D, 0, InternalFormat, mWidth, mHeight, 0, Format, GL_FLOAT, Data);
+	}
+	if (mTextureType == TEX_TYPE_CUBE_MAP)
+	{
+		// 这里的cubemap都是为HDR做准备的
+		for (unsigned int i = 0; i < 6; i++)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, Data);
+		}
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
+	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps - 1));//从0开始计数//开启这一项后会导致绑定到framebuffer上出现问题
+	glGenerateMipmap(GetGLTextureTarget());
+}
+
 void GLTexture::do_image_io(std::string &name, std::string &groupName, std::string &ext, ImageVectorPtr &images, BWTexture *texture)
 {
 	size_t imageIndex = images->size();
@@ -232,6 +273,16 @@ GLenum GLTexture::getTextureBufferAttachment() const
 {
 	return mAttachment;
 }
+void GLTexture::Resize(int Width, int Height)
+{
+	if (!glIsTexture(mTextureID)) return;
+	if (Width == mWidth && Height == mHeight) return;
+	GLint CurrentBindTextureID;
+	glGetIntegerv(GetGLTextureTarget(), &CurrentBindTextureID);
+	glBindTexture(GetGLTextureTarget(), mTextureID);
+	ResizeInteranl(Width, Height);
+	glBindTexture(GetGLTextureTarget(), CurrentBindTextureID);
+}
 void GLTexture::createInternalResourcesWithImageImpl(const ConstImagePtrList& images)
 {
 	if (mTextureType == TEX_TYPE_2D)
@@ -357,88 +408,20 @@ void GLTexture::createInternalResourcesImpl(const void *Data)
 		//1.2版本之前不支持3D纹理
 		assert(0);
 	}
-	//这里主要处理的是 将纹理的大小 位深 从ogre的定义转换到合适的GL定义  然后判断是否能生成mipmap 然后判断是否生成压缩纹理
-
+	//这里主要处理的是 将纹理的大小 位深 从ogre的定义转换到合适的GL定义  然后判断是否能生成mipmap 然后判断是否生成压缩纹
 	//将ogre数据转换为GL数据  本来要求是2的次方 但是 目前没有要求了
 	//mWidth = GLPixelUtil::optionalPO2(mWidth);
 	//mHeight = GLPixelUtil::optionalPO2(mHeight);
 	//mDepth = GLPixelUtil::optionalPO2(mDepth);
-	if (glIsTexture(mTextureID)) glDeleteTextures(1, &mTextureID);
 	//mFormat = BWTextureManager::GetInstance()->getNativeFormat(mTextureType, mFormat, mUsage);
-	size_t maxMipmaps = GLPixelUtil::getMaxMipmaps(mWidth, mHeight, mDepth);
-	mNumMipmaps = mNumRequestedMipmaps;
-	if (mNumMipmaps > maxMipmaps)
-	{
-		mNumMipmaps = maxMipmaps;
-	}
-	if (mNumMipmaps == 0)
-	{
-		mNumMipmaps = 1;
-	}
-	GLint CurrentBindTextureID;
-	GLenum CurrentTextureType = mTextureType == TEX_TYPE_2D ? GL_TEXTURE_BINDING_2D : GL_TEXTURE_BINDING_CUBE_MAP;
-	glGetIntegerv(CurrentTextureType, &CurrentBindTextureID);
 
+	if (glIsTexture(mTextureID)) glDeleteTextures(1, &mTextureID);
+	GLint CurrentBindTextureID;
+	glGetIntegerv(GetGLTextureTarget(), &CurrentBindTextureID);
 	glGenTextures(1, &mTextureID);
 	glBindTexture(GetGLTextureTarget(), mTextureID);
-
-	if (mTextureType == TEX_TYPE_2D)
-	{
-		//  这里使用glTextureParamter的 是为了提前准备各种mipmap等 而不是纹理针对某一个纹理单元
-		if (mFormat == PF_B8G8R8A8)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, Data);
-		}
-		else if (mFormat == PF_FLOAT32_RGB)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, Data);
-		}
-		else if (mFormat == PF_FLOAT32_R)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mWidth, mHeight, 0, GL_R, GL_FLOAT, Data);
-		}
-		else
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, Data);
-		}
-		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
-	}
-	
-	
-	if (mTextureType == TEX_TYPE_CUBE_MAP)
-	{
-		// 这里的cubemap都是为HDR做准备的
-		for (unsigned int i = 0 ; i< 6 ; i++)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, Data);
-		}
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	}
-	glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
-	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps - 1));//从0开始计数//开启这一项后会导致绑定到framebuffer上出现问题
-	glGenerateMipmap(GetGLTextureTarget());
-
+	ResizeInteranl(mWidth, mHeight, Data);
 	glBindTexture(GetGLTextureTarget(), CurrentBindTextureID);
-	//glPopAttrib();
-	/*AUX_RGBImageRec *textureImage[1];
-	memset(textureImage, 0, sizeof(void*)* 1);
-	textureImage[0] = auxDIBImageLoad("image/Tex.bmp");
-	if (textureImage[0])
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureImage[0]->sizeX, textureImage[0]->sizeY,
-			0, GL_RGB, GL_UNSIGNED_BYTE, textureImage[0]->data);
-
-		free(textureImage[0]->data);
-		free(textureImage[0]);
-	}*/
 	//简化纹理载入流程 暂时这样处理
 	return;
 	mMipmapsHardwareGenerated = true;//BWRenderSystem::GetInstance()->hasCapability();
