@@ -431,6 +431,9 @@ bool BWRenderSystem::InitRendererResource()
 	Create2DRenderTexture(std::string("HistoryRT"), HistoryRT, WindowsWidth, WindowsHeight, PF_FLOAT32_RGBA);
 	GDepthBuffer = new GLHardwareDepthBuffer("DepthBuffer", WindowsWidth, WindowsHeight, 0, BWHardwareBuffer::Usage::HBU_DYNAMIC, false, false);
 	
+	HolderTexturesFor2D.resize(2);
+	Create2DRenderTexture(std::string("HolderTextureFor2D_1"), HolderTexturesFor2D[0], 1, 1, PF_FLOAT32_RGBA);
+	Create2DRenderTexture(std::string("HolderTextureFor2D_2"), HolderTexturesFor2D[1], 1, 1, PF_FLOAT32_RGBA);
 
 	mPointLightMesh = BWMeshManager::GetInstance()->load("sphere.mesh", "General");
 	mCubeMesh = BWMeshManager::GetInstance()->load("cube.mesh", "General");
@@ -1033,11 +1036,8 @@ void BWRenderSystem::RenderToneMap()
 	PipelineState.GPUProgramUsage = EmptyGPUProgramUsage;
 	SetGraphicsPipelineState(PipelineState);
 	SetViewport(0, 0, ToneMapTexture->getWidth(), ToneMapTexture->getHeight());
-
 	FinalRenderResult->SetIndex(0);
 	SetShaderTexture(EmptyGPUProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-
-	
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = ToneMapTexture;
@@ -1049,7 +1049,6 @@ void BWRenderSystem::RenderToneMap()
 	EmptyGPUProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Hight", &Hight, 1, 1);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
-
 
 	SetViewport(0, 0, BloomTexture->getWidth(), BloomTexture->getHeight());
 	PipelineState.GPUProgramUsage = ComputeBloomUsage;
@@ -1082,7 +1081,6 @@ void BWRenderSystem::RenderToneMap()
 	// Get The Bloom Area
 	PipelineState.GPUProgramUsage = ComputeBloomUsage;
 	SetGraphicsPipelineState(PipelineState);
-
 	ToneMapTexture->SetIndex(0);
 	SetShaderTexture(ComputeBloomProgram, ToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	Width = ToneMapTexture->getWidth();
@@ -1101,22 +1099,16 @@ void BWRenderSystem::RenderToneMap()
 
 
 	//ToneMap And Bloom
-	static BWTexturePtr DumpToneMapTexture = BWTextureManager::GetInstance()->Create("DumpToneMapTexure", DEFAULT_RESOURCE_GROUP);
-	DumpToneMapTexture->setWidth(FinalRenderResult->getWidth());
-	DumpToneMapTexture->setHeight(FinalRenderResult->getHeight());
-	DumpToneMapTexture->setFormat(FinalRenderResult->getFormat());
-	DumpToneMapTexture->setTextureType(TEX_TYPE_2D);
-	DumpToneMapTexture->setNumMipmaps(0);
-	DumpToneMapTexture->SetIndex(0);
-	DumpToneMapTexture->createInternalResources();
-	CopyTextureToTexture(FinalRenderResult, 0, 0, DumpToneMapTexture, 0, 0);
+	HolderTexturesFor2D[0]->Resize(FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+
+	CopyTextureToTexture(FinalRenderResult, 0, 0, HolderTexturesFor2D[0], 0, 0);
 	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 	PipelineState.GPUProgramUsage = ToneMapProgramUsage;
 	SetGraphicsPipelineState(PipelineState);
 
-	DumpToneMapTexture->SetIndex(0);
+	HolderTexturesFor2D[0]->SetIndex(0);
 	BloomTexture->SetIndex(1);
-	SetShaderTexture(ToneMapProgram, DumpToneMapTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ToneMapProgram, HolderTexturesFor2D[0], TStaticSamplerState<FO_LINEAR>::GetStateHI());
     SetShaderTexture(ToneMapProgram, BloomTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
 	float Key = 1.0f;
@@ -1131,8 +1123,6 @@ void BWRenderSystem::RenderToneMap()
 	RenderTarget.RenderTargetTexture = FinalRenderResult;
 	SetRenderTarget(ToneMapProgramUsage ,RenderTarget, GDepthBuffer);
 	RenderOperation(CubeMeshRenderOperation, tmp);
-
-
 	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 	PipelineState.DepthAndStencilState = TStaticDepthAndStencilState<true, true>::GetStateHI();
 	SetGraphicsPipelineState(PipelineState);
@@ -1155,24 +1145,17 @@ void BWRenderSystem::RenderMotionBlur()
 	SetShaderTexture(MotionBlurProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(MotionBlurProgram, VelocityRT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
-	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
-	DumpTexture->setWidth(FinalRenderResult->getWidth());
-	DumpTexture->setHeight(FinalRenderResult->getHeight());
-	DumpTexture->setFormat(FinalRenderResult->getFormat());
-	DumpTexture->setTextureType(TEX_TYPE_2D);
-	DumpTexture->setNumMipmaps(0);
-	DumpTexture->SetIndex(0);
-	DumpTexture->createInternalResources();
+	HolderTexturesFor2D[0]->Resize(FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture = DumpTexture;
+	RenderTarget.RenderTargetTexture = HolderTexturesFor2D[0];
 	SetRenderTarget(MotionBlurUsage, RenderTarget, GDepthBuffer);
 	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
-	CopyTextureToTexture(DumpTexture, 0, 0, FinalRenderResult, 0, 0);
+	CopyTextureToTexture(HolderTexturesFor2D[0], 0, 0, FinalRenderResult, 0, 0);
 	SetGraphicsPipelineState(CacheCachePipelineState);
 	return;
 
@@ -1188,7 +1171,7 @@ void BWRenderSystem::RenderTemporalAA()
 	SetGraphicsPipelineState(PipelineState);
 	SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
-		ToneMapProgramUsage->GetGpuProgramParameter()//?????
+		TemporalAAUsage->GetGpuProgramParameter()
 		);
 	BBufferTexture->SetIndex(0);
 	VelocityRT->SetIndex(1);
@@ -1198,19 +1181,12 @@ void BWRenderSystem::RenderTemporalAA()
 	SetShaderTexture(TemporalAAProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(TemporalAAProgram, HistoryRT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(TemporalAAProgram, VelocityRT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
-	DumpTexture->setWidth(HistoryRT->getWidth());
-	DumpTexture->setHeight(HistoryRT->getHeight());
-	DumpTexture->setFormat(HistoryRT->getFormat());
-	DumpTexture->setTextureType(TEX_TYPE_2D);
-	DumpTexture->setNumMipmaps(0);
-	DumpTexture->SetIndex(0);
-	DumpTexture->createInternalResources();
+	HolderTexturesFor2D[0]->Resize(HistoryRT->getWidth(), HistoryRT->getHeight());
 
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture = DumpTexture;
+	RenderTarget.RenderTargetTexture = HolderTexturesFor2D[0];
 	SetRenderTarget( TemporalAAUsage, RenderTarget, GDepthBuffer);
 	// 这些本来使用Unreal中的算法的 后来改成了另一种更简单的方式 但是可以看看Unreal中相关的算法中使用的技巧
 	const float JitterX = BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->GetTemporalAAJitterX();
@@ -1261,8 +1237,8 @@ void BWRenderSystem::RenderTemporalAA()
 	TemporalAAUsage->GetGpuProgramParameter()->SetNamedConstant("InExposureScale", &InExposeScale, 1, 1);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
-	CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
-	CopyTextureToTexture(DumpTexture, 0, 0, FinalRenderResult, 0, 0);
+	CopyTextureToTexture(HolderTexturesFor2D[0], 0, 0, HistoryRT, 0, 0);
+	CopyTextureToTexture(HolderTexturesFor2D[0], 0, 0, FinalRenderResult, 0, 0);
 }
 
 
@@ -1283,19 +1259,12 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 	FinalRenderResult->SetIndex(1);
 	SetShaderTexture(ScreenSpaceRayTrackProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ScreenSpaceRayTrackProgram, FinalRenderResult, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	static BWTexturePtr DumpTexture = BWTextureManager::GetInstance()->Create(std::string("DumpTexture"), DEFAULT_RESOURCE_GROUP);
-	DumpTexture->setWidth(FinalRenderResult->getWidth());
-	DumpTexture->setHeight(FinalRenderResult->getHeight());
-	DumpTexture->setFormat(FinalRenderResult->getFormat());
-	DumpTexture->setTextureType(TEX_TYPE_2D);
-	DumpTexture->setNumMipmaps(0);
-	DumpTexture->SetIndex(0);
-	DumpTexture->createInternalResources();
+	HolderTexturesFor2D[0]->Resize(FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 
 	RSRenderTarget RenderTarget;
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture = DumpTexture;
+	RenderTarget.RenderTargetTexture = HolderTexturesFor2D[0];
 
 	float StrideZCutoff = 600.f - 1.f;
 	float Thickness = 0.1f;
@@ -1315,17 +1284,12 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 
 	
 	const float MipmapLevel = HelperFunction::GetMaxMipmaps(FinalRenderResult->getWidth(), FinalRenderResult->getHeight(), 1);
-	static BWTexturePtr DumpTextureForScale = BWTextureManager::GetInstance()->Create(std::string("DumpTextureForScale"), DEFAULT_RESOURCE_GROUP);
-	DumpTextureForScale->setWidth(FinalRenderResult->getWidth());
-	DumpTextureForScale->setHeight(FinalRenderResult->getHeight());// 2 的整数次幂
-	DumpTextureForScale->setFormat(FinalRenderResult->getFormat());
-	DumpTextureForScale->setTextureType(TEX_TYPE_2D);
-	DumpTextureForScale->setNumMipmaps(MipmapLevel - 1);
-	DumpTextureForScale->SetIndex(0);
-	DumpTextureForScale->createInternalResources();
 
+
+	// 这里没有生成HolderTexturesFor2D[1] 的Mipmap
+	HolderTexturesFor2D[1]->Resize(FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
 	//生成Mipmap有问题
-	CopyTextureToTexture(FinalRenderResult, 0, 0, DumpTextureForScale, 0, 0);
+	CopyTextureToTexture(FinalRenderResult, 0, 0, HolderTexturesFor2D[1], 0, 0);
 	//ScaleCopy(FinalRenderResult,DumpTextureForScale, 0);
 	//GenerateTextureFilterdMipMap(DumpTextureForScale);
 	
@@ -1341,14 +1305,14 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 	ABufferTexture->SetIndex(0);
 	BBufferTexture->SetIndex(1);
 	CBufferTexture->SetIndex(2);
-	DumpTextureForScale->SetIndex(3);
-	DumpTexture->SetIndex(4);
+	HolderTexturesFor2D[1]->SetIndex(3);
+	HolderTexturesFor2D[0]->SetIndex(4);
 
 	SetShaderTexture(ScreenSpaceReflectionProgram, ABufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ScreenSpaceReflectionProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ScreenSpaceReflectionProgram, CBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(ScreenSpaceReflectionProgram, DumpTextureForScale, TStaticSamplerState<FO_LINEAR>::GetStateHI());
-	SetShaderTexture(ScreenSpaceReflectionProgram, DumpTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceReflectionProgram, HolderTexturesFor2D[1], TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ScreenSpaceReflectionProgram, HolderTexturesFor2D[0], TStaticSamplerState<FO_LINEAR>::GetStateHI());
 
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
@@ -1370,10 +1334,10 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
-	RenderTarget.RenderTargetTexture = DumpTextureForScale;
+	RenderTarget.RenderTargetTexture = HolderTexturesFor2D[1];
 	SetRenderTarget(nullptr, RenderTarget, GDepthBuffer);
 	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
-	RenderTarget.RenderTargetTexture = DumpTexture;
+	RenderTarget.RenderTargetTexture = HolderTexturesFor2D[0];
 	SetRenderTarget(nullptr, RenderTarget, GDepthBuffer);
 	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
 	//CopyTextureToTexture(DumpTexture, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT

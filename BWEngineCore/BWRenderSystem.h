@@ -294,7 +294,7 @@ protected:
 	BWTexturePtr CBufferTexture;
 	BWHardwareDepthBufferPtr GDepthBuffer;
 	BWTexturePtr FinalRenderResult;
-
+	std::vector<BWTexturePtr> HolderTexturesFor2D;
 	
 
 	BWMaterialPtr AmbientOcclusionMaterial;

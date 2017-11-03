@@ -270,6 +270,7 @@ public:
 	virtual void getCustomAttribute(const std::string& name, void* pData) {}
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget, int Num, int MipLevel = 0) = 0;
 	virtual void RemoveFromRenderTarget();
+	virtual void Resize(int Width, int Height){ }
 	FORCEINLINE void SetIndex(int Index) { mIndex = Index; }
 	FORCEINLINE bool isAttachToRenderTarget() const { return mRenderTarget != NULL; }
 	FORCEINLINE int GetIndex() const { return mIndex; }
