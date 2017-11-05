@@ -9,8 +9,9 @@ uniform sampler2D FinalRenderResult;
 uniform float MipLevelNum ;
 uniform float FadeEnd ;
 uniform float FadeStart;
-const float Max_Specular_Exp = 2.0;
+uniform float Max_Specular_Exp ;
 layout(location = 0) out vec4 FinalFilterResult;
+float PI = 3.1415926;
 layout(binding = 0,std140) uniform UBO1
 {
   mat4  ModelMatrix;
@@ -30,10 +31,10 @@ layout(binding = 0,std140) uniform CameraInfo
   vec2 ScreenWH ;
 };
 
-vec4 FromScreenToWorld(mat4 InViewInverse , vec2 InScreenPos , vec2 InScreenWH, float InFov , vec2 InNearFar , float InPrjPlaneWInverseH,float InCameraDepth)
+vec4 FromScreenToWorld(mat4 InViewInverse , vec2 ClipSpaceXY ,float InFov , float InPrjPlaneWInverseH,float InCameraDepth)
 {
    vec2 Pos;
-   Pos.xy = (vec2(1.0) - textureCoord.xy )* vec2(2.0) - vec2(1.0);
+   Pos.xy = ClipSpaceXY;
    vec4 CameraSpacePos;
    CameraSpacePos.x = Pos.x * InPrjPlaneWInverseH * tan(InFov/2.0f) * InCameraDepth;
    CameraSpacePos.y = Pos.y * tan(InFov / 2.0f) * InCameraDepth;
@@ -88,9 +89,10 @@ float IsoscelesTriangleNextAdjacent(float adjacentLength, float incircleRadius)
     // subtract the diameter of the incircle to get the adjacent side of the next level on the cone
     return adjacentLength - (incircleRadius * 2.0f);
 }
-float RoghnessToSpecularPower(float Roughness)
+float RoghnessToSpecularPower(float Roughness , vec3 L, vec3 V, vec3 N)
 {
-	return 1 - Roughness;
+  vec3 H = noramlize(L + V) ;
+  return pow(dot(N,H), Roughness) * PI ;
 }
 float saturate(float Value)
 {
@@ -116,48 +118,44 @@ void main()
 {
 	vec4 BBufferData = texture2D(BBuffer, textureCoord.xy) ;
 	float CameraSpaceDepth = BBufferData.z ;
-	vec2 NF = vec2( NearFar.x , NearFar.y) ;
-	NF.x =1;
-	NF.y = 600;
-	float NewFoV = 3.1415926/2.0;
-	vec2 NewScreenWH = vec2(1024 , 768);
-	float NewPrjPlaneWInverseH = 1.33333333;
-	
-    vec4 WorldPos = FromScreenToWorld(ViewInversMatrix , gl_FragCoord.xy, NewScreenWH, NewFoV, NF, NewPrjPlaneWInverseH, CameraSpaceDepth) ;	
-    vec3  Normal = ComputerNormal(vec2(BBufferData.xy)) ;
-    Normal = normalize(Normal) ;
-    vec4 CameraSpacePos = ViewMatrix * WorldPos;
+  vec2 ClipXY = (vec2(1.0) - textureCoord.xy) * 2.0 - vec2(1.0);
+  vec4 WorldPos = FromScreenToWorld(ViewInversMatrix, ClipXY, FoV, PrjPlaneWInverseH, CameraSpaceDepth); 	
+  vec3  Normal = ComputerNormal(vec2(BBufferData.xy)) ;
+  Normal = normalize(Normal) ;
+  vec4 CameraSpacePos = ViewMatrix * WorldPos;
 	vec2 ScreenSpacePos = textureCoord.xy * ScreenWH;
 	vec3 ViewPos = ViewPositionWorldSpace ;
-    vec3 ViewDirection = normalize(ViewPos - WorldPos.xyz);
-	
-	
+  vec3 ViewDirection = normalize(ViewPos - WorldPos.xyz);
+
 	vec4 IntersectionInfo = texture2D(RayTrackBuffer, textureCoord.xy);
-	//IntersectionInfo.xy = vec2(0.0);
-	if(IntersectionInfo.xy == vec2(0.0f))
+	if(IntersectionInfo.xyz == vec3(0.0f))
 	{
 	  FinalFilterResult = textureLod(FinalRenderResult, textureCoord.xy ,0);
-	  //FinalFilterResult.rgb = vec3(0.0);
 	  return;
 	}
 	vec4 IntersectionBBuferInfo = texture2D(BBuffer, IntersectionInfo.xy);
 	vec2 IntersectionScreenPos = IntersectionInfo.xy * ScreenWH;
-	vec4 IntersectionWordPos = FromScreenToWorld(ViewInversMatrix , IntersectionScreenPos , NewScreenWH, NewFoV, NF, NewPrjPlaneWInverseH, IntersectionBBuferInfo.z) ;
+  vec2 IntersectionClipXY = (vec2(1.0) - IntersectionScreenPos.xy) * 2.0 - vec2(1.0);
+  vec4 IntersectionWordPos = FromScreenToWorld(ViewInversMatrix, IntersectionClipXY, FoV, PrjPlaneWInverseH, IntersectionBBuferInfo.z);
 	vec4 IntersectionCameraSpace = ViewMatrix * IntersectionWordPos ;
+  vec3 LightDirection = normalize(IntersectionWordPos - WorldPos.xyz);
 	
+
+
+
+  
 	vec2 Delta = IntersectionScreenPos - ScreenSpacePos;
 	float AdjacentLenght = length(Delta);
 	vec2 UnitAdjacent = normalize(Delta);
-	
 	vec4 EffectData = texture2D(CBuffer, textureCoord.xy);
 	float Roughness = EffectData.r;
 	float Gloss = 1.0 - Roughness ;
-	float SpecularPower = RoghnessToSpecularPower(Roughness);
+	float SpecularPower = RoghnessToSpecularPower(Roughness , LightDirection, ViewDirection, Normal);
 	float ConeTheta = SpecularPowerToConeTheta(SpecularPower);
 	float MaxMipLevel = MipLevelNum - 1.0f; 
 	
 	
-    vec4 FinalColor = vec4(0.0);
+  vec4 FinalColor = vec4(0.0);
 	float GlossMult = Gloss;
 	float RemaingAlpha = 1.0f;
 	for(float i = 0 ;i < 14; i++)

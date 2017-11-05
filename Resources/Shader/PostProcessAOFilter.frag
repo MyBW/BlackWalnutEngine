@@ -21,6 +21,7 @@ void main()
 	 {
 		vec2 Sample = textureCoord + vec2( i * StepX , j * StepY) ;
 		FinalValue += texture2D(AmbientOcclusion , Sample).w ;
-	 )
-	Attenuation.w = FinalValue/ 16 ;
+	 }
+
+	Attenuation.w = FinalValue/ 25 ;
 }

@@ -463,7 +463,7 @@ material AmbientOcclusion
 }
 
 
-material AmbientOcclusionFilters
+material AmbientOcclusionFilter
 {
 	technique
 	{
@@ -473,7 +473,7 @@ material AmbientOcclusionFilters
 			gpu_program_ref   RenderSystem_AmbientOcclusionFilter  GLSL
 			{
 			   
-			   param_named BaseColorMap int 0
+			   param_named AmbientOcclusion int 0
 			   param_named_auto ViewInversMatrix inverse_view_matrix
 			   param_named_auto ViewPositionWorldSpace camera_position
 			   param_named_auto FoV fov
@@ -485,14 +485,14 @@ material AmbientOcclusionFilters
 	}
 }
 
-material ScaleCopy
+material DownSampleTexture
 {
 	technique
 	{
 		pass
 		{
 		
-			gpu_program_ref RenderSystem_ScaleCopy GLSL
+			gpu_program_ref RenderSystem_DownSampleTexture GLSL
 			{
 			   param_named SrcTexture int 0
 			}

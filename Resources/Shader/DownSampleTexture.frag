@@ -3,6 +3,7 @@ in vec2 textureCoord ;
 uniform sampler2D SrcTexture ;
 uniform int Width ;
 uniform int Hight;
+uniform int Miplevel;
 layout(location = 0) out vec4 DestTexture;
 
 
@@ -12,25 +13,25 @@ vec4 GetScaleFourValue()
 {
     float dx = 1.0/float(Width);
     float dy = 1.0/float(Hight);
-    vec4 color = texture2D(SrcTexture, textureCoord.xy);
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx,0.0));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx*2.0,0.0));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx*3.0,0.0));
+    vec4 color = textureLod(SrcTexture, textureCoord.xy, Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx,0.0), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx*2.0,0.0), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx*3.0,0.0), Miplevel);
                        
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(0.0,dy));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx,dy));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx*2.0,dy));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx*3.0,dy));
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(0.0,dy), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx,dy), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx*2.0,dy), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx*3.0,dy), Miplevel);
                        
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(0.0,dy*2.0));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx,dy*2.0));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx*2.0,dy*2.0));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx*3.0,dy*2.0));
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(0.0,dy*2.0), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx,dy*2.0), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx*2.0,dy*2.0), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx*3.0,dy*2.0), Miplevel);
                        
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(0.0,dy*3.0));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx,dy*3.0));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx*2.0,dy*3.0));
-    color += texture2D(SrcTexture, textureCoord.xy+vec2(dx*3.0,dy*3.0));
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(0.0,dy*3.0), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx,dy*3.0), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx*2.0,dy*3.0), Miplevel);
+    color += textureLod(SrcTexture, textureCoord.xy+vec2(dx*3.0,dy*3.0), Miplevel);
 
     color /= 16.0;
     return color ;

@@ -19,5 +19,5 @@ void main()
     color += texture2D(SrcTexture ,textureCoord.xy+vec2( 4.0*d,0.0)) * 0.22;
     color += texture2D(SrcTexture ,textureCoord.xy+vec2( 5.0*d,0.0)) * 0.1;
     color /= 5.0; 
-    FilterResult = color;
+    FilterResult = color ;
 }

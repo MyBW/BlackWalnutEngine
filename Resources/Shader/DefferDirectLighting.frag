@@ -159,6 +159,7 @@ vec3  StandarSahding(vec3 DiffuseColor , vec3 SpecularColor, vec3 LobeRoughness 
    // Unreal Vis_Smith Will Return Bad Data On The Fianl Line .  Only When Light Direction Is vec3(0.0 , -1.0 ,-1.0) Is Return Right.
    // But This Function Can Give Better Reslut !
    //float GItem = Vis_Smith(Roughness, NoV, NoL) ;
+   // This Funtion Is Just Replace, Render Reslut Is Very Bad! 
    float GItem = GeometrySmith(N , V , L , Roughness);
    vec3 Diffuse = DiffuseColor / PI ;
    return Diffuse * LobeEnergy[2] + (DItem * GItem) * F;
@@ -214,8 +215,8 @@ void main()
    vec3 ShadingReslut ;
    float NoL = max(dot(Normal , LightDirection) , 0.0) ;
    //Unreal Shading 在Fresnel现象上表现更出色 在视线掠过物体表面时 能产生更亮的光斑 Bloom效果更好
-   //ShadingReslut = BWStanderShading(DiffuseColor, SpecularColor, LobeRoughness , LobeEnergy, LightDirection, ViewDirection , Normal);
-   ShadingReslut = StandarSahding(DiffuseColor, SpecularColor, LobeRoughness , LobeEnergy, LightDirection, ViewDirection , Normal);
+   ShadingReslut = BWStanderShading(DiffuseColor, SpecularColor, LobeRoughness , LobeEnergy, LightDirection, ViewDirection , Normal);
+   //ShadingReslut = StandarSahding(DiffuseColor, SpecularColor, LobeRoughness , LobeEnergy, LightDirection, ViewDirection , Normal);
 
    vec3 DirectLightColor = ShadingReslut * LightColor * NoL * SurfaceAttenuation;
    gl_FragColor.xyz = DirectLightColor;

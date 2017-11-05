@@ -128,10 +128,10 @@
 	  fragment_shader_ref AmibientOcclusionFilterFragment
 	}
 	
-	gpu_program RenderSystem_ScaleCopy GLSL
+	gpu_program RenderSystem_DownSampleTexture GLSL
 	{
 	  vertex_shader_ref    DefferDirectLightingVertex
-	  fragment_shader_ref  ScaleCopyFragment
+	  fragment_shader_ref  DownSampleTextureFragment
 	}
 	
 	gpu_program RenderSystem_ComputeLumValue GLSL

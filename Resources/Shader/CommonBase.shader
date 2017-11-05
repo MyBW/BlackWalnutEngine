@@ -203,9 +203,9 @@ fragment_shader AmibientOcclusionFilterFragment glsl
   Source PostProcessAOFilter.frag
 }
 
-fragment_shader ScaleCopyFragment glsl
+fragment_shader DownSampleTextureFragment glsl
 {
-  Source ScaleCopy.frag
+  Source DownSampleTexture.frag
 }
 
 fragment_shader ComputeLumFragment glsl
