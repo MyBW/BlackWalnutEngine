@@ -663,6 +663,7 @@ material ScreenSpaceReflection
 			   param_named CBuffer int 2
 			   param_named FinalRenderResult int 3
 			   param_named RayTrackBuffer int 4
+			   param_named IBL_LUT int 5
 			   param_named_auto ModelMatrix    world_matrix
 			   param_named_auto ViewMatrix     view_matrix
 			   param_named_auto ProjectMatrix  projection_matrix

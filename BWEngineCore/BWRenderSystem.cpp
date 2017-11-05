@@ -1284,23 +1284,27 @@ void BWRenderSystem::RenderScreenSpaceReflection()
 	CBufferTexture->SetIndex(2);
 	HolderTexturesFor2D[1]->SetIndex(3);
 	HolderTexturesFor2D[0]->SetIndex(4);
+	IBL_LUT->SetIndex(5);
 	SetShaderTexture(ScreenSpaceReflectionProgram, ABufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ScreenSpaceReflectionProgram, BBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ScreenSpaceReflectionProgram, CBufferTexture, TStaticSamplerState<FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ScreenSpaceReflectionProgram, HolderTexturesFor2D[1], TStaticSamplerState<FO_LINEAR, FO_LINEAR, FO_LINEAR>::GetStateHI());
 	SetShaderTexture(ScreenSpaceReflectionProgram, HolderTexturesFor2D[0], TStaticSamplerState<FO_LINEAR>::GetStateHI());
+	SetShaderTexture(ImageBaseLighting, IBL_LUT, TStaticSamplerState<FO_LINEAR>::GetStateHI());
+
 	RenderTarget.Index = 0;
 	RenderTarget.MipmapLevel = 0;
 	RenderTarget.RenderTargetTexture = FinalRenderResult;
 	float FadeEnd = 0.2;
 	float FadeStart = 0.2;
-	float Max_Specular_Exp = 2.0;
+	float Max_Specular_Exp = 1.5;
 	Max_Specular_Exp += TempDeltal;
 	ScreenSpaceReflectionProgramUsage->GetGpuProgramParameter()->SetNamedConstant("MipLevelNum", &MipmapLevel, 1, 1);
 	ScreenSpaceReflectionProgramUsage->GetGpuProgramParameter()->SetNamedConstant("FadeEnd", &FadeEnd, 1, 1);
 	ScreenSpaceReflectionProgramUsage->GetGpuProgramParameter()->SetNamedConstant("FadeStart", &FadeStart, 1, 1);
 	ScreenSpaceReflectionProgramUsage->GetGpuProgramParameter()->SetNamedConstant("Max_Specular_Exp", &Max_Specular_Exp, 1, 1);
 	SetRenderTarget(ScreenSpaceReflectionProgramUsage, RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_COLOUR);
 	RenderOperation(CubeMeshRenderOperation, tmp);
 	CopyTextureToTexture(FinalRenderResult, 0, 0, HistoryRT, 0, 0);// 其实可以用DunmpTexture来代替HistoryRT
 }

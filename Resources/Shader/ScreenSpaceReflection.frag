@@ -5,6 +5,7 @@ uniform sampler2D BBuffer;
 uniform sampler2D CBuffer;
 uniform sampler2D RayTrackBuffer;
 uniform sampler2D FinalRenderResult; 
+uniform sampler2D IBL_LUT;
 
 uniform float MipLevelNum ;
 uniform float FadeEnd ;
@@ -54,7 +55,7 @@ vec3 ComputerNormal(vec2 InNormalXY)
    Normal.z = cosThta ;
    return Normal;
 }
-
+///Phong Light Mode .
 float SpecularPowerToConeTheta(float InSpecularPower)
 {
 	if(InSpecularPower > exp2(Max_Specular_Exp))
@@ -64,6 +65,12 @@ float SpecularPowerToConeTheta(float InSpecularPower)
 	const float xi = 0.2444f;
 	float Exponent = 1.0/(InSpecularPower + 1.0f);
 	return acos(pow(xi, Exponent));
+}
+////Phong Light Mode.
+float RoghnessToSpecularPower(float Roughness , vec3 L, vec3 V, vec3 N)
+{
+  vec3 H = normalize(L + V) ;
+  return pow(dot(N,H), 30.0 *( 1 - Roughness));
 }
 
 float IsoscelesTriangleOpposite(float adjacentLength, float coneTheta)
@@ -80,7 +87,7 @@ float IsoscelesTriangleInRadius(float a, float h)
 }
 vec4 ConeSampleWeightedColor(vec2 samplePos, float mipChannel, float gloss)
 {
-    vec3 sampleColor = texture2D(FinalRenderResult, samplePos, mipChannel).rgb;
+    vec3 sampleColor = textureLod(FinalRenderResult, samplePos, mipChannel).rgb;
     return vec4(sampleColor * gloss, gloss);
 }
 
@@ -89,22 +96,22 @@ float IsoscelesTriangleNextAdjacent(float adjacentLength, float incircleRadius)
     // subtract the diameter of the incircle to get the adjacent side of the next level on the cone
     return adjacentLength - (incircleRadius * 2.0f);
 }
-float RoghnessToSpecularPower(float Roughness , vec3 L, vec3 V, vec3 N)
-{
-  vec3 H = noramlize(L + V) ;
-  return pow(dot(N,H), Roughness) * PI ;
-}
+
 float saturate(float Value)
 {
   return max(Value , 0.0f);
 }
 
 
-void ComputeAlbedoAndSpecular(in vec3 InBaseColor ,in float InMetalic ,in float InSpecular , out vec3 OutAlbedo, out vec3 OutSpecular)
+
+vec3 ComputeDiffuseColor(vec3 BaseColor , float Metalic)
 {
-    OutAlbedo = InBaseColor *( 1 - InMetalic) ;
-    float DielectircSpecular = mix(0.0 , 0.08 , InSpecular) ;
-    OutSpecular = mix(vec3(DielectircSpecular) , InBaseColor , InMetalic) ;
+  return BaseColor - BaseColor * Metalic;
+}
+
+vec3 ComputeSpecularColor(vec3 BaseColor , float Specular, float Metalic)
+{
+  return mix(vec3(Specular * 0.08) , BaseColor , Metalic);
 }
 
 vec3 FresnelSchlick(float NdotV , vec3 F0)
@@ -133,12 +140,12 @@ void main()
 	  FinalFilterResult = textureLod(FinalRenderResult, textureCoord.xy ,0);
 	  return;
 	}
-	vec4 IntersectionBBuferInfo = texture2D(BBuffer, IntersectionInfo.xy);
-	vec2 IntersectionScreenPos = IntersectionInfo.xy * ScreenWH;
-  vec2 IntersectionClipXY = (vec2(1.0) - IntersectionScreenPos.xy) * 2.0 - vec2(1.0);
-  vec4 IntersectionWordPos = FromScreenToWorld(ViewInversMatrix, IntersectionClipXY, FoV, PrjPlaneWInverseH, IntersectionBBuferInfo.z);
-	vec4 IntersectionCameraSpace = ViewMatrix * IntersectionWordPos ;
-  vec3 LightDirection = normalize(IntersectionWordPos - WorldPos.xyz);
+   vec4 IntersectionBBuferInfo = texture2D(BBuffer, IntersectionInfo.xy);
+   vec2 IntersectionScreenPos = IntersectionInfo.xy * ScreenWH;
+   vec2 IntersectionClipXY = (vec2(1.0) - IntersectionScreenPos.xy) * 2.0 - vec2(1.0);
+   vec4 IntersectionWordPos = FromScreenToWorld(ViewInversMatrix, IntersectionClipXY, FoV, PrjPlaneWInverseH, IntersectionBBuferInfo.z);
+   vec4 IntersectionCameraSpace = ViewMatrix * IntersectionWordPos ;
+   vec3 LightDirection = normalize(IntersectionWordPos.xyz - WorldPos.xyz);
 	
 
 
@@ -150,12 +157,13 @@ void main()
 	vec4 EffectData = texture2D(CBuffer, textureCoord.xy);
 	float Roughness = EffectData.r;
 	float Gloss = 1.0 - Roughness ;
-	float SpecularPower = RoghnessToSpecularPower(Roughness , LightDirection, ViewDirection, Normal);
-	float ConeTheta = SpecularPowerToConeTheta(SpecularPower);
+	//float SpecularPower = RoghnessToSpecularPower(Roughness , LightDirection, ViewDirection, Normal);
+	//float ConeTheta = SpecularPowerToConeTheta(SpecularPower) * 0.5;
+	float ConeTheta =  PI/2.0 * pow(Roughness , 2.0)/2.0;
 	float MaxMipLevel = MipLevelNum - 1.0f; 
 	
 	
-  vec4 FinalColor = vec4(0.0);
+    vec4 FinalColor = vec4(0.0);
 	float GlossMult = Gloss;
 	float RemaingAlpha = 1.0f;
 	for(float i = 0 ;i < 14; i++)
@@ -165,7 +173,7 @@ void main()
 		
 		vec2 SamplePos = ScreenSpacePos + UnitAdjacent *(AdjacentLenght - InRadius);
 		
-		float MipLevel = clamp(log2(InRadius * max(ScreenWH.x , ScreenWH.y)), 0.0, MaxMipLevel);
+		float MipLevel = clamp(log2(InRadius), 0.0, MaxMipLevel);
 		SamplePos /= ScreenWH;
 		vec4 NewColor = ConeSampleWeightedColor(SamplePos, MipLevel, GlossMult);
 		
@@ -177,24 +185,21 @@ void main()
 		
 		FinalColor += NewColor;
 		if(FinalColor.a > 1.0)
-		break;
+		  break;
 		
 		AdjacentLenght = IsoscelesTriangleNextAdjacent(AdjacentLenght, InRadius);
 		GlossMult *= Gloss;
 	}
-	
-	//FinalColor = ConeSampleWeightedColor(IntersectionInfo.xy, 0, 1);
-	//RemaingAlpha -= GlossMult;
-	
    vec4  BaseColorMapData  = texture2D(ABuffer, textureCoord.xy) ;
    vec3  BaseColor = BaseColorMapData.xyz ;
    float Specular = BaseColorMapData.w ;
    float Metalic = EffectData.g ;
-   vec3 Albedo , RealSpecular ;
-   ComputeAlbedoAndSpecular(BaseColor , Metalic , Specular , Albedo , RealSpecular) ;
+   vec3 SpecularColor ;
+   SpecularColor = ComputeSpecularColor(BaseColor, Specular, Metalic);
    float NoV = max(dot(Normal , ViewDirection) , 0.0) ;
-   vec3 F = FresnelSchlick( NoV ,RealSpecular) ;
-   
+   vec2 Brdf = texture(IBL_LUT, vec2( 1 - NoV , Roughness)).xy ; // LUT 有问题
+   vec3 F = SpecularColor * Brdf.x + Brdf.y;
+  
    
    // fade rays close to screen edge
     //vec2 boundary = abs(IntersectionInfo.xy - vec2(0.5f, 0.5f)) * 2.0f;
@@ -214,29 +219,13 @@ void main()
     float fadeOnDistance = 1.0f - saturate(distance(IntersectionCameraSpace, CameraSpacePos) / (NearFar.x - NearFar.y));
     // ray tracing steps stores rdotv in w component - always > 0 due to check at start of this method
     float fadeOnPerpendicular = min(1.0, saturate(saturate(IntersectionInfo.w * 4.0f)));
-    float fadeOnRoughness = min(saturate(Gloss * 4.0f) ,1.0);
+    float fadeOnRoughness = min(saturate(1- Roughness * 4.0f) ,1.0);
     float totalFade = fadeOnBorder * fadeOnDistance * fadeOnPerpendicular * fadeOnRoughness * (1.0f - saturate(RemaingAlpha));
 	
-  // totalFade = fadeOnBorder * fadeOnDistance * fadeOnPerpendicular * fadeOnRoughness * (1.0f - saturate(RemaingAlpha));
-  // FinalFilterResult.rgb = FinalColor.rgb  ;
-  // FinalFilterResult.w = totalFade;
-  // FinalFilterResult /= (FinalFilterResult + vec4(1.0)); 
-  // return;
-   
-   
-   vec3 fallbackColor = vec3(0.0);// IndirectLight
-   fallbackColor = texture2D(FinalRenderResult, textureCoord.xy ,0).rgb;
-   FinalColor.rgb = FinalColor.rgb * F ;//* totalFade;
-   FinalColor.r = saturate(FinalColor.r);
-   FinalColor.g = saturate(FinalColor.g);
-   FinalColor.b = saturate(FinalColor.b);
-   
-   FinalFilterResult = vec4(fallbackColor + FinalColor.rgb , 1.0f);
-   //FinalFilterResult.rgb = fallbackColor + FinalColor.rgb* totalFade;
-   
-   FinalFilterResult.w = 1.0f;
-   //FinalFilterResult /= (FinalFilterResult + vec4(1.0)); 
-   //FinalFilterResult = vec4(totalFade ,totalFade ,totalFade , length(FinalFilterResult.rgb));
-   //FinalFilterResult.rgb = texture2D(FinalRenderResult, IntersectionInfo.xy,0).rgb;
-   
+	totalFade = fadeOnBorder * fadeOnDistance ;
+ 
+    vec3 fallbackColor = vec3(0.0);// IndirectLight
+   fallbackColor = textureLod(FinalRenderResult, textureCoord.xy ,0).rgb;
+   FinalColor.rgb = FinalColor.rgb * F * fadeOnRoughness;  
+   FinalFilterResult = vec4(fallbackColor + FinalColor.rgb , 1.0f); 
 }
