@@ -53,8 +53,7 @@ public:
 
 	BWVector3D CameraPosition;
 	BWCamera * tmp;
-	float Roghness;
-	float NormalReflectance;
+
 
 
 	

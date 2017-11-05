@@ -41,6 +41,7 @@ struct RSGraphicPipelineState
 	RasterizerStateHIRef RasterizerState;
 	BlendStateHIRef BlendState;
 	DepthAndStencilStateHIRef DepthAndStencilState;
+	ColorMaskStateHIRef ColorMaskState;
 	//BWHighLevelGpuProgramPtr GPUProgram;
 	BWGpuProgramUsagePtr GPUProgramUsage;
 };
@@ -120,6 +121,7 @@ public:
 	virtual DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) { return nullptr; }
 	virtual SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
 	virtual BlendStateHIRef CreateBlendStateHI(StaticBlendStateInitializer& Initializer) { return  nullptr; }
+	virtual ColorMaskStateHIRef CreateColorMaskState(StaticColorMaskStateInitializer& Initializer) { return nullptr; }
 	virtual void RenderOperation(BWRenderOperation &RenderOperation, BWHighLevelGpuProgramPtr GPUProgram) { };
 	
 protected:
@@ -134,8 +136,8 @@ protected:
 	
 	BWTexturePtr BloomTexture;
 	BWTexturePtr ToneMapTexture;
-	BWHighLevelGpuProgramPtr EmptyGPUProgram;
-	BWGpuProgramUsagePtr EmptyGPUProgramUsage;
+	BWHighLevelGpuProgramPtr DownSampleGPUProgram;
+	BWGpuProgramUsagePtr DownSampleGPUProgramUsage;
 	BWHighLevelGpuProgramPtr ComputeLumValue;
 	BWGpuProgramUsagePtr ComputeLumUsage;
 	BWHighLevelGpuProgramPtr ComputeBloomProgram;
@@ -178,7 +180,10 @@ public:
 	bool IsEnableSSAO{ true };
 	float InExposeScale{ 0.0f };
 	float CubemapMaxMip{ 6.0f };
-	float ExposureBias{ 4.0 };
+	float ExposureBias{ 4.0f };
+	float TonemapKey{ 1.0f };
+
+	float TempDeltal{ 0.0f };
 //////////////////////////////////////////
 protected:
 	// 全局数据
@@ -295,12 +300,14 @@ protected:
 	BWHardwareDepthBufferPtr GDepthBuffer;
 	BWTexturePtr FinalRenderResult;
 	std::vector<BWTexturePtr> HolderTexturesFor2D;
-	
+	BWTexturePtr Texure2DForFilter;
 
 	BWMaterialPtr AmbientOcclusionMaterial;
 	BWTexturePtr AOSamplerTexture;
 	BWGpuProgramUsagePtr AmbientOcclusionProgramUage;
 	BWHighLevelGpuProgramPtr AmbientOcclusionGPUProgram;
+	BWGpuProgramUsagePtr AmbientOcculusioinFilterProgramUsage;
+	BWHighLevelGpuProgramPtr AmbientOcculusionFilterGPUProgram;
 
 	BWRenderTarget* ShadowMapTarget;
 	BWMaterialPtr DirectionLightShadowMapM;
@@ -314,10 +321,10 @@ protected:
 	void RenderTemporalAA();
 	void RenderScreenSpaceReflection();
 
-
+	template<bool Red, bool Green, bool Blue, bool Alpha>
 	void FilterTexture(BWTexturePtr SourceImage);
-	void ScaleCopy(BWTexturePtr From, BWTexturePtr To, int MipmapLevel);
-	void GenerateTextureFilterdMipMap(BWTexturePtr SourceImage);
+	void ProcessTexture(BWTexturePtr SourceTexture, BWTexturePtr ReslutTexture, int ReslutMipLevel, RSGraphicPipelineState& PipelineState);
+	void GenerateTextureFiltedMipMap(BWTexturePtr SourceImage);
 	virtual void RenderLightsShadowMaps();
 	virtual void FinishLightsShadowMaps() {}
 	virtual void SetRenderShadowMapRenderTarget() { };

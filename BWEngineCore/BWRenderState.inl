@@ -34,3 +34,16 @@ template < bool IsEnableBlend /*= false*/,
 	return BWRoot::GetInstance()->mActiveRenderSystem->CreateBlendStateHI(Initializer);
 }
 
+
+
+template<bool Red /*= true*/,
+	bool Green /*= true*/,
+	bool Blue /*= true*/,
+	bool Alpha /*= true
+			   */>
+ColorMaskStateHIRef TStaticColorMaskState<Red, Green, Blue, Alpha>::CreateHI()
+{
+	StaticColorMaskStateInitializer  Initializer = { Red , Green, Blue, Alpha };
+	return BWRoot::GetInstance()->mActiveRenderSystem->CreateColorMaskState(Initializer);
+}
+

@@ -3,6 +3,7 @@
 #include "BWSingleton.h"
 #include "BWRenderSystem.h"
 #include "BWRenderTarget.h"
+#include <time.h>
 class BWRoot : public BWSingleton<BWRoot>
 {
 	
@@ -22,6 +23,7 @@ public:
 	BWRenderWindow* getFinalWindow();
 	bool  InitRenderWindow();
 	static BWRoot *GetInstance();
+	double GetDeltaTime() const { return FrameDuringTime; }
 	BWRenderSystem *mActiveRenderSystem;
 private:
 	bool _fireFrameStarted();// 一帧渲染开始前
@@ -32,6 +34,12 @@ private:
 	bool mQuit;
 	bool mIsInitialised;
 	
+	///////
+	clock_t FrameStartTime;
+	clock_t FrameEndTime;
+	double FrameDuringTime{ 0.0f };
+
+
 	BWRenderWindow *mRenderWindow;
 	BWSceneManager *mSceneManager;
 };

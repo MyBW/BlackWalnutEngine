@@ -46,6 +46,9 @@ bool BWRoot::InitRenderWindow()
 }
 void BWRoot::clearEventTime()
 {
+	FrameStartTime = 0.0;
+	FrameEndTime = 0.0;
+	FrameDuringTime = 0.0;
 
 }
 void BWRoot::startRendering()
@@ -104,6 +107,12 @@ BWSceneManager* BWRoot::createSceneManager()
 }
 bool BWRoot::_fireFrameEnded()
 {
+	FrameEndTime = clock();
+	FrameDuringTime = (double)(FrameEndTime - FrameStartTime) / CLOCKS_PER_SEC;
+
+	std::string FPS = "FPS : ";
+	FPS += std::to_string(int(1.0/FrameDuringTime));
+	BWLOG(FPS);
 	return true;
 }
 bool BWRoot::_fireFrameRenderingQueued()
@@ -112,5 +121,6 @@ bool BWRoot::_fireFrameRenderingQueued()
 }
 bool BWRoot::_fireFrameStarted()
 {
+	FrameStartTime = clock();
 	return true;
 }

@@ -75,6 +75,31 @@ public:
 	static DepthAndStencilStateHIRef CreateHI();
 };
 
+class ColorMaskStateHI : public StateHI
+{
+
+};
+using ColorMaskStateHIP = ColorMaskStateHI*;
+using ColorMaskStateHIRef = SmartPointer<ColorMaskStateHI>;
+struct StaticColorMaskStateInitializer
+{
+	bool Red;
+	bool Green;
+	bool Blue;
+	bool Alpha;
+};
+template<bool Red = true,
+	bool Green = true,
+	bool Blue = true,
+	bool Alpha = true
+>
+class TStaticColorMaskState :public TStaticStateHI<TStaticColorMaskState<Red, Green, Blue, Alpha>, ColorMaskStateHIRef, ColorMaskStateHIP>
+{
+public:
+	static ColorMaskStateHIRef CreateHI();
+};
+
+
 class SamplerStateHI : public StateHI
 {
 };
