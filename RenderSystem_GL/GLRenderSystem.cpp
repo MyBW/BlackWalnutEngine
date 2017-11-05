@@ -1898,11 +1898,6 @@ void GLRenderSystem::SetGraphicsPipelineState(RSGraphicPipelineState& InPipeline
 		Helper::SetIsEnableState(DepthAndStencilState->IsEnableDepthTest, GL_DEPTH_TEST);
 		CHECK_GL_ERROR(glDepthMask(DepthAndStencilState->IsEnableDepthWrite));
     }
-	/*if (CachedPipelineState.GPUProgram != InPipelineState.GPUProgram)
-	{
-		CachedPipelineState.GPUProgram = InPipelineState.GPUProgram;
-		dynamic_cast<GLSLGpuProgram*>(CachedPipelineState.GPUProgram.Get())->bind();
-	}*/
 	if (InPipelineState.BlendState.Get() && CachedPipelineState.BlendState != InPipelineState.BlendState)
 	{
 		CachedPipelineState.BlendState = InPipelineState.BlendState;
@@ -1919,6 +1914,10 @@ void GLRenderSystem::SetGraphicsPipelineState(RSGraphicPipelineState& InPipeline
 			CHECK_GL_ERROR(glBlendEquation(BlendState->RGBBlendEquation));
 			CHECK_GL_ERROR(glBlendFunc(BlendState->RGBFactorS, BlendState->RGBFactorD));
 		}
+	}
+	if (InPipelineState.ColorMaskState.Get() && CachedPipelineState.ColorMaskState != InPipelineState.ColorMaskState)
+	{
+		SetColorMaskState(InPipelineState.ColorMaskState);
 	}
 	CachedPipelineState.GPUProgramUsage = InPipelineState.GPUProgramUsage;
 }
@@ -2037,24 +2036,17 @@ void GLRenderSystem::SetShaderTextureImmediately(const std::vector<RSShaderTextu
 
 void GLRenderSystem::ClearRenderTarget(unsigned int buffers, const ColourValue &color /*= ColourValue::Black */, float depth /*= 1.0 */, unsigned short stencil /*= 0 */)
 {
-	bool colourMaks = !mColourWrite[0] || !mColourWrite[1] || !mColourWrite[2] || !mColourWrite[3];
 	unsigned int flag = 0;
 	if (buffers & FBT_COLOUR)
 	{
 		flag |= GL_COLOR_BUFFER_BIT;
-		if (colourMaks)
-		{
-			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		}
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glClearColor(color.r, color.g, color.b, color.a);
 	}
 	if (buffers & FBT_DEPTH)
 	{
 		flag |= GL_DEPTH_BUFFER_BIT;
-		if (!mDepthWrite)
-		{
-			glDepthMask(GL_TRUE);
-		}
+		glDepthMask(GL_TRUE);
 		glClearDepth(depth);
 	}
 	if (buffers & FBT_STENCIL)
@@ -2077,7 +2069,6 @@ void GLRenderSystem::ClearRenderTarget(unsigned int buffers, const ColourValue &
 	{
 		glScissor(viewport[0], viewport[1], viewport[2], viewport[3]);
 	}
-
 	glClear(flag);
 	if (scissorboxDifference)
 	{
@@ -2087,18 +2078,8 @@ void GLRenderSystem::ClearRenderTarget(unsigned int buffers, const ColourValue &
 	{
 		glDisable(GL_SCISSOR_TEST);
 	}
-	if (!mDepthWrite && (buffers & FBT_DEPTH))
-	{
-		glDepthMask(GL_FALSE);
-	}
-	if (colourMaks && (buffers & FBT_COLOUR))
-	{
-		glColorMask(mColourWrite[0], mColourWrite[1], mColourWrite[2], mColourWrite[3]);
-	}
-	if (buffers & FBT_STENCIL)
-	{
-		glStencilMask(mStencilMask);
-	}
+	SetDepthAndStencilState(CachedPipelineState.DepthAndStencilState);
+	SetColorMaskState(CachedPipelineState.ColorMaskState);
 }
 
 void GLRenderSystem::ReadSurfaceData(BWTexturePtr SourceTexture, int Index, int MipLevel, BWPixelBox& Destination)
@@ -2201,6 +2182,32 @@ BlendStateHIRef GLRenderSystem::CreateBlendStateHI(StaticBlendStateInitializer& 
 	return RenderState;
 }
 
+
+ColorMaskStateHIRef GLRenderSystem::CreateColorMaskState(StaticColorMaskStateInitializer& Initializer)
+{
+	GLStaticColorMaskState* ColorMask = new GLStaticColorMaskState();
+	ColorMask->Red = Helper::GetBool(Initializer.Red);
+	ColorMask->Green = Helper::GetBool(Initializer.Green);
+	ColorMask->Blue = Helper::GetBool(Initializer.Blue);
+	ColorMask->Alpha = Helper::GetBool(Initializer.Alpha);
+	return ColorMask;
+}
+
+void GLRenderSystem::SetColorMaskState(ColorMaskStateHIRef ColorMask)
+{
+	CachedPipelineState.ColorMaskState = ColorMask;
+	GLStaticColorMaskState* ColorMaskState = dynamic_cast<GLStaticColorMaskState*>(ColorMask.Get());
+	glColorMask(ColorMaskState->Red, ColorMaskState->Green, ColorMaskState->Blue, ColorMaskState->Alpha);
+}
+
+void GLRenderSystem::SetDepthAndStencilState(DepthAndStencilStateHIRef InDepthAndStencilState)
+{
+	CachedPipelineState.DepthAndStencilState = InDepthAndStencilState;
+	GLStaticDepthAndStencilState* DepthAndStencilState = dynamic_cast<GLStaticDepthAndStencilState*>(InDepthAndStencilState.Get());
+	Check(DepthAndStencilState);
+	Helper::SetIsEnableState(DepthAndStencilState->IsEnableDepthTest, GL_DEPTH_TEST);
+	CHECK_GL_ERROR(glDepthMask(DepthAndStencilState->IsEnableDepthWrite));
+}
 
 void GLRenderSystem::ClearTextureResource()
 {

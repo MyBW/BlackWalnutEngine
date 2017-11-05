@@ -40,3 +40,12 @@ public:
 	GLenum AlphaFactorS;
 	GLenum AlphaFactorD;
 };
+
+class GLStaticColorMaskState : public ColorMaskStateHI
+{
+public: 
+	GLenum Red;
+	GLenum Green;
+	GLenum Blue;
+	GLenum Alpha;
+};

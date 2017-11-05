@@ -78,6 +78,9 @@ public:
 	DepthAndStencilStateHIRef CreateDepthAndStencilHI(DepthAndStencilInitializer& Initializer) override;
 	SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) override;
 	BlendStateHIRef CreateBlendStateHI(StaticBlendStateInitializer& Initializer) override;
+	ColorMaskStateHIRef CreateColorMaskState(StaticColorMaskStateInitializer& Initializer) override;
+	void SetColorMaskState(ColorMaskStateHIRef ColorMask);
+	void SetDepthAndStencilState(DepthAndStencilStateHIRef DepthAndStencilState);
 protected:
 	void ClearTextureResource() override;
 public:

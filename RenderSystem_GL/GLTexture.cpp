@@ -283,6 +283,31 @@ void GLTexture::Resize(int Width, int Height)
 	ResizeInteranl(Width, Height);
 	glBindTexture(GetGLTextureTarget(), CurrentBindTextureID);
 }
+
+void GLTexture::GenerateMipmapForTest(int MipmapNum)
+{
+	if (MipmapNum != mNumMipmaps)
+	{
+		mNumMipmaps = MipmapNum;
+		GLint CurrentBindTextureID;
+		glGetIntegerv(GetGLTextureTarget(), &CurrentBindTextureID);
+		glBindTexture(GetGLTextureTarget(), mTextureID);
+		size_t maxMipmaps = GLPixelUtil::getMaxMipmaps(mWidth, mHeight, mDepth);
+		if (mNumMipmaps > maxMipmaps)
+		{
+			mNumMipmaps = maxMipmaps;
+		}
+		if (mNumMipmaps == 0)
+		{
+			mNumMipmaps = 1;
+		}
+		CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
+		CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps - 1));//从0开始计数//开启这一项后会导致绑定到framebuffer上出现问题
+		glGenerateMipmap(GetGLTextureTarget());
+		glBindTexture(GetGLTextureTarget(), CurrentBindTextureID);
+	}
+}
+
 void GLTexture::createInternalResourcesWithImageImpl(const ConstImagePtrList& images)
 {
 	if (mTextureType == TEX_TYPE_2D)
