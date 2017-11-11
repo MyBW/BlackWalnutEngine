@@ -109,6 +109,9 @@ void GLSLGpuProgram::LoadFromSource()
 		case GPT_GEOMETRY_PROGRAM:
 			shaderType = GL_GEOMETRY_SHADER;
 			break;
+		case GPT_COMPUTE_PROGRAM:
+			shaderType = GL_COMPUTE_SHADER;
+			break;
 		default:
 			break;
 		}
@@ -523,6 +526,15 @@ void GLSLGpuProgram::bind()
 		Load();
 	}
 	CHECK_GL_ERROR(glUseProgram(mID));
+	
+	for each (BWShaderPtr Shader in mShaderList)
+	{
+		if (Shader->getShaderType() == ST_COMPUTE_SHADER)
+		{
+			CHECK_GL_ERROR(glDispatchCompute(DimentsionX, DimentsionY, DimentsionZ));
+		}
+	}
+
 	UBOMap::iterator itor = mUBOMap.begin();
 	while (itor != mUBOMap.end())
 	{

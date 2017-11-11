@@ -28,6 +28,10 @@ GLenum GLSLShader::shaderGLType() const
 		return GL_VERTEX_SHADER;
 	case ST_FRAGMENT_SHADER:
 		return GL_FRAGMENT_SHADER;
+	case ST_GEOMETRY_SHADER:
+		return GL_GEOMETRY_SHADER;
+	case ST_COMPUTE_SHADER:
+		return GL_COMPUTE_SHADER;
 	}
 	Log::GetInstance()->logMessage("There is wrong  shader type", false);
 	assert(0);
@@ -266,15 +270,13 @@ void GLSLShader::createInConstant(std::string &inConstant)
 void GLSLShader::createNamedConstant()
 {
 	// 这里并没有考虑layout关键字
-	
-	bool IsTargetFile = (mFileName == std::string("PreprocessEvnMap.vert"));
 	if (compileShader() && mIsCreateNamedConstant == false)
 	{
 		namedConstantes->clearData();
 		mUBOInfor.clear();
 		if (mShaderType == ST_VERTEX_SHADER)
 		{
-			std::size_t currPos = mShaderSource.find("in ");//这里要加空格 因为可能和int冲突
+			std::size_t currPos = mShaderSource.find("in ");//there must have space. otherwise will confuse with "int".
 			while (currPos != std::string::npos)
 			{
 				std::string sentence = mShaderSource.substr(currPos, mShaderSource.find_first_of(';', currPos) - currPos);
@@ -304,6 +306,15 @@ void GLSLShader::createNamedConstant()
 			//	createOutConstant(sentence);
 			//	currPos = mShaderSource.find("out ", currPos + 4);
 			//}
+		}
+		if (mShaderType == ST_GEOMETRY_SHADER)
+		{
+		 // 对于Geometry Shader而言 能受application控制的 只是out 和 in 变量 这些一般是不暴露给外部应用程序的
+		 // 所以 这里一般什么都不做 
+		}
+		if (mShaderType == ST_COMPUTE_SHADER)
+		{
+			// Computer Shader 比较特殊 以后可能会单独抽象出来处理
 		}
 		// 解析uniform变量
 		std::size_t currPos = mShaderSource.find("uniform");

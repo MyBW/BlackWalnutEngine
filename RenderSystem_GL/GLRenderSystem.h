@@ -69,6 +69,7 @@ public:
 	void SetRenderTargets(RSRenderTargets& InRenderTargets) override;
 	void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
 	void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler) override;
+	void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format) override;
 	void ClearRenderTarget(unsigned int buffers, const ColourValue &color  = ColourValue::Black , float depth  = 1.0 , unsigned short stencil = 0 );
 	void ReadSurfaceData(BWTexturePtr SourceTexture, int Index, int MipLevel, BWPixelBox& Destination) override;
 	void RenderOperation(BWRenderOperation & RenderOperation, BWHighLevelGpuProgramPtr GPUProgram) override;

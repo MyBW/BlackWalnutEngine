@@ -33,6 +33,7 @@
 #include "GLHelper.h"
 #include "GLPixelUtil.h"
 #include "../BWEngineCore/BWRenderSystem.h"
+#include "GLImageTextureBuffer.h"
 
 
 #define  VBO_BUFFER_OFFSET(i) ((char*)NULL + (i))
@@ -1997,6 +1998,13 @@ void GLRenderSystem::SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTex
 	
 }
 
+
+void GLRenderSystem::SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format)
+{
+	GLImageTextureBuffer* ImageTextureBuffer = dynamic_cast<GLImageTextureBuffer*>(ImageTexture.Get());
+	GLenum GLFormat = GLPixelUtil::getGLInternalFormat(Format);
+	glBindImageTexture(ImageTextureBuffer->GetIndex(), ImageTextureBuffer->GetTextureID(), MipLevel, GL_FALSE, 0, GL_READ_WRITE, GLFormat);
+}
 
 void GLRenderSystem::SetShaderTextureImmediately(const std::vector<RSShaderTexture>& InShaderTexures)
 {

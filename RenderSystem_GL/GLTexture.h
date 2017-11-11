@@ -15,7 +15,7 @@ public:
 	GLenum GetGLTextureTarget();
 	GLenum getTextureBufferAttachment() const;
 	GLuint GetHIID(){ return mTextureID; }
-	void Resize(int Width, int Height) override;
+	void Resize(int Width, int Height, int Depth = 1) override;
 	void GenerateMipmapForTest(int MipmapNum) override;
 	FORCEINLINE void SetHIID(GLuint NewHIID) { mTextureID = NewHIID; }
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget ,int Index , int MipLevel = 0) override;
@@ -29,7 +29,7 @@ protected:
 	void createRenderTexture();
 	void createInternalResourcesImpl(const void *Data) override;
 	void freeInternalResourcesImpl();
-	void ResizeInteranl(int Width, int Height , const void *Data = nullptr);
+	void ResizeInteranl(int Width, int Height , int Depth = 1, const void *Data = nullptr);
 	void createInternalResourcesWithImageImpl(const ConstImagePtrList& images) override;
 
 	void prepareImpl();

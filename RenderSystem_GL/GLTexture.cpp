@@ -47,9 +47,9 @@ void GLTexture::freeInternalResourcesImpl()
 
 }
 
-void GLTexture::ResizeInteranl(int Width, int Height ,const void *Data)
+void GLTexture::ResizeInteranl(int Width, int Height, int Depth, const void *Data)
 {
-	mWidth = Width; mHeight = Height;
+	mWidth = Width; mHeight = Height; mDepth = Depth;
 	size_t maxMipmaps = GLPixelUtil::getMaxMipmaps(mWidth, mHeight, mDepth);
 	mNumMipmaps = mNumRequestedMipmaps;
 	if (mNumMipmaps > maxMipmaps)
@@ -81,6 +81,10 @@ void GLTexture::ResizeInteranl(int Width, int Height ,const void *Data)
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, Data);
 		}
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+	if (mTextureType == TEX_TYPE_3D)
+	{
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, mWidth, mHeight, mDepth, 0, GL_RGBA, GL_FLOAT, Data);
 	}
 	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
 	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps - 1));//从0开始计数//开启这一项后会导致绑定到framebuffer上出现问题
@@ -273,14 +277,14 @@ GLenum GLTexture::getTextureBufferAttachment() const
 {
 	return mAttachment;
 }
-void GLTexture::Resize(int Width, int Height)
+void GLTexture::Resize(int Width, int Height, int Depth)
 {
 	if (!glIsTexture(mTextureID)) return;
-	if (Width == mWidth && Height == mHeight) return;
+	if (Width == mWidth && Height == mHeight && mDepth == Depth) return;
 	GLint CurrentBindTextureID;
 	glGetIntegerv(GetGLTextureTarget(), &CurrentBindTextureID);
 	glBindTexture(GetGLTextureTarget(), mTextureID);
-	ResizeInteranl(Width, Height);
+	ResizeInteranl(Width, Height, Depth);
 	glBindTexture(GetGLTextureTarget(), CurrentBindTextureID);
 }
 
@@ -445,7 +449,7 @@ void GLTexture::createInternalResourcesImpl(const void *Data)
 	glGetIntegerv(GetGLTextureTarget(), &CurrentBindTextureID);
 	glGenTextures(1, &mTextureID);
 	glBindTexture(GetGLTextureTarget(), mTextureID);
-	ResizeInteranl(mWidth, mHeight, Data);
+	ResizeInteranl(mWidth, mHeight, mDepth, Data);
 	glBindTexture(GetGLTextureTarget(), CurrentBindTextureID);
 	//简化纹理载入流程 暂时这样处理
 	return;
