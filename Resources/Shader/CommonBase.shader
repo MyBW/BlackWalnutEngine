@@ -8,9 +8,6 @@ fragment_shader  CommnonBaseFragmentShader glsl
    Source  UBOTest.frag
 }
 
-
-
-
 vertex_shader  DefferCommnonBaseVertexShader glsl
 {
     Source  DefferTest.vert
@@ -20,8 +17,6 @@ fragment_shader  DefferCommnonBaseFragmentShader glsl
 {
    Source  DefferTest.frag
 }
-
-
 
 vertex_shader  DefferRenderingVertexShader glsl
 {
@@ -252,4 +247,25 @@ fragment_shader ScreenSpaceReflectionFragment glsl
 {
   Source ScreenSpaceReflection.frag
 }
+
+fragment_shader TestForGeometryVertex glsl
+{
+  Source TestForGeometry.vert
+}
+
+fragment_shader TestForGeometryFragment glsl
+{
+  Source TestForGeometry.frag
+}
+
+geometry_shader TestForGeometryGeometry glsl
+{
+  Source TestForGeometry.geom
+}
+
+compute_shader TestForComputerShader glsl
+{
+  Source TestForComputer.comp
+}
+
 

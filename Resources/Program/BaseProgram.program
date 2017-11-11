@@ -190,4 +190,15 @@
 	  vertex_shader_ref DefferDirectLightingVertex
 	  fragment_shader_ref ScreenSpaceReflectionFragment
 	}
-	
+
+	gpu_program RenderSystem_TestForGeometry GLSL
+	{
+	  vertex_shader_ref TestForGeometryVertex
+	  fragment_shader_ref TestForGeometryFragment
+	  geometry_shader_ref TestForGeometryGeometry
+	}
+
+    gpu_program RenderSystem_TestForComputeSahder  GLSL
+    {
+       compute_shader_ref TestForComputerShader
+    }

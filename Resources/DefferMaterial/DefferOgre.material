@@ -680,3 +680,31 @@ material ScreenSpaceReflection
 		}
 	}
 }
+
+
+material TestForGeometryShader
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref RenderSystem_TestForGeometry GLSL
+			{
+			}
+		}
+	}
+}
+
+material TestForComputeShader
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref RenderSystem_TestForComputeSahder GLSL
+			{
+			}
+		}
+	}
+}
+
