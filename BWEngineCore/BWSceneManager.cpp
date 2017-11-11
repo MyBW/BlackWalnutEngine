@@ -604,7 +604,12 @@ void BWSceneManager::renderSingleObject(  BWRenderable *renderable, const BWPass
 		mActiveRenderSystem->setCurrentPassIterationCount(1);
 		if (renderable->preRender(this, mActiveRenderSystem))
 		{
+			if (mActiveRenderSystem->IsEnableSparseVexelGI)
+			{
+				mActiveRenderSystem->DynamicGenerateVoxel(ro);
+			}
 			mActiveRenderSystem->_render(ro);
+
 		}
 		renderable->postRender(this, mActiveRenderSystem);
 	}

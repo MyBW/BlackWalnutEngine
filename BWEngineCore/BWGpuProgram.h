@@ -9,6 +9,7 @@ enum GpuProgramType
 	GPT_VERTEX_PROGRAM,
 	GPT_FRAGMENT_PROGRAM,
 	GPT_GEOMETRY_PROGRAM,
+	GPT_COMPUTE_PROGRAM,
 	GPT_GPU_PROGRAM
 };
 class BWGpuProgram;
@@ -49,7 +50,7 @@ public:
 	virtual BWGpuProgramParametersPtr CreateParameter();
 	virtual void CreateParameterMappingStructure(bool recreatIfExists) const;
 	virtual bool getPassTransformStates() const { return false; }
-
+	
 
 protected:
 	void prepareImpl(){ }

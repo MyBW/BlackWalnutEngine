@@ -123,3 +123,10 @@ bool BWHighLevelGpuProgram::addShader(BWShaderPtr shader)
 	}
 	mShaderList.push_back(shader);
 }
+
+void BWHighLevelGpuProgram::SetCoputerShaderDimentsion(int InDimentsionX, int InDimentsionY, int InDimentsionZ)
+{
+	InDimentsionX <= 0 ? DimentsionX = 1 : DimentsionX = InDimentsionX;
+	InDimentsionY <= 0 ? DimentsionY = 1 : DimentsionY = InDimentsionY;
+	InDimentsionZ <= 0 ? DimentsionZ = 1 : DimentsionZ = InDimentsionZ;
+}

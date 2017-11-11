@@ -1,6 +1,8 @@
 #ifndef HARDWAREBUFFER_H_
 #define HARDWAREBUFFER_H_
 #include <string>
+
+
 class BWHardwareBuffer
 {
 public:
@@ -57,6 +59,7 @@ public:
 	};
 	BWHardwareBuffer(const std::string& name ,Usage usage , bool systemMemory , bool isUseShadowBuffer);
 	virtual ~BWHardwareBuffer();
+	virtual void ResizeBuffer(int InSize){ }
 	void* lock(BWHardwareBuffer::LockOptions option);
 	virtual void* lock(size_t offset, size_t length, BWHardwareBuffer::LockOptions option); //向gpu 或者 系统（如果使用了shadowbuffer）申请内存 并返回内存的首地址
 	virtual void  unlock(); // 将数据上传至buffer

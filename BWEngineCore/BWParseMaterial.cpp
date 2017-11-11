@@ -490,6 +490,8 @@ void Parser::InitPaser()
 	mIds["gpu_program_ref"] = ID_GPU_PROGRAM_REF;
 	mIds["vertex_shader_ref"] = ID_VERTEX_SHADER_REF; 
 	mIds["fragment_shader_ref"] = ID_FRAGMENT_SHADER_REF;
+	mIds["geometry_shader_ref"] = ID_GEOMETRY_SHADER_REF;
+	mIds["compute_shader_ref"] = ID_COMPUTE_SHADER_REF;
 	mIds["gpu_program"] = ID_GPU_PROGRAM;
 	mIds["lod_values"] = ID_LOD_VALUES;
 	mIds["lod_strategy"] = ID_LOD_STRATEGY;
@@ -995,26 +997,25 @@ bool Parser::parseGPUProgram(BWDataStream &dataStream, BWHighLevelGpuProgramPtr 
 		{
 			return true;
 		}
-
+		if (parem.size() != 2)
+		{
+			assert(0);
+		}
+		shader = BWShaderManager::GetInstance()->CreateOrRetrieve(parem[1], gpuProgram->GetGroupName()).first;
+		gpuProgram->addShader(shader);
 		switch (mIds[parem[0]])
 		{
 		case ID_VERTEX_SHADER_REF:
-			if (parem.size() != 2)
-			{
-				assert(0);
-			}
-			shader = BWShaderManager::GetInstance()->CreateOrRetrieve(parem[1], gpuProgram->GetGroupName()).first;
 			shader->setShaderType(ST_VERTEX_SHADER);
-			gpuProgram->addShader(shader);
 			break;
 		case ID_FRAGMENT_SHADER_REF:
-			if (parem.size() != 2)
-			{
-				assert(0);
-			}
-			shader = BWShaderManager::GetInstance()->CreateOrRetrieve(parem[1], gpuProgram->GetGroupName()).first;
 			shader->setShaderType(ST_FRAGMENT_SHADER);
-			gpuProgram->addShader(shader);
+			break;
+		case ID_GEOMETRY_SHADER_REF:
+			shader->setShaderType(ST_GEOMETRY_SHADER);
+			break;
+		case ID_COMPUTE_SHADER_REF:
+			shader->setShaderType(ST_COMPUTE_SHADER);
 			break;
 		default:
 			break;

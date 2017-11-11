@@ -178,5 +178,5 @@ namespace HelperFunction
 
 #define MAX_CAST_SHADOW_MAP_NUM 3
 
-#define FORCEINLINE _forceinline
+#define FORCEINLINE __forceinline
 #endif

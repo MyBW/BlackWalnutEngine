@@ -28,6 +28,7 @@ public:
 
 	virtual bool  addShader(BWShaderPtr shader) ;
 	virtual bool  SetParameter(const std::string &name, void *value , GpuConstantType ConstantType) { return false; }
+	void SetCoputerShaderDimentsion(int InDimentsionX, int InDimentsionY, int InDimentsionZ);
 protected:
 	void prepareImpl(){ }
 	void preLoadImpl(){ }
@@ -43,6 +44,9 @@ protected:
 	typedef std::vector<BWShaderPtr> ShaderList;
 	ShaderList mShaderList;
 	bool mLinkeFinish;
+	int DimentsionX{ 1 };
+	int DimentsionY{ 1 };
+	int DimentsionZ{ 1 };
 };
 
 

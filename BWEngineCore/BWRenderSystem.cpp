@@ -158,29 +158,85 @@ void BWRenderSystem::_setTextureProjectionRelativeTo(bool camraRelativeRendering
 }
 void BWRenderSystem::_endFrame()
 {
-	//延迟渲染相关  
-	// Compute Ambient Occulusion Factor
-    RenderAmbientOcclusion();
-	//Local Lighting
-	RenderLights();
-	//Image Base Lighting
-	RenderInDirectLights();
+	if (IsEnableSparseVexelGI)
+	{
+		RenderGIWithSparseVoxelOctree();
+	}
+	else
+	{
+		//延迟渲染相关  
+		// Compute Ambient Occulusion Factor
+		RenderAmbientOcclusion();
+		//Local Lighting
+		RenderLights();
+		//Image Base Lighting
+		RenderInDirectLights();
 
-	//遮挡相关
+		//遮挡相关
 
-	//Simple Sky Box
-	RenderSkyBox();
+		//Simple Sky Box
+		RenderSkyBox();
 
-	//RenderMotionBlur();
+		//RenderMotionBlur();
 
+		RenderTemporalAA();
+
+		RenderScreenSpaceReflection();
+
+		RenderToneMap();
+	}
+	
+	
+	// Test For Geometry Shader
+	{
+		static BWGpuProgramUsagePtr TestForGeometryShader;
+		static BWHighLevelGpuProgramPtr TestForGeometryShaderPrg;
+		
+		static BWGpuProgramUsagePtr TestForComputeShader;
+		static BWHighLevelGpuProgramPtr TestForComputeShaderPrg;
+
+		{
+			auto LoadGUPUsageAndGPUProgram = [](std::string &MaterialName, BWGpuProgramUsagePtr& GPUUsage, BWHighLevelGpuProgramPtr& GPUProgram)
+			{
+				BWMaterialPtr Material = BWMaterialManager::GetInstance()->GetResource(MaterialName, "General");
+				if (Material.IsNull())
+				{
+					Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : Cant Get The  Material");
+					return;
+				}
+				Material->Load();
+				GPUUsage = Material->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
+				GPUProgram = GPUUsage->GetHighLevelGpuProgram();
+				GPUProgram->Load();
+			};
+			if (TestForGeometryShaderPrg.Get() == nullptr)
+			{
+				LoadGUPUsageAndGPUProgram(std::string("TestForGeometryShader"), TestForGeometryShader, TestForGeometryShaderPrg);
+			}
+			if (TestForComputeShaderPrg.Get() == nullptr)
+			{
+				LoadGUPUsageAndGPUProgram(std::string("TestForComputeShader"), TestForComputeShader, TestForComputeShaderPrg);
+			}
+		}
+
+
+		RSGraphicPipelineState PipeLine;
+		RSRenderTarget RenderTarget;
+		BWHighLevelGpuProgramPtr tmp;
+
+		PipeLine.GPUProgramUsage = TestForGeometryShader;
+		RenderTarget.Index = 0;
+		RenderTarget.MipmapLevel = 0;
+		RenderTarget.RenderTargetTexture = BWRenderSystem::FinalRenderResult;
+		BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(TestForGeometryShader->GetGpuProgramParameter());
+
+		SetGraphicsPipelineState(PipeLine);
+		SetRenderTarget(TestForGeometryShader, RenderTarget, GDepthBuffer);
+		RenderOperation(CubeMeshRenderOperation, tmp);
+	}
 	
 
-	RenderTemporalAA();
-	
-	RenderScreenSpaceReflection();
 
-	RenderToneMap();
-	
 
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->EndFrame();
 	CopyTextureToScreen(BWRenderSystem::FinalRenderResult, 0, 0);
@@ -865,6 +921,11 @@ void BWRenderSystem::SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTex
 	ShaderTextures.push_back(ShaderTexure);
 }
 
+void BWRenderSystem::SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format)
+{
+
+}
+
 void BWRenderSystem::ClearRenderTarget(unsigned int buffers, const ColourValue &color /*= ColourValue::Black*/, float depth /*= 1.0*/, unsigned short stencil /*= 0*/)
 {
 	
@@ -915,6 +976,16 @@ void BWRenderSystem::RenderLightsShadowMaps()
 		}
 	}
 	FinishLightsShadowMaps();
+}
+
+void BWRenderSystem::DynamicGenerateVoxel(const BWRenderOperation &ro)
+{
+
+}
+
+void BWRenderSystem::RenderGIWithSparseVoxelOctree()
+{
+
 }
 
 void BWRenderSystem::RenderAmbientOcclusion()

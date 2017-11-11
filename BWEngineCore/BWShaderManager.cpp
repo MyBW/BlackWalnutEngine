@@ -6,6 +6,8 @@ enum ShaderID
 {
 	ID_Vertex_Shader ,
 	ID_Fragment_Shader,
+	ID_Geometry_Shader,
+	ID_Compute_Shader,
 	ID_Use_Shader ,
 	ID_GLSL_Shader,
 	ID_Source_Shader
@@ -16,6 +18,8 @@ BWShaderPtr parseShader(BWDataStream &dataStream, const std::string &type, std::
 {
 	ParseMap["vertex_shader"] = ID_Vertex_Shader;
 	ParseMap["fragment_shader"] = ID_Fragment_Shader;
+	ParseMap["geometry_shader"] = ID_Geometry_Shader;
+	ParseMap["compute_shader"] = ID_Compute_Shader;
 	ParseMap["User"] = ID_Use_Shader;
 	ParseMap["glsl"] = ID_GLSL_Shader;
 	ParseMap["Source"] = ID_Source_Shader;
@@ -23,12 +27,10 @@ BWShaderPtr parseShader(BWDataStream &dataStream, const std::string &type, std::
 	BWShaderPtr shader = BWShaderManager::GetInstance()->CreateOrRetrieve(name, groupName).first;
 	switch (ParseMap[type])
 	{
-	case ID_Vertex_Shader:
-		shader->setShaderType(ST_VERTEX_SHADER);
-		break;
-	case ID_Fragment_Shader :
-		shader->setShaderType(ST_FRAGMENT_SHADER);
-		break;
+	case ID_Vertex_Shader:    shader->setShaderType(ST_VERTEX_SHADER);   break;
+	case ID_Fragment_Shader : shader->setShaderType(ST_FRAGMENT_SHADER); break;
+	case ID_Compute_Shader:  shader->setShaderType(ST_COMPUTE_SHADER); break;
+	case ID_Geometry_Shader:  shader->setShaderType(ST_GEOMETRY_SHADER); break; 
 	default:
 		assert(0);
 	}
@@ -101,7 +103,8 @@ void BWShaderManager::ParseScript(BWDataStream& dataStream , const std::string &
     while (!dataStream.Eof())
     {
 		line = dataStream.GetLine();
-		if (line.find("vertex_shader") != std::string::npos || line.find("fragment_shader") != std::string::npos)
+		if (line.find("vertex_shader") != std::string::npos || line.find("fragment_shader") != std::string::npos 
+			|| line.find("geometry_shader" ) != std::string::npos || line.find("compute_shader") != std::string ::npos)
 		{
 			StringVector stringVec = StringUtil::Split(line);
 			if (stringVec.size() != 3)

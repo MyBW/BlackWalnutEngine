@@ -10,6 +10,7 @@
 #include "BWDirectionalLight.h"
 #include"BWMesh.h"
 #include "BWRenderState.h"
+#include "BWImageTextureBuffer.h"
 /////////////////////////// New Interface
 struct RSShaderTexture
 {
@@ -112,6 +113,7 @@ public:
 
 	virtual void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState);
 	virtual void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler);
+	virtual void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format);
 	virtual void ClearRenderTarget(unsigned int buffers, const ColourValue &color = ColourValue::Black, float depth = 1.0, unsigned short stencil = 0);
 	virtual void ReadSurfaceData(BWTexturePtr SourceInterface, int Index, int MipLevel, BWPixelBox& Destination) { };
 	virtual void CopyTextureToTexture(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel, BWTexturePtr DestinationTexture, int DestinationIndex, int DestinationMipmapLevel) { }
@@ -174,6 +176,7 @@ protected:
 
 
 public:
+	bool IsEnableSparseVexelGI{ false };
 	bool IsEnableTemporalAA{ true };
 	bool IsEnableToneMap{ true };
 	bool IsEnableSSR{ true };
@@ -312,6 +315,11 @@ protected:
 	BWRenderTarget* ShadowMapTarget;
 	BWMaterialPtr DirectionLightShadowMapM;
 	BWMaterialPtr PointLightShadowMapM;
+
+	///////////// Global Illumination Base Sparse Voxel Octree
+	void DynamicGenerateVoxel(const BWRenderOperation &ro);
+	void RenderGIWithSparseVoxelOctree();
+	////////////
 
 	void RenderAmbientOcclusion() ;
 	void RenderLights();
