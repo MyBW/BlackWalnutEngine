@@ -275,7 +275,7 @@ public:
 	FORCEINLINE void SetIndex(int Index) { mIndex = Index; }
 	FORCEINLINE bool isAttachToRenderTarget() const { return mRenderTarget != NULL; }
 	FORCEINLINE int GetIndex() const { return mIndex; }
-	
+	virtual void Clear(float R, float G, float B, float A){ }
 
 protected:
 	size_t mHeight;

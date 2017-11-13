@@ -15,6 +15,7 @@
 #include "..\RenderSystem_GL\GLTexture.h"
 #include "..\RenderSystem_GL\GLPreDefine.h"
 #include "BWRenderState.h"
+#include "..\RenderSystem_GL\GLImageTextureBuffer.h"
 BWRenderSystem* BWRenderSystem::instance = NULL;
 static const BWTexturePtr sNullTexPtr;
 BWRenderSystem::BWRenderSystem():mDisableTexUnitFrom(0)
@@ -186,56 +187,6 @@ void BWRenderSystem::_endFrame()
 		RenderToneMap();
 	}
 	
-	
-	// Test For Geometry Shader
-	{
-		static BWGpuProgramUsagePtr TestForGeometryShader;
-		static BWHighLevelGpuProgramPtr TestForGeometryShaderPrg;
-		
-		static BWGpuProgramUsagePtr TestForComputeShader;
-		static BWHighLevelGpuProgramPtr TestForComputeShaderPrg;
-
-		{
-			auto LoadGUPUsageAndGPUProgram = [](std::string &MaterialName, BWGpuProgramUsagePtr& GPUUsage, BWHighLevelGpuProgramPtr& GPUProgram)
-			{
-				BWMaterialPtr Material = BWMaterialManager::GetInstance()->GetResource(MaterialName, "General");
-				if (Material.IsNull())
-				{
-					Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : Cant Get The  Material");
-					return;
-				}
-				Material->Load();
-				GPUUsage = Material->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
-				GPUProgram = GPUUsage->GetHighLevelGpuProgram();
-				GPUProgram->Load();
-			};
-			if (TestForGeometryShaderPrg.Get() == nullptr)
-			{
-				LoadGUPUsageAndGPUProgram(std::string("TestForGeometryShader"), TestForGeometryShader, TestForGeometryShaderPrg);
-			}
-			if (TestForComputeShaderPrg.Get() == nullptr)
-			{
-				LoadGUPUsageAndGPUProgram(std::string("TestForComputeShader"), TestForComputeShader, TestForComputeShaderPrg);
-			}
-		}
-
-
-		RSGraphicPipelineState PipeLine;
-		RSRenderTarget RenderTarget;
-		BWHighLevelGpuProgramPtr tmp;
-
-		PipeLine.GPUProgramUsage = TestForGeometryShader;
-		RenderTarget.Index = 0;
-		RenderTarget.MipmapLevel = 0;
-		RenderTarget.RenderTargetTexture = BWRenderSystem::FinalRenderResult;
-		BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(TestForGeometryShader->GetGpuProgramParameter());
-
-		SetGraphicsPipelineState(PipeLine);
-		SetRenderTarget(TestForGeometryShader, RenderTarget, GDepthBuffer);
-		RenderOperation(CubeMeshRenderOperation, tmp);
-	}
-	
-
 
 
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->EndFrame();
@@ -871,12 +822,17 @@ bool BWRenderSystem::InitRendererResource()
 	ClearRenderTarget(FBT_DEPTH);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
+
+	InitSparseVoxelOctreeGI();
 	return true;
 }
 
 void BWRenderSystem::SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight)
 {
-
+	ViewportSize.x = ViewportX;
+	ViewportSize.y = ViewportY;
+	ViewportSize.z = ViewportWidth;
+	ViewportSize.w = ViewportHight;
 }
 
 
@@ -922,6 +878,11 @@ void BWRenderSystem::SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTex
 }
 
 void BWRenderSystem::SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format)
+{
+
+}
+
+void BWRenderSystem::SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, int Miplevel, PixelFormat Format)
 {
 
 }
@@ -978,14 +939,124 @@ void BWRenderSystem::RenderLightsShadowMaps()
 	FinishLightsShadowMaps();
 }
 
-void BWRenderSystem::DynamicGenerateVoxel(const BWRenderOperation &ro)
+void BWRenderSystem::InitSparseVoxelOctreeGI()
 {
+	auto LoadGUPUsageAndGPUProgram = [](std::string &MaterialName, BWGpuProgramUsagePtr& GPUUsage, BWHighLevelGpuProgramPtr& GPUProgram)
+	{
+		BWMaterialPtr Material = BWMaterialManager::GetInstance()->GetResource(MaterialName, "General");
+		if (Material.IsNull())
+		{
+			Log::GetInstance()->logMessage("BWRenderSystem::InitRendererResource() : Cant Get The  Material");
+			return;
+		}
+		Material->Load();
+		GPUUsage = Material->getTechnique(0)->GetPass(0)->getGPUProgramUsage();
+		GPUProgram = GPUUsage->GetHighLevelGpuProgram();
+		GPUProgram->Load();
+	};
+	int SceneSize = 600;
+	SceneSizeMax = BWVector3(SceneSize, SceneSize, SceneSize);
+	SceneSizeMin = BWVector3(-SceneSize, -SceneSize, -SceneSize);
+	VoxelSize = BWVector4(5, 5, 5, 0);
+	int Width = (SceneSizeMax.x - SceneSizeMin.x)/ VoxelSize.x;
+	int Height = (SceneSizeMax.y - SceneSizeMin.y) / VoxelSize.y;
+	int Depth = (SceneSizeMax.z - SceneSizeMin.z) / VoxelSize.z;
+	TextureForVoxelization = BWTextureManager::GetInstance()->Create(std::string("TextureForVoxelization"), "General");
+	/*GLImageTextureBufferPtr GLImageTextureBufferInstance = new GLImageTextureBuffer("TextureForVolization", PF_FLOAT32_RGBA, BWHardwareBuffer::HBU_DYNAMIC, false, false);
+	TextureForVoxelization = GLImageTextureBufferInstance;
+	TextureForVoxelization->ResizeBuffer(Width * Height * Depth)*/
+	TextureForVoxelization->setWidth(Width);
+	TextureForVoxelization->setHeight(Height);
+	TextureForVoxelization->setDepth(Depth);
+	TextureForVoxelization->setTextureType(TEX_TYPE_3D);
+	TextureForVoxelization->setFormat(PF_FLOAT32_RGBA);
+	TextureForVoxelization->setNumMipmaps(1);
+	TextureForVoxelization->SetIndex(0);
+	TextureForVoxelization->createInternalResources();
+	LoadGUPUsageAndGPUProgram(std::string("VoxelizationScene"), DynamicVoxelSceneProgramUsage, DynamicVoxelSceneProgram);
+	LoadGUPUsageAndGPUProgram(std::string("RenderVoxel"), RenderVoxelForDebugProgramUsage, RenderVoxelForDebugProgram);
 
+}
+
+void BWRenderSystem::DynamicGenerateVoxel()
+{
+	RSGraphicPipelineState Pipeline;
+	BWVector4 CacheViewportSize;
+	RSGraphicPipelineState CurrentPipeline;
+	CacheViewportSize = ViewportSize;
+	CurrentPipeline = CachedPipelineState;
+	SetViewport(0, 0, SceneSizeMax.x - SceneSizeMin.x, SceneSizeMax.y - SceneSizeMin.y);
+	Pipeline.ColorMaskState = TStaticColorMaskState<false, false, false, false>::GetStateHI();
+	Pipeline.BlendState = TStaticBlendStateHI<false>::GetStateHI();
+	Pipeline.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
+	Pipeline.GPUProgramUsage = DynamicVoxelSceneProgramUsage;
+	Pipeline.RasterizerState = TStaticRasterizerState<>::GetStateHI();
+	TextureForVoxelization->Clear(0, 0, 0, 0);
+	
+	SetShaderImageTexture(DynamicVoxelSceneProgram, TextureForVoxelization, 0, TextureForVoxelization->getFormat());
+    
+	/////////////For Test 
+	bool IsTest = false;
+	if (IsTest)
+	{
+		RSRenderTarget RenderTarget;
+		RenderTarget.Index = 0;
+		RenderTarget.MipmapLevel = 0;
+		RenderTarget.RenderTargetTexture = FinalRenderResult;
+		SetRenderTarget(DynamicVoxelSceneProgramUsage, RenderTarget, GDepthBuffer);
+		ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
+		SetViewport(0, 0, FinalRenderResult->getWidth(), FinalRenderResult->getHeight());
+		Pipeline = CurrentPipeline;
+		Pipeline.GPUProgramUsage = DynamicVoxelSceneProgramUsage;
+	}
+	/////////////For Test End
+
+	SetGraphicsPipelineState(Pipeline);
+
+	DynamicVoxelSceneProgramUsage->GetGpuProgramParameter()->SetNamedConstant("VoxelSize", VoxelSize.M, 4, 1);
+	DynamicVoxelSceneProgramUsage->GetGpuProgramParameter()->SetNamedConstant("SceneSizeMax", SceneSizeMax.M, 3, 1);
+	DynamicVoxelSceneProgramUsage->GetGpuProgramParameter()->SetNamedConstant("SceneSizeMin", SceneSizeMin.M, 3, 1);
+	BWHighLevelGpuProgramPtr HightLevelGpuProgram;
+	for (int i = 0 ; i < AllRendererdOparation.size(); i++)
+	{
+		DynamicVoxelSceneProgramUsage->GetGpuProgramParameter()->SetNamedConstant("WorldMatrix",AllRenderOparationWorldMatrix[i]);
+		RenderOperation(AllRendererdOparation[i], HightLevelGpuProgram);
+	}
+	AllRendererdOparation.clear();
+	AllRenderOparationWorldMatrix.clear();
+	SetViewport( 0.0f, 0.0f, FinalRenderResult->getWidth(),FinalRenderResult->getHeight());
+	SetGraphicsPipelineState(CurrentPipeline);
+}
+
+void BWRenderSystem::RenderVoxelForDebug()
+{
+	RSGraphicPipelineState Pipeline;
+	Pipeline.BlendState = TStaticBlendStateHI<false>::GetStateHI();
+	Pipeline.DepthAndStencilState = TStaticDepthAndStencilState<true, true>::GetStateHI();
+	Pipeline.GPUProgramUsage = RenderVoxelForDebugProgramUsage;
+	Pipeline.RasterizerState = TStaticRasterizerState<PM_WIREFRAME>::GetStateHI();
+	SetGraphicsPipelineState(Pipeline);
+
+	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
+		RenderVoxelForDebugProgramUsage->GetGpuProgramParameter()
+	);
+	RenderVoxelForDebugProgramUsage->GetGpuProgramParameter()->SetNamedConstant("VoxelSize", VoxelSize.M, 4, 1);
+
+	RSRenderTarget RenderTarget;
+	RenderTarget.Index = 0;
+	RenderTarget.MipmapLevel = 0;
+	RenderTarget.RenderTargetTexture = FinalRenderResult;
+	SetRenderTarget(RenderVoxelForDebugProgramUsage, RenderTarget, GDepthBuffer);
+	ClearRenderTarget(FBT_COLOUR | FBT_DEPTH);
+	TextureForVoxelization->SetIndex(0);
+	SetShaderTexture(RenderVoxelForDebugProgram, TextureForVoxelization, TStaticSamplerState<FO_LINEAR, FO_LINEAR, FO_LINEAR>::GetStateHI());
+	//// Draw Call Is In The GLRenderSystem::RenderVoxelForDebug()
 }
 
 void BWRenderSystem::RenderGIWithSparseVoxelOctree()
 {
-
+	DynamicGenerateVoxel();
+	RenderVoxelForDebug();
 }
 
 void BWRenderSystem::RenderAmbientOcclusion()

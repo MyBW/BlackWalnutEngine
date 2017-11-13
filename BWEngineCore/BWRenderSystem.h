@@ -114,6 +114,7 @@ public:
 	virtual void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState);
 	virtual void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler);
 	virtual void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format);
+	virtual void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, int Miplevel, PixelFormat Format);
 	virtual void ClearRenderTarget(unsigned int buffers, const ColourValue &color = ColourValue::Black, float depth = 1.0, unsigned short stencil = 0);
 	virtual void ReadSurfaceData(BWTexturePtr SourceInterface, int Index, int MipLevel, BWPixelBox& Destination) { };
 	virtual void CopyTextureToTexture(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel, BWTexturePtr DestinationTexture, int DestinationIndex, int DestinationMipmapLevel) { }
@@ -124,11 +125,12 @@ public:
 	virtual SamplerStateHIRef CreateSamplerStateHI(StaticSamplerStateInitializer& Initializer) { return nullptr; }
 	virtual BlendStateHIRef CreateBlendStateHI(StaticBlendStateInitializer& Initializer) { return  nullptr; }
 	virtual ColorMaskStateHIRef CreateColorMaskState(StaticColorMaskStateInitializer& Initializer) { return nullptr; }
-	virtual void RenderOperation(BWRenderOperation &RenderOperation, BWHighLevelGpuProgramPtr GPUProgram) { };
+	virtual void RenderOperation(const BWRenderOperation &RenderOperation, BWHighLevelGpuProgramPtr GPUProgram) { };
 	
 protected:
 	RSGraphicPipelineState CachedPipelineState;
 	RSRenderTarget CacheRenderTarget;
+	BWVector4 ViewportSize;
 	std::vector<RSShaderTexture> ShaderTextures;
 	TSHVector<3> SHVector;
 	BWRenderOperation CubeMeshRenderOperation;
@@ -176,7 +178,7 @@ protected:
 
 
 public:
-	bool IsEnableSparseVexelGI{ false };
+	bool IsEnableSparseVexelGI{ true };
 	bool IsEnableTemporalAA{ true };
 	bool IsEnableToneMap{ true };
 	bool IsEnableSSR{ true };
@@ -317,9 +319,24 @@ protected:
 	BWMaterialPtr PointLightShadowMapM;
 
 	///////////// Global Illumination Base Sparse Voxel Octree
-	void DynamicGenerateVoxel(const BWRenderOperation &ro);
+
+	void InitSparseVoxelOctreeGI();
+	void DynamicGenerateVoxel();
+	virtual void RenderVoxelForDebug();
 	void RenderGIWithSparseVoxelOctree();
-	////////////
+
+	BWVector3 SceneSizeMin;
+	BWVector3 SceneSizeMax;
+	BWVector4 VoxelSize;
+	BWTexturePtr TextureForVoxelization;
+	BWGpuProgramUsagePtr DynamicVoxelSceneProgramUsage;
+	BWHighLevelGpuProgramPtr DynamicVoxelSceneProgram;
+	BWGpuProgramUsagePtr RenderVoxelForDebugProgramUsage;
+	BWHighLevelGpuProgramPtr RenderVoxelForDebugProgram;
+	//// tmp code 
+	std::vector<BWRenderOperation> AllRendererdOparation;
+	std::vector<BWMatrix4> AllRenderOparationWorldMatrix;
+	//////////// Global Illumination Base Sparse Voxel Octree End
 
 	void RenderAmbientOcclusion() ;
 	void RenderLights();
