@@ -436,6 +436,7 @@ void GLSLGpuProgram::setUniform(const GpuConstantDefinition &def , void *srcData
 		case GCT_INT1:
 		case GCT_SAMPLER2D:
 		case GCT_SAMPLERCUBE:
+		case GCT_SAMPLER3D:
 			CHECK_GL_ERROR(glUniform1iv(def.logicalIndex, def.arraySize, data));
 			break; 
 		case GCT_INT2:
@@ -449,7 +450,6 @@ void GLSLGpuProgram::setUniform(const GpuConstantDefinition &def , void *srcData
 			break;
 		case GCT_SAMPLER1D:
 		case GCT_SAMPLER2DARRAY:
-		case GCT_SAMPLER3D:
 		case GCT_SAMPLER1DSHADOW:
 		case GCT_SAMPLER2DSHADOW:
 			Log::GetInstance()->logMessage("GLSLGpuProgram::setUniform(): Dont support sampler! \n", false);

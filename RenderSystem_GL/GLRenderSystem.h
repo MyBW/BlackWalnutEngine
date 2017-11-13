@@ -70,9 +70,10 @@ public:
 	void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
 	void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler) override;
 	void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format) override;
+	void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, int MipLevel, PixelFormat Format);
 	void ClearRenderTarget(unsigned int buffers, const ColourValue &color  = ColourValue::Black , float depth  = 1.0 , unsigned short stencil = 0 );
 	void ReadSurfaceData(BWTexturePtr SourceTexture, int Index, int MipLevel, BWPixelBox& Destination) override;
-	void RenderOperation(BWRenderOperation & RenderOperation, BWHighLevelGpuProgramPtr GPUProgram) override;
+	void RenderOperation(const BWRenderOperation & RenderOperation, BWHighLevelGpuProgramPtr GPUProgram) override;
 	void CopyTextureToTexture(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel, BWTexturePtr DestinationTexture, int DestinationIndex, int DestinationMipmapLevel) override;
 	void CopyTextureToScreen(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel);
 	RasterizerStateHIRef CreateRasterizerStateHI(RasterStateInitializer& Initializer) override;
@@ -82,6 +83,10 @@ public:
 	ColorMaskStateHIRef CreateColorMaskState(StaticColorMaskStateInitializer& Initializer) override;
 	void SetColorMaskState(ColorMaskStateHIRef ColorMask);
 	void SetDepthAndStencilState(DepthAndStencilStateHIRef DepthAndStencilState);
+
+	////////////////Temp Used For Debug 
+	void RenderVoxelForDebug() override;
+	///////////////Temp Used For Debug
 protected:
 	void ClearTextureResource() override;
 public:

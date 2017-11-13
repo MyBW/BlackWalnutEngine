@@ -79,7 +79,7 @@ GLenum GLPixelUtil::getGLInternalFormat(PixelFormat format, bool hwGamma /* = fa
 	case PF_FLOAT32_RGB:
 		return GL_RGB32F_ARB;
 	case PF_FLOAT32_RGBA:
-		return GL_RGBA32F_ARB;
+		return GL_RGBA32F;
 	case PF_SHORT_RGBA:
 		return GL_RGBA16;
 	case PF_SHORT_RGB:

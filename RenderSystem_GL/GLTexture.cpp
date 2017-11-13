@@ -84,7 +84,7 @@ void GLTexture::ResizeInteranl(int Width, int Height, int Depth, const void *Dat
 	}
 	if (mTextureType == TEX_TYPE_3D)
 	{
-		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, mWidth, mHeight, mDepth, 0, GL_RGBA, GL_FLOAT, Data);
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, mWidth, mHeight, mDepth, 0, GL_RGBA, GL_FLOAT, Data);
 	}
 	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
 	CHECK_GL_ERROR(glTexParameteri(GetGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, mNumMipmaps - 1));//从0开始计数//开启这一项后会导致绑定到framebuffer上出现问题
@@ -132,6 +132,28 @@ void GLTexture::RemoveFromRenderTarget()
 		 glBindFramebuffer(GL_FRAMEBUFFER, CurrentFrameBuffer);
 		 mRenderTarget = NULL;
 	 }
+}
+
+void GLTexture::Clear(float R, float G, float B, float A)
+{
+	float Color[] = { R, G, B, A };
+	GLint previousBoundTextureID;
+	glGetIntegerv(GetBindingType(), &previousBoundTextureID);
+	glBindTexture(GetGLTextureTarget(), GetHIID());
+	GLenum Format;
+	switch (mFormat)
+	{
+	case PF_B8G8R8A8:    Format = GL_RGBA; break;
+	case PF_FLOAT32_RGB: Format = GL_RGB; break;
+	case PF_FLOAT32_R:   Format = GL_R; break;
+	default:
+		 Format = GL_RGBA; break;
+	}
+	for (int i = 0; i < mNumMipmaps; i++)
+	{
+		glClearTexImage(GetHIID(), i, Format, GL_FLOAT, &Color);
+	}
+	glBindTexture(GetGLTextureTarget(), previousBoundTextureID);
 }
 
 GLenum GLTexture::GetCubeMapTextureBufferAttachment(const std::string & InDir)
@@ -282,7 +304,7 @@ void GLTexture::Resize(int Width, int Height, int Depth)
 	if (!glIsTexture(mTextureID)) return;
 	if (Width == mWidth && Height == mHeight && mDepth == Depth) return;
 	GLint CurrentBindTextureID;
-	glGetIntegerv(GetGLTextureTarget(), &CurrentBindTextureID);
+	glGetIntegerv(GetBindingType(), &CurrentBindTextureID);
 	glBindTexture(GetGLTextureTarget(), mTextureID);
 	ResizeInteranl(Width, Height, Depth);
 	glBindTexture(GetGLTextureTarget(), CurrentBindTextureID);
@@ -430,6 +452,27 @@ void GLTexture::createInternalResourcesWithImageImpl(const ConstImagePtrList& im
 		}
 	}
 }
+
+GLenum GLTexture::GetBindingType()
+{
+	switch (mTextureType)
+	{
+	case TEX_TYPE_1D:
+		return GL_TEXTURE_BINDING_1D;
+		break;
+	case TEX_TYPE_2D:
+		return GL_TEXTURE_BINDING_2D;
+	case TEX_TYPE_3D:
+		return GL_TEXTURE_BINDING_3D;
+	case TEX_TYPE_CUBE_MAP:
+		return GL_TEXTURE_BINDING_CUBE_MAP;
+	case TEX_TYPE_2D_ARRAY:
+		return GL_TEXTURE_BINDING_2D_ARRAY;
+	default:
+		assert(0);
+	}
+}
+
 void GLTexture::createInternalResourcesImpl(const void *Data)
 {
 	if (!GLEW_VERSION_1_2 && mTextureType == TEX_TYPE_3D)

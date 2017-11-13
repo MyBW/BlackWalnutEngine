@@ -1665,6 +1665,7 @@ bool GLRenderSystem::InitRendererResource()
 
 void GLRenderSystem::SetViewport(int ViewportX, int ViewportY, int ViewportWidth, int ViewportHight)
 {
+	BWRenderSystem::SetViewport(ViewportX, ViewportY, ViewportWidth, ViewportHight);
 	glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHight);
 }
 
@@ -1885,10 +1886,14 @@ void GLRenderSystem::SetGraphicsPipelineState(RSGraphicPipelineState& InPipeline
 		GLStaticRasterizerState* RasterizerState = dynamic_cast<GLStaticRasterizerState*>(InPipelineState.RasterizerState.Get());
 		glPolygonMode(GL_FRONT_AND_BACK, RasterizerState->FillMode);
 		Helper::SetIsEnableState(RasterizerState->IsEnableMSAA, GL_MULTISAMPLE);
-		glEnable(GL_CULL_FACE);
 		if (RasterizerState->CullMode != GL_CULL_FACE)
 		{
+			glEnable(GL_CULL_FACE);
 			glCullFace(RasterizerState->CullMode);
+		}
+		else
+		{
+			glDisable(GL_CULL_FACE);
 		}
 	}
     if (InPipelineState.DepthAndStencilState.Get() && CachedPipelineState.DepthAndStencilState != InPipelineState.DepthAndStencilState)
@@ -2003,7 +2008,15 @@ void GLRenderSystem::SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, 
 {
 	GLImageTextureBuffer* ImageTextureBuffer = dynamic_cast<GLImageTextureBuffer*>(ImageTexture.Get());
 	GLenum GLFormat = GLPixelUtil::getGLInternalFormat(Format);
-	glBindImageTexture(ImageTextureBuffer->GetIndex(), ImageTextureBuffer->GetTextureID(), MipLevel, GL_FALSE, 0, GL_READ_WRITE, GLFormat);
+	CHECK_GL_ERROR(glBindImageTexture(ImageTextureBuffer->GetIndex(), ImageTextureBuffer->GetTextureID(), MipLevel, GL_FALSE, 0, GL_READ_WRITE, GLFormat));
+}
+
+void GLRenderSystem::SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, int MipLevel, PixelFormat Format)
+{
+	GLTexture* GLTextureInstance = dynamic_cast<GLTexture*>(Texture.Get());
+	GLenum GLFormat = GLPixelUtil::getGLInternalFormat(Format);
+	CHECK_GL_ERROR(glBindImageTexture(GLTextureInstance->GetIndex(), GLTextureInstance->GetHIID(), MipLevel, GL_FALSE, 0, GL_READ_WRITE, GLFormat));
+
 }
 
 void GLRenderSystem::SetShaderTextureImmediately(const std::vector<RSShaderTexture>& InShaderTexures)
@@ -2215,6 +2228,66 @@ void GLRenderSystem::SetDepthAndStencilState(DepthAndStencilStateHIRef InDepthAn
 	Check(DepthAndStencilState);
 	Helper::SetIsEnableState(DepthAndStencilState->IsEnableDepthTest, GL_DEPTH_TEST);
 	CHECK_GL_ERROR(glDepthMask(DepthAndStencilState->IsEnableDepthWrite));
+}
+
+void GLRenderSystem::RenderVoxelForDebug()
+{
+	static GLuint _giDebugPointBuffer = 0;
+	int giDim = (SceneSizeMax.x - SceneSizeMin.x) / VoxelSize.x;
+
+	if(_giDebugPointBuffer == 0)
+	{
+		BWVector3 Scale = SceneSizeMax - SceneSizeMin;
+		glGenBuffers(1, &_giDebugPointBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, _giDebugPointBuffer);
+		glBufferData(GL_ARRAY_BUFFER, giDim * giDim * giDim * sizeof(float) * 6, nullptr, GL_STATIC_DRAW);
+		float *debugPointData = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+		float step = 1.0f / giDim;
+		for (float z = .5f * step; z < 1.0f; z += step)
+		{
+			for (float y = .5f * step; y < 1.0f; y += step)
+			{
+				for (float x = .5f * step; x < 1.0f; x += step)
+				{
+					BWVector3 texPos(x, y, z);
+					BWVector3 worldPos = texPos * Scale + SceneSizeMin;
+
+					debugPointData[0] = worldPos.x;
+					debugPointData[1] = worldPos.y;
+					debugPointData[2] = worldPos.z;
+
+					debugPointData[3] = texPos.x;
+					debugPointData[4] = texPos.y;
+					debugPointData[5] = texPos.z;
+
+					debugPointData += 6;
+				}
+			}
+		}
+
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+	RSGraphicPipelineState CurrentPipeline;
+	CurrentPipeline = CachedPipelineState;
+
+
+	BWRenderSystem::RenderVoxelForDebug();
+  
+	BWHighLevelGpuProgramPtr GPUProgram = CachedPipelineState.GPUProgramUsage->GetHighLevelGpuProgram();
+	GLSLGpuProgram* GLGPUProgram = dynamic_cast<GLSLGpuProgram*>(GPUProgram.Get());
+	GLGPUProgram->bind();
+	GPUProgram->SetGPUProgramParameters(CachedPipelineState.GPUProgramUsage->GetGpuProgramParameter());
+	CHECK_GL_ERROR(glEnableVertexAttribArray(0));
+	CHECK_GL_ERROR(glEnableVertexAttribArray(1));
+	CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, _giDebugPointBuffer));
+	CHECK_GL_ERROR(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0 * sizeof(float))));
+	CHECK_GL_ERROR(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))));
+	CHECK_GL_ERROR(glDrawArrays(GL_POINTS, 0, giDim * giDim * giDim));
+	glDisableVertexAttribArray(0);
+	CHECK_GL_ERROR(glDisableVertexAttribArray(1));
+
+	SetGraphicsPipelineState(CurrentPipeline);
 }
 
 void GLRenderSystem::ClearTextureResource()
@@ -2630,7 +2703,7 @@ void GLRenderSystem::RenderOperation(BWRenderOperation & RenderOperation, GLSLGp
 }
 
 
-void GLRenderSystem::RenderOperation(BWRenderOperation & RenderOperation, BWHighLevelGpuProgramPtr GPUProgram)
+void GLRenderSystem::RenderOperation(const BWRenderOperation & RenderOperation, BWHighLevelGpuProgramPtr GPUProgram)
 {
 	if (!RenderOperation.useIndexes)
 	{
@@ -2652,8 +2725,6 @@ void GLRenderSystem::RenderOperation(BWRenderOperation & RenderOperation, BWHigh
 		GPUProgram->SetGPUProgramParameters(CachedPipelineState.GPUProgramUsage->GetGpuProgramParameter());
 		GLGPUProgram->bindingBuffer(RenderOperation.indexData, RenderOperation.vertexData);
 	}
-	
-	// 这里设置各种状态 只用进行深度渲染 其他的都不用
 	GLint primType;
 	bool useAdjacenty = false;
 	GLenum indexType = (RenderOperation.indexData->mIndexBuffer->getIndexType() == BWHardwareIndexBuffer::IT_16BIT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
@@ -2750,7 +2821,7 @@ void GLRenderSystem::CopyTextureToScreen(BWTexturePtr SourceTexture, int SourceI
 	GLint Width = SourceTexture->getWidth();
 	GLint Hieght = SourceTexture->getHeight();
 	GLTexture* GLSourceTexture = dynamic_cast<GLTexture*>(SourceTexture.Get());
-	glGenFramebuffers(1, &SourceFrameBuffer);
+	CHECK_GL_ERROR(glGenFramebuffers(1, &SourceFrameBuffer));
 	CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, SourceFrameBuffer));
 	GLint STextureID = GLSourceTexture->GetHIID();
 	TextureType SRenderTextureType = GLSourceTexture->GetTextureType();

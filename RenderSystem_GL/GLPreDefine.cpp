@@ -20,6 +20,7 @@ void InitMap()
 	mTypeEnumMap.insert(StringToEnumMap::value_type("samplerCube", GL_SAMPLER_CUBE));
 	mTypeEnumMap.insert(StringToEnumMap::value_type("sampler1DShadow", GL_SAMPLER_1D_SHADOW));
 	mTypeEnumMap.insert(StringToEnumMap::value_type("sampler2DShadow", GL_SAMPLER_2D_SHADOW));
+	mTypeEnumMap.insert(StringToEnumMap::value_type("image3D", GL_IMAGE_3D));
 	mTypeEnumMap.insert(StringToEnumMap::value_type("int", GL_INT));
 	mTypeEnumMap.insert(StringToEnumMap::value_type("ivec2", GL_INT_VEC2));
 	mTypeEnumMap.insert(StringToEnumMap::value_type("ivec3", GL_INT_VEC3));
@@ -216,6 +217,9 @@ void CompleteConstantDefine(GLenum type, GpuConstantDefinition& def)
 		break;
 	case GL_FLOAT_MAT4x3:
 		def.constType = GCT_MATRIX_4X3;
+		break;
+	case GL_IMAGE_3D :
+		def.constType = GCT_INT1;
 		break;
 	default:
 		def.constType = GCT_UNKNOWN;

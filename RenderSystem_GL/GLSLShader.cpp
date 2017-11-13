@@ -309,6 +309,7 @@ void GLSLShader::createNamedConstant()
 		}
 		if (mShaderType == ST_GEOMETRY_SHADER)
 		{
+			int i = 32;
 		 // 对于Geometry Shader而言 能受application控制的 只是out 和 in 变量 这些一般是不暴露给外部应用程序的
 		 // 所以 这里一般什么都不做 
 		}

@@ -21,6 +21,7 @@ public:
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget ,int Index , int MipLevel = 0) override;
 	static void do_image_io(std::string &name, std::string &groupName, std::string &ext, ImageVectorPtr &images, BWTexture *texture);
 	void RemoveFromRenderTarget() override;
+	void Clear(float R, float G, float B, float A) override;
 	// cube map 相关接口
 	GLenum GetCubeMapTextureBufferAttachment(const std::string & InDir);
 	std::map <std::string, GLenum> CubeMapTextureBufferAttachment;
@@ -31,7 +32,7 @@ protected:
 	void freeInternalResourcesImpl();
 	void ResizeInteranl(int Width, int Height , int Depth = 1, const void *Data = nullptr);
 	void createInternalResourcesWithImageImpl(const ConstImagePtrList& images) override;
-
+	GLenum GetBindingType();
 	void prepareImpl();
 	void preLoadImpl(){ }
 	void loadImpl();

@@ -21,7 +21,42 @@ public:
 	virtual ~GLImageTextureBuffer();
 	void ResizeBuffer(int InSize) override;
 	GLuint GetTextureID() const { return GLTextureID; }
+protected:
+	void* lockImp(size_t offset, size_t length, BWHardwareBuffer::LockOptions option) override;
+	void  unLockImp() override;
 private:
 	GLuint GLTextureID;
 	GLuint GLBufferID;
+};
+
+
+class GLImageTextureBufferPtr : public SmartPointer<GLImageTextureBuffer>
+{
+public:
+	GLImageTextureBufferPtr()
+	{
+
+	}
+	GLImageTextureBufferPtr(GLImageTextureBuffer* ImageTextureBuffer)
+	{
+		counter = 0;
+		mPointer = ImageTextureBuffer;
+	}
+	GLImageTextureBufferPtr(const BWImageTexturebufferPtr& texture)
+	{
+		if (texture.IsNull() || texture.Get() == dynamic_cast<BWImageTextureBuffer*>(Get()))
+		{
+			return;
+		}
+		if (texture.GetCounterPointer())
+		{
+			counter = texture.GetCounterPointer();
+			(*counter)++;
+			mPointer = dynamic_cast<GLImageTextureBuffer*>(texture.Get());
+		}
+	}
+	~GLImageTextureBufferPtr() { }
+
+private:
+
 };
