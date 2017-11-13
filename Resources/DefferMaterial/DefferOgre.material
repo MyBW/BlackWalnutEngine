@@ -708,3 +708,32 @@ material TestForComputeShader
 	}
 }
 
+material VoxelizationScene
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref RenderSystem_VoxelizationScene GLSL
+			{
+			 param_named VoxelizationScene int 0
+			}
+		}
+	}
+}
+
+material RenderVoxel
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref RenderSystem_RenderVoxel GLSL
+			{
+			 param_named VoxelScene int 0
+			 param_named_auto ViewMatrix     view_matrix
+			 param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}

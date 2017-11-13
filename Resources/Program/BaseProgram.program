@@ -202,3 +202,17 @@
     {
        compute_shader_ref TestForComputerShader
     }
+
+    gpu_program RenderSystem_VoxelizationScene GLSL
+	{
+	  vertex_shader_ref VoxelizationSceneVertex
+	  fragment_shader_ref VoxelizationSceneFragment
+	  geometry_shader_ref VoxelizationSceneGeometry
+	}
+
+    gpu_program RenderSystem_RenderVoxel GLSL
+	{
+	  vertex_shader_ref RenderVoxelVertex
+	  fragment_shader_ref RenderVoxelFragment
+	  geometry_shader_ref RenderVoxelGeometry
+	}

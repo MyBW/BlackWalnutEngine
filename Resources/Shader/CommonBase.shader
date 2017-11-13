@@ -268,4 +268,32 @@ compute_shader TestForComputerShader glsl
   Source TestForComputer.comp
 }
 
+vertex_shader VoxelizationSceneVertex glsl
+{
+  Source VoxelizationScene.vert
+}
 
+fragment_shader VoxelizationSceneFragment glsl
+{
+  Source VoxelizationScene.frag
+}
+
+geometry_shader VoxelizationSceneGeometry glsl
+{
+  Source VoxelizationScene.geom
+}
+
+vertex_shader RenderVoxelVertex glsl
+{
+  Source RenderVoxel.vert
+}
+
+fragment_shader RenderVoxelFragment glsl
+{
+  Source RenderVoxel.frag
+}
+
+geometry_shader RenderVoxelGeometry glsl
+{
+  Source RenderVoxel.geom
+}
