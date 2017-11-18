@@ -205,6 +205,7 @@ material Ogre/BaseMaterial
 		{
 			gpu_program_ref   RenderSystem_DefferDataProcess    GLSL
 			{
+			   param_named TestRoughness float 0.51
 			   param_named_auto ModelMatrix    world_matrix
 			   param_named_auto ViewMatrix     view_matrix
 			   param_named_auto ProjectMatrix  projection_matrix
@@ -716,11 +717,38 @@ material VoxelizationScene
 		{
 			gpu_program_ref RenderSystem_VoxelizationScene GLSL
 			{
-			 param_named VoxelizationScene int 0
+			 param_named VoxelizationSceneA int 0
+			 param_named VoxelizationSceneB int 1
+			 param_named VoxelizationSceneC int 2
+			 param_named BaseColor int 3
+			 param_named Metalic int 4
+			 param_named Normal int 5
+			 param_named Roughness int 6
+
 			}
 		}
 	}
 }
+
+
+material VoxelizationSceneWithouTexture
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref RenderSystem_VoxelizationSceneWithouTexture GLSL
+			{
+			 param_named VoxelizationSceneA int 0
+			 param_named VoxelizationSceneB int 1
+			 param_named VoxelizationSceneC int 2
+
+			}
+		}
+	}
+}
+
+
 
 material RenderVoxel
 {
@@ -733,6 +761,36 @@ material RenderVoxel
 			 param_named VoxelScene int 0
 			 param_named_auto ViewMatrix     view_matrix
 			 param_named_auto ProjectMatrix  projection_matrix
+			}
+		}
+	}
+}
+
+
+material ShadingSceneWithVoxel
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref RenderSystem_ShadingSceneWithVoxel GLSL
+			{
+			   param_named ABuffer int 0
+			   param_named BBuffer int 1
+			   param_named CBuffer int 2
+			   param_named VoxelScene int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_auto ViewInversMatrix inverse_view_matrix
+			   param_named_auto ViewPositionWorldSpace camera_position
+			   param_named_auto FoV fov
+			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
+			   param_named_auto NearFar far_and_near_clip_distance
+			   param_named_auto ScreenWH viewport_width_and_height
 			}
 		}
 	}

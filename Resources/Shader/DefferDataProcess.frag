@@ -30,7 +30,8 @@ void main()
 {
    // 正确的情况
    // BaseColor  And Specular
-   vec4  TexColor  = vec4(1.0 ,0.79 ,0.21 , 0.0) ;
+   //vec4  TexColor  = vec4(1.0 ,0.79 ,0.21 , 0.0) ;
+   vec4  TexColor  = vec4(1.0 ,1.0 ,1.0 , 0.0) ;
    ABuffer = TexColor ;
    ABuffer.a = 0.5;
    
@@ -44,7 +45,7 @@ void main()
 
    //Roughness  And Metalic
    CBuffer.r = TestRoughness;
-   CBuffer.g = 0.8;
+   CBuffer.g = 0.2;
    CBuffer.bw = vec2(0.0);
    // Motion Blur
    vec3 NDCPos = (ClipCoord / ClipCoord.w).xyz ;

@@ -216,3 +216,37 @@
 	  fragment_shader_ref RenderVoxelFragment
 	  geometry_shader_ref RenderVoxelGeometry
 	}
+
+    gpu_program SponezaBaseProgram GLSL
+	{
+	  vertex_shader_ref   SponezaBaseProgramVertex
+	  fragment_shader_ref SponezaBaseProgramFragment
+	}
+
+	 gpu_program RenderSystem_VoxelizationSceneWithouTexture GLSL
+	{
+	  vertex_shader_ref VoxelizationSceneVertex
+	  fragment_shader_ref VoxelizationSceneWithoutTextureFragment
+	  geometry_shader_ref VoxelizationSceneGeometry
+	}
+
+
+	gpu_program RenderSystem_ShadingSceneWithVoxel GLSL
+	{
+	  vertex_shader_ref DefferDirectLightingVertex
+	  fragment_shader_ref ShadingSceneWithVoxelFragment
+	}
+
+
+	gpu_program Cornell_f_DefferDataProcess GLSL
+	{
+	  vertex_shader_ref    DefferDataProcessVertex
+	  fragment_shader_ref  Cornell_f_DefferDataProcessFragment
+	}
+
+	
+	gpu_program Cornell_r_DefferDataProcess GLSL
+	{
+	  vertex_shader_ref    DefferDataProcessVertex
+	  fragment_shader_ref  Cornell_r_DefferDataProcessFragment
+	}

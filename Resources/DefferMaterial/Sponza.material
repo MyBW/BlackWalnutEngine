@@ -1,0 +1,917 @@
+material ArchMaterial
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_arch_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_arch_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_arch_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Bricks
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma spnza_bricks_a_diff.png
+			}
+			texture_unit
+			{
+				texture spnza_bricks_a_spec.png
+			}
+			texture_unit
+			{
+				texture spnza_bricks_a_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Ceiling
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_ceiling_a_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_ceiling_a_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_ceiling_a_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Chain
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma chain_texture.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture chain_texture_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Chain
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma chain_texture.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture chain_texture_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Column_a
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_column_a_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_column_a_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_column_a_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Column_b
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_column_b_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_column_b_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_column_b_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Column_c
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_column_c_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_column_c_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_column_c_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Details
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_details_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_details_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_details_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Fabric_a
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_fabric_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_fabric_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_fabric_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Fabric_c
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_curtain_diff.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture sponza_curtain_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Fabric_d
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_fabric_blue_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_fabric_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_fabric_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Fabric_e
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_fabric_green_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_fabric_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_fabric_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Fabric_f
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_curtain_green_diff.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture sponza_curtain_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Fabric_g
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_curtain_blue_diff.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture sponza_curtain_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Flagpole
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_flagpole_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_flagpole_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_flagpole_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Floor
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_floor_a_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_floor_a_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_floor_a_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Leaf
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_thorn_diff.png
+			}
+			texture_unit
+			{
+				texture sponza_thorn_spec.png
+			}
+			texture_unit
+			{
+				texture sponza_thorn_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Material__25
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma lion.png
+			}
+			texture_unit
+			{
+				texture white.png
+			}
+			texture_unit
+			{
+				texture lion_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Material__47
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma white.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture plain_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+
+material Material__57
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma vase_plant_diff.png
+			}
+			texture_unit
+			{
+				texture vase_plant_spec.png
+			}
+			texture_unit
+			{
+				texture vase_plant_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named permutation int 1
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Material__298
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma background.png
+			}
+			texture_unit
+			{
+				texture white.png
+			}
+			texture_unit
+			{
+				texture background_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named permutation int 1
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Roof
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma sponza_roof_diff.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture sponza_roof_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named permutation int 1
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Vase
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma vase_diff.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture vase_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named permutation int 1
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Vase_Hanging
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma vase_hanging.png
+			}
+			texture_unit
+			{
+				texture black.png
+			}
+			texture_unit
+			{
+				texture vase_hanging_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Vase_Round
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gamma vase_round.png
+			}
+			texture_unit
+			{
+				texture vase_round_spec.png
+			}
+			texture_unit
+			{
+				texture vase_round_ddn.png
+			}
+			gpu_program_ref SponezaBaseProgram GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named Specular int 1
+			   param_named Normal int 2
+			   param_named Roughness int 3
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}

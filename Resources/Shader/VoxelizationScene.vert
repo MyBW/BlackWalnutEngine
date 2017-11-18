@@ -34,7 +34,9 @@ void main()
     gl_Position = ProjectMatrix * WorldMatrix * vec4(Position, 1.0) ;
     GSTextureCoord = Texture_Coordinates;
     GSWorldPostion = WorldMatrix * vec4(Position, 1.0) ;
-    GSNormal = (WorldMatrix * vec4(Normal , 0.0)).xyz;
+     // 可以考虑将法线的转换放到Vert中
+    //GSNormal = (WorldMatrix * vec4(Normal , 0.0)).xyz;
+    GSNormal = Normal;
     GSTangent = (WorldMatrix * vec4(Tangent, 0.0)).xyz;
 
 }

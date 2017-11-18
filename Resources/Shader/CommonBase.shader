@@ -278,6 +278,12 @@ fragment_shader VoxelizationSceneFragment glsl
   Source VoxelizationScene.frag
 }
 
+fragment_shader VoxelizationSceneWithoutTextureFragment glsl
+{
+  Source VoxelizationSceneWithoutTexture.frag
+}
+
+
 geometry_shader VoxelizationSceneGeometry glsl
 {
   Source VoxelizationScene.geom
@@ -296,4 +302,31 @@ fragment_shader RenderVoxelFragment glsl
 geometry_shader RenderVoxelGeometry glsl
 {
   Source RenderVoxel.geom
+}
+
+vertex_shader SponezaBaseProgramVertex glsl
+{
+  Source SponezaBaseShading.vert
+}
+
+fragment_shader SponezaBaseProgramFragment glsl
+{
+  Source SponezaBaseShading.frag
+}
+
+
+fragment_shader ShadingSceneWithVoxelFragment glsl
+{
+  Source ShadingSceneWithVoxel.frag
+}
+
+
+fragment_shader  Cornell_r_DefferDataProcessFragment glsl
+{
+   Source  Cornell_r_DefferDataProcess.frag
+}
+
+fragment_shader  Cornell_l_DefferDataProcessFragment glsl
+{
+   Source  Cornell_l_DefferDataProcess.frag
 }

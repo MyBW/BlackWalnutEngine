@@ -10,7 +10,6 @@ uniform sampler2D BaseColor ;
 uniform sampler2D Roughness;
 uniform sampler2D Metalic ;
 uniform sampler2D Normal ;
-uniform float Specular;
 
 uniform vec3 TestBaseColor ;
 uniform float TestRoughness ;

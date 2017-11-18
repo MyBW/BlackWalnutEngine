@@ -1,0 +1,38 @@
+material Cornell_r
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   Cornell_f_DefferDataProcess    GLSL
+			{
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Cornell_l
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   Cornell_r_DefferDataProcess    GLSL
+			{
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
