@@ -37,7 +37,7 @@ protected:
 	void reevaluateVertexProcessing();
 	bool hasSkeleton() const { return false; }
 	
-	VertexData* getVertexDataForBinding();
+	VertexDataPrt getVertexDataForBinding();
 	VertexDataBindChoice chooseVertexDataForBinding(bool vertexAnimation) const;
 	BWMeshPrt mMesh;
 

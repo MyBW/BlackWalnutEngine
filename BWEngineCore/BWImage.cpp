@@ -95,11 +95,11 @@ Image& Image::load(BWDataStreamPrt& stream, const std::string& type /* = StringU
 		char magicBuff[32];
 		stream->Read(magicBuff, 32);
 		stream->Seek(0);
-		dec = BWCodec::getCodec(magicBuff, magicLen);
-		if (dec ==  NULL)
-		{
-			assert(0);
-		}
+		dec = BWCodec::getCodec(magicBuff, magicLen);	
+	}
+	if (dec == NULL)
+	{
+		assert(0);
 	}
 	BWCodec::DecodeResult reslut = dec->decode(stream);
 	ImageCodec::ImageData *data = static_cast<ImageCodec::ImageData*>(reslut.second.Get());

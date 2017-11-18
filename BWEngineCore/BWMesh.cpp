@@ -2,6 +2,7 @@
 #include "BWResourceGroupMananger.h"
 #include "BWMeshSerializer.h"
 #include "BWFBXImporter.h"
+#include "BWDemoMeshImport.h"
 BWMesh::BWMesh(BWResourceManager* creator, const std::string &name, const std::string &groupName) :BWResource(creator, name, groupName)
 , mIsLodManual(false)
 , mNumLods(0)
@@ -29,12 +30,18 @@ void BWMesh::loadImpl()
 	{
 		assert(0);
 	}
-	std::string Name = "ogrehead.mesh";
-	if (Name == name)
+	if ("ogrehead.mesh" == name)
 	{
 		BWFBXImporter Import;
 		std::string FBXFileName = "SK_Mannequin.FBX";
 		Import.ImportFBX(FBXFileName, this);
+	}
+	else if ("ogrehead2.mesh" == name)
+	{
+		BWFBXImporter Import;
+		std::string FBXFileName = "Sponza.fbx";
+		Import.ImportFBX(FBXFileName, this);
+		//BWDemoMeshImport::Load("sponza.mesh", this);
 	}
 	else
 	{

@@ -26,6 +26,7 @@ public:
 	size_t calculateSize(){ return 0; }
 	VertexAnimationType getShareVertexDataAnimationType(){ return VAT_NONE; }
 	VertexDataPrt GetVertexData() { return sharedVertexData; }
+	void SetVertexData(VertexDataPrt InSharedVertexData) { sharedVertexData = InSharedVertexData; }
 protected:
 	void preLoadImpl(){}
 	void postLoadImpl(){}

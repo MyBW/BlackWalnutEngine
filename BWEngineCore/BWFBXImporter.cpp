@@ -19,9 +19,10 @@ void BWFBXImporter::ImportFBX(const std::string& FileName, BWMesh* Mesh)
 	if (!FBXImp.LoadFBX(FileName)) 	return;
 
 	const std::vector<FBXAttributeBaseImport*>* MeshImports = (FBXImp.GetAttributeDataImport(FbxNodeAttribute::eMesh));
-	if (MeshImports && MeshImports->size() > 0)
+	for(int i = 0 ; i < MeshImports->size() ; i++)
+	//if (MeshImports && MeshImports->size() > 0)
 	{
-		const FBXMeshAttributeImport* MeshImport = dynamic_cast<const FBXMeshAttributeImport*>((*MeshImports)[0]);
+		const FBXMeshAttributeImport* MeshImport = dynamic_cast<const FBXMeshAttributeImport*>((*MeshImports)[i]);
 		const std::vector<float>& Vertices = MeshImport->GetVertices();
 		const std::vector<float>& UVs = MeshImport->GetUVs();
 		const std::vector<float>& Normals = MeshImport->GetNormals();
@@ -100,6 +101,7 @@ void BWFBXImporter::ImportFBX(const std::string& FileName, BWMesh* Mesh)
 			SubMeshVertexData->mVertexBufferBind->setBinding(i, vbuf);
 
 			BWHardwareIndexBufferPtr ibuf;
+			SubMesh->getIndexData()->mIndexStart = 0;
 			SubMesh->getIndexData()->mIndexCount = VertexNum;
 			ibuf = BWHardwareBufferManager::GetInstance()->createIndexBuffer(
 				SubMesh->getParent()->getName(),

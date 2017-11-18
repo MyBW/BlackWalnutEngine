@@ -83,13 +83,13 @@ BWEntity::VertexDataBindChoice BWEntity::chooseVertexDataForBinding(bool isVerte
 		return BIND_ORIGINAL;
 	}
 }
-VertexData* BWEntity::getVertexDataForBinding()
+VertexDataPrt BWEntity::getVertexDataForBinding()
 {
 	VertexDataBindChoice c = chooseVertexDataForBinding(mMesh->getShareVertexDataAnimationType() != VAT_NONE);
 	switch (c)
 	{
 	case BWEntity::BIND_ORIGINAL:
-		return mMesh->sharedVertexData.Get();
+		return mMesh->sharedVertexData;
 	case BWEntity::BIND_SOFTWARE_SKELETAL:
 		assert(0);
 	case BWEntity::BIND_SOFTWARE_MORPH:
@@ -97,7 +97,7 @@ VertexData* BWEntity::getVertexDataForBinding()
 	case BWEntity::BIND_HARDWARE_MORPH:
 		assert(0);
 	}
-	return mMesh->sharedVertexData.Get();
+	return mMesh->sharedVertexData;
 }
 void BWEntity::updateRenderQueue(BWRenderQueue *renderQueue) 
 {

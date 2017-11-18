@@ -178,11 +178,14 @@ protected:
 
 
 public:
-	bool IsEnableSparseVexelGI{ true };
+	bool IsEnableSparseVexelGI{ false };
 	bool IsEnableTemporalAA{ true };
 	bool IsEnableToneMap{ true };
 	bool IsEnableSSR{ true };
 	bool IsEnableSSAO{ true };
+	bool IsEnableIndirectLight{ true };
+	bool IsEnableSkyBox{ true };
+	bool IsEnableDirectLight{ true };
 	float InExposeScale{ 0.0f };
 	float CubemapMaxMip{ 6.0f };
 	float ExposureBias{ 4.0f };
@@ -322,19 +325,32 @@ protected:
 
 	void InitSparseVoxelOctreeGI();
 	void DynamicGenerateVoxel();
+	void ShadingSceneWithVoxel();
 	virtual void RenderVoxelForDebug();
 	void RenderGIWithSparseVoxelOctree();
-
+	
+	//////Test For Spare Volex 
+	BWVector3 PointLightPos;
+	BWVector3 PointLightColor;
 	BWVector3 SceneSizeMin;
 	BWVector3 SceneSizeMax;
 	BWVector4 VoxelSize;
-	BWTexturePtr TextureForVoxelization;
+	BWTexturePtr TextureForVoxelizationA;
+	BWTexturePtr TextureForVoxelizationB;
+	BWTexturePtr TextureForVoxelizationC;
 	BWGpuProgramUsagePtr DynamicVoxelSceneProgramUsage;
 	BWHighLevelGpuProgramPtr DynamicVoxelSceneProgram;
+	BWGpuProgramUsagePtr DynamicVoxelSceneWithoutTextureProgramUsage;
+	BWHighLevelGpuProgramPtr DynamicVoxelSceneWithoutTextureProgram;
+
 	BWGpuProgramUsagePtr RenderVoxelForDebugProgramUsage;
 	BWHighLevelGpuProgramPtr RenderVoxelForDebugProgram;
+
+	BWGpuProgramUsagePtr ShadingSceneWithVoxelProgramUsage;
+	BWHighLevelGpuProgramPtr ShadingSceneWithVoxelProgram;
 	//// tmp code 
 	std::vector<BWRenderOperation> AllRendererdOparation;
+	std::vector<const BWPass*> AllPass;
 	std::vector<BWMatrix4> AllRenderOparationWorldMatrix;
 	//////////// Global Illumination Base Sparse Voxel Octree End
 

@@ -63,6 +63,7 @@ BWSceneManager::~BWSceneManager()
 }
 void BWSceneManager::_renderScene(BWCamera *camera, BWViewport *viewport, bool isShowOverlay)
 {
+	
 	mActiveCamera = camera;
 	mActiveRenderSystem = BWRoot::GetInstance()->getRenderSystem();
 	mActiveRenderSystem->SetGlobalDataSet(mAutoParamDataSource);
@@ -125,7 +126,7 @@ void BWSceneManager::_renderScene(BWCamera *camera, BWViewport *viewport, bool i
 	}
 	mActiveRenderSystem->_setTextureProjectionRelativeTo(mCameraRelativeRendering, camera->getDerivedPosition());
 	setViewMatrix(mCachedViewMatrix);
-	
+
 	_renderVisibleObjec();
 
 	mActiveRenderSystem->_endFrame();
@@ -602,6 +603,7 @@ void BWSceneManager::renderSingleObject(  BWRenderable *renderable, const BWPass
 		}
 
 		mActiveRenderSystem->setCurrentPassIterationCount(1);
+		
 		if (renderable->preRender(this, mActiveRenderSystem))
 		{
 			/// tmp code 
@@ -609,7 +611,9 @@ void BWSceneManager::renderSingleObject(  BWRenderable *renderable, const BWPass
 			{
 				mActiveRenderSystem->AllRendererdOparation.push_back(ro);
 				mActiveRenderSystem->AllRenderOparationWorldMatrix.push_back(mAutoParamDataSource->getWorldMatrix());
+				mActiveRenderSystem->AllPass.push_back(pass);
 			}
+			
 			mActiveRenderSystem->_render(ro);
 
 		}
