@@ -1312,7 +1312,7 @@ void GLRenderSystem::_render(const BWRenderOperation &ro)
 		default:
 			break;
 		}
-		glDrawElements(primType, ro.indexData->mIndexCount, indexType, NULL);
+		glDrawElements(primType, ro.indexData->mIndexCount, indexType,(void*)ro.indexData->mIndexStart);
 		unbindGpuProgram(GPT_GPU_PROGRAM);
 		return;
 	}

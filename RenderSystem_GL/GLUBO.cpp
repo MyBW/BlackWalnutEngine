@@ -79,7 +79,6 @@ bool GLUniformBufferObject::setUniform(const std::string &name, void *data)
 	{
 		if (name == mData.mContentMember[i])
 		{
-
 			void *buffer = lock(mData.mOffset[i] , mData.mSize[i] * GLTypeSize(mData.mType[i]), BWHardwareBuffer::HBL_READ_ONLY);
 			if (buffer)
 			{
@@ -99,7 +98,7 @@ void* GLUniformBufferObject::lockImp(size_t offset, size_t length, BWHardwareBuf
 		return NULL;
     }
 	CHECK_GL_ERROR(glBindBuffer(GL_UNIFORM_BUFFER, mID));
-	void *buffer = glMapBuffer(GL_UNIFORM_BUFFER, GL_READ_ONLY);
+	void *buffer = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	buffer =(unsigned char *)buffer + offset;
 	return buffer;
 }

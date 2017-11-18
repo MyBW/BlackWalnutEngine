@@ -7,6 +7,12 @@
 #include "GL/include/glew.h"
 #include "../BWEngineCore/BWGpuProgramParams.h"
 #include "../BWEngineCore/BWStringConverter.h"
+//#define CHECK_GL_ERROR(glfunc)\
+//{\
+//  glfunc; \
+//}
+
+
 #define CHECK_GL_ERROR(glfunc) \
 {\
 	glfunc; \
