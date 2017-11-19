@@ -952,13 +952,14 @@ void BWRenderSystem::InitSparseVoxelOctreeGI()
 		GPUProgram = GPUUsage->GetHighLevelGpuProgram();
 		GPUProgram->Load();
 	};
-	int SceneSize = 600;
+	int SceneSize = 512;
 	SceneSizeMax = BWVector3(SceneSize, SceneSize, SceneSize);
 	SceneSizeMin = BWVector3(-SceneSize, -SceneSize, -SceneSize);
-	VoxelSize = BWVector4(5, 5, 5, 0);
+	VoxelSize = BWVector4(8, 8, 8, 0);
+	// 保证都是2整数次幂  否则在产生Mipmap的时候非常的慢 当大小超过256时 也非常的耗时
 	int Width = (SceneSizeMax.x - SceneSizeMin.x)/ VoxelSize.x;
 	int Height = (SceneSizeMax.y - SceneSizeMin.y) / VoxelSize.y;
-	int Depth = (SceneSizeMax.z - SceneSizeMin.z) / VoxelSize.z;
+	int Depth = (SceneSizeMax.z - SceneSizeMin.z) / VoxelSize.z ;
 	TextureForVoxelizationA = BWTextureManager::GetInstance()->Create(std::string("TextureForVoxelizationA"), "General");
 	/*GLImageTextureBufferPtr GLImageTextureBufferInstance = new GLImageTextureBuffer("TextureForVolization", PF_FLOAT32_RGBA, BWHardwareBuffer::HBU_DYNAMIC, false, false);
 	TextureForVoxelizationA = GLImageTextureBufferInstance;
@@ -968,7 +969,7 @@ void BWRenderSystem::InitSparseVoxelOctreeGI()
 	TextureForVoxelizationA->setDepth(Depth);
 	TextureForVoxelizationA->setTextureType(TEX_TYPE_3D);
 	TextureForVoxelizationA->setFormat(PF_FLOAT32_RGBA);
-	TextureForVoxelizationA->setNumMipmaps(1);
+	TextureForVoxelizationA->setNumMipmaps(5);
 	TextureForVoxelizationA->SetIndex(0);
 	TextureForVoxelizationA->createInternalResources();
 
@@ -1017,7 +1018,7 @@ void BWRenderSystem::DynamicGenerateVoxel()
 	Pipeline.BlendState = TStaticBlendStateHI<false>::GetStateHI();
 	Pipeline.DepthAndStencilState = TStaticDepthAndStencilState<false, false>::GetStateHI();
 	Pipeline.GPUProgramUsage = DynamicVoxelSceneProgramUsage;
-	Pipeline.RasterizerState = TStaticRasterizerState<>::GetStateHI();
+	Pipeline.RasterizerState = TStaticRasterizerState<PM_SOLID, CULL_NONE, false, false>::GetStateHI();
 	TextureForVoxelizationA->Clear(0, 0, 0, 0);
 	TextureForVoxelizationB->Clear(0, 0, 0, 0);
 	TextureForVoxelizationC->Clear(0, 0, 0, 0);
@@ -1039,10 +1040,22 @@ void BWRenderSystem::DynamicGenerateVoxel()
 		Pipeline.GPUProgramUsage = DynamicVoxelSceneProgramUsage;
 	}
 	/////////////For Test End
+
+	static float MoveLightZ = 0.0;
+	static bool IsTransDir = false;
 	PointLightPos.x = 100;
-	PointLightPos.y = 100;
-	PointLightPos.z = -50;
+	PointLightPos.y = 60;
+	PointLightPos.z = -40;
+
+	//if (IsTransDir) MoveLightZ += 0.8;
+	//else MoveLightZ -= 0.8;
+	//if (MoveLightZ > 80 || MoveLightZ < -80) IsTransDir = !IsTransDir;
+	//PointLightPos.z += MoveLightZ;
+
+
 	PointLightColor.r = 1.0;  PointLightColor.g = 1.0; PointLightColor.b = 1.0;
+
+
 	SetGraphicsPipelineState(Pipeline);
 	BWHighLevelGpuProgramPtr HightLevelGpuProgram;
 	for (int i = 0 ; i < AllRendererdOparation.size(); i++)
@@ -1071,15 +1084,17 @@ void BWRenderSystem::DynamicGenerateVoxel()
 	AllPass.clear();
 	SetViewport( 0.0f, 0.0f, FinalRenderResult->getWidth(),FinalRenderResult->getHeight());
 	SetGraphicsPipelineState(CurrentPipeline);
+	TextureForVoxelizationA->UpdateMipmap();
 }
 
 void BWRenderSystem::ShadingSceneWithVoxel()
 {
 	RSGraphicPipelineState Pipeline;
+	RSGraphicPipelineState CurrentPipline = CachedPipelineState;
 	Pipeline.BlendState = TStaticBlendStateHI<false>::GetStateHI();
 	Pipeline.DepthAndStencilState = TStaticDepthAndStencilState<true, true>::GetStateHI();
 	Pipeline.GPUProgramUsage = ShadingSceneWithVoxelProgramUsage;
-	Pipeline.RasterizerState = TStaticRasterizerState<PM_SOLID>::GetStateHI();
+	Pipeline.RasterizerState = TStaticRasterizerState<PM_SOLID , CULL_ANTICLOCKWISE>::GetStateHI();
 	SetGraphicsPipelineState(Pipeline);
 
 	BWRoot::GetInstance()->getSceneManager()->getAutoParamDataSource()->SetGPUAutoParameter(
@@ -1106,6 +1121,7 @@ void BWRenderSystem::ShadingSceneWithVoxel()
 	SetRenderTarget(ShadingSceneWithVoxelProgramUsage, RenderTarget, GDepthBuffer);
 	BWHighLevelGpuProgramPtr tmp;
 	RenderOperation(CubeMeshRenderOperation, tmp);
+	SetGraphicsPipelineState(CurrentPipline);
 }
 
 void BWRenderSystem::RenderVoxelForDebug()
@@ -1136,8 +1152,15 @@ void BWRenderSystem::RenderVoxelForDebug()
 void BWRenderSystem::RenderGIWithSparseVoxelOctree()
 {
 	DynamicGenerateVoxel();
-	//RenderVoxelForDebug();
-	ShadingSceneWithVoxel();
+	if (IsDebugSVO)
+	{
+		RenderVoxelForDebug();
+	}
+	else
+	{
+		ShadingSceneWithVoxel();
+	}
+	
 }
 
 void BWRenderSystem::RenderAmbientOcclusion()

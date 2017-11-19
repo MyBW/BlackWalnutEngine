@@ -272,6 +272,7 @@ public:
 	virtual void RemoveFromRenderTarget();
 	virtual void Resize(int Width, int Height, int Depth = 1){ }
 	virtual void GenerateMipmapForTest(int MipmapNum){ }
+	virtual void UpdateMipmap(){ }
 	FORCEINLINE void SetIndex(int Index) { mIndex = Index; }
 	FORCEINLINE bool isAttachToRenderTarget() const { return mRenderTarget != NULL; }
 	FORCEINLINE int GetIndex() const { return mIndex; }

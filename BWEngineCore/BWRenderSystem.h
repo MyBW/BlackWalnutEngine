@@ -186,6 +186,7 @@ public:
 	bool IsEnableIndirectLight{ true };
 	bool IsEnableSkyBox{ true };
 	bool IsEnableDirectLight{ true };
+	bool IsDebugSVO{ false };
 	float InExposeScale{ 0.0f };
 	float CubemapMaxMip{ 6.0f };
 	float ExposureBias{ 4.0f };
