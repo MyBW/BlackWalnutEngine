@@ -105,7 +105,7 @@ void main()
    const float DistanceToLight = distance(FSWorldPosition.xyz, PointLightPos);
    const float SurfaceAttenuation = attenuate(DistanceToLight);
    vec3 Diffuse = DiffuseColor / PI * PointLightColor * NoL * SurfaceAttenuation;
-   Diffuse = DiffuseColor / PI * PointLightColor * NoL ;
+   Diffuse = DiffuseColor / PI * PointLightColor * NoL * 5;
    imageStore(VoxelizationSceneA, ivec3(StoredPos), vec4(Diffuse, 1.0));
 
 

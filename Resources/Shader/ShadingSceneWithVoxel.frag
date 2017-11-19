@@ -20,6 +20,26 @@ layout(binding = 0,std140) uniform CameraInfo
   vec2 ScreenWH ;
 };
 const float PI = 3.1415926 ;
+#define TSQRT2 2.828427
+#define SQRT2 1.414213
+#define ISQRT2 0.707106
+#define VOXEL_SIZE (1/64.0) /* Size of a voxel. 128x128x128 => 1/128 = 0.0078125. We ignor 0 mipmap level . so We Get 1/64.0*/
+#define MIPMAP_HARDCAP 5.4f /* Too high mipmap levels => glitchiness, too low mipmap levels => sharpness. */
+#define DIFFUSE_INDIRECT_FACTOR 0.5f /* Just changes intensity of diffuse indirect lighting. */
+
+// Scales and bias a given vector (i.e. from [-1, 1] to [0, 1]).
+vec3 scaleAndBias(const vec3 p) { return 0.5f * p + vec3(0.5f); }
+
+
+// Returns a vector that is orthogonal to u.
+vec3 orthogonal(vec3 u){
+  u = normalize(u);
+  vec3 v = vec3(0.99146, 0.11664, 0.05832); // Pick any normalized vector.
+  return abs(dot(u, v)) > 0.99999f ? cross(u, vec3(0, 1, 0)) : cross(u, v);
+}
+
+bool isInsideCube(const vec3 p, float e) { return abs(p.x) < 1 + e && abs(p.y) < 1 + e && abs(p.z) < 1 + e; }
+
 vec3 ComputeDiffuseColor(vec3 BaseColor , float Metalic)
 {
   return BaseColor - BaseColor * Metalic;
@@ -172,6 +192,126 @@ vec3  StandarSahding(vec3 DiffuseColor , vec3 SpecularColor, vec3 LobeRoughness 
 
 
 
+// Traces a diffuse voxel cone.
+vec3 traceDiffuseVoxelCone(const vec3 from, vec3 direction){
+  direction = normalize(direction);
+  
+  const float CONE_SPREAD = 0.325;
+
+  vec4 acc = vec4(0.0f);
+
+  // Controls bleeding from close surfaces.
+  // Low values look rather bad if using shadow cone tracing.
+  // Might be a better choice to use shadow maps and lower this value.
+  float dist = 0.1953125;
+  vec3 ImageSize = (SceneSizeMax - SceneSizeMin)/VoxelSize.xyz;
+  // Trace.
+  while(dist < SQRT2 && acc.a < 1){
+
+    float TempDistanc  = dist * length(ImageSize);
+    vec3 c = from + TempDistanc * direction;
+    c= c.xyz / ((SceneSizeMax - SceneSizeMin)/2.0);
+    c = scaleAndBias(c);
+
+    float l = (1 + CONE_SPREAD * dist / VOXEL_SIZE);
+    float level = log2(l);
+    float ll = (level + 1) * (level + 1);
+    vec4 voxel = textureLod(VoxelScene, c, min(MIPMAP_HARDCAP, level));
+    acc += 0.075 * ll * voxel * pow(1 - voxel.a, 2);
+    dist += ll * VOXEL_SIZE * 2;
+  }
+  return pow(acc.rgb * 2.0, vec3(1.5));
+}
+
+
+// Calculates indirect diffuse light using voxel cone tracing.
+// The current implementation uses 9 cones. I think 5 cones should be enough, but it might generate
+// more aliasing and bad blur.
+vec3 indirectDiffuseLight( vec3 Normal, vec3 WorldPos){
+  const float ANGLE_MIX = 0.5f; // Angle mix (1.0f => orthogonal direction, 0.0f => direction of normal).
+
+  const float w[3] = {1.0, 1.0, 1.0}; // Cone weights.
+
+  // Find a base for the side cones with the normal as one of its base vectors.
+  const vec3 ortho = normalize(orthogonal(Normal));
+  const vec3 ortho2 = normalize(cross(ortho, Normal));
+
+  // Find base vectors for the corner cones too.
+  const vec3 corner = 0.5f * (ortho + ortho2);
+  const vec3 corner2 = 0.5f * (ortho - ortho2);
+
+  // Find start position of trace (start with a bit of offset).
+  const vec3 N_OFFSET = Normal * (1 + 4 * ISQRT2) * VOXEL_SIZE;
+  const vec3 C_ORIGIN = WorldPos + N_OFFSET;
+
+  // Accumulate indirect diffuse light.
+  vec3 acc = vec3(0);
+
+  // We offset forward in normal direction, and backward in cone direction.
+  // Backward in cone direction improves GI, and forward direction removes
+  // artifacts.
+  const float CONE_OFFSET = -0.01;
+
+  // Trace front cone
+  acc += w[0] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * Normal, Normal);
+
+  // Trace 4 side cones.
+  const vec3 s1 = mix(Normal, ortho, ANGLE_MIX);
+  const vec3 s2 = mix(Normal, -ortho, ANGLE_MIX);
+  const vec3 s3 = mix(Normal, ortho2, ANGLE_MIX);
+  const vec3 s4 = mix(Normal, -ortho2, ANGLE_MIX);
+
+  acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * ortho, s1);
+  acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * ortho, s2);
+  acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * ortho2, s3);
+  acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * ortho2, s4);
+
+  // Trace 4 corner cones.
+  const vec3 c1 = mix(Normal, corner, ANGLE_MIX);
+  const vec3 c2 = mix(Normal, -corner, ANGLE_MIX);
+  const vec3 c3 = mix(Normal, corner2, ANGLE_MIX);
+  const vec3 c4 = mix(Normal, -corner2, ANGLE_MIX);
+
+  acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * corner, c1);
+  acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * corner, c2);
+  acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * corner2, c3);
+  acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * corner2, c4);
+
+  // Return result.
+  return DIFFUSE_INDIRECT_FACTOR * acc ;
+}
+
+
+// Returns a soft shadow blend by using shadow cone tracing.
+// Uses 2 samples per step, so it's pretty expensive.
+float traceShadowCone(vec3 from, vec3 direction, vec3 Normal, float targetDistance){
+
+  from = from.xyz / ((SceneSizeMax - SceneSizeMin)/2.0);
+  targetDistance = targetDistance /(SceneSizeMax).x;
+
+  from += Normal * 0.05f; // Removes artifacts but makes self shadowing for dense meshes meh.
+
+  float acc = 0;
+
+  float dist = 3 * VOXEL_SIZE;
+  // I'm using a pretty big margin here since I use an emissive light ball with a pretty big radius in my demo scenes.
+  const float STOP = targetDistance - 16 * VOXEL_SIZE;
+
+  while(dist < STOP && acc < 1){  
+    vec3 c = from + dist * direction;
+    if(!isInsideCube(c, 0)) break;
+    c = scaleAndBias(c);
+    float l = pow(dist, 2); // Experimenting with inverse square falloff for shadows.
+    float s1 = 0.062 * textureLod(VoxelScene, c, 1 + 0.75 * l).a;
+    float s2 = 0.135 * textureLod(VoxelScene, c, 4.5 * l).a;
+    float s = s1 + s2;
+    acc += (1 - acc) * s;
+    dist += 0.9 * VOXEL_SIZE * (1 + 0.05 * l);
+  }
+  return 1 - pow(smoothstep(0, 1, acc * 1.4), 1.0 / 1.4);
+} 
+
+
 void main()
 {
 
@@ -207,6 +347,7 @@ void main()
    
    vec3 ViewDirection = normalize(ViewPos - WorldPos.xyz);
    vec3 LightDirection = PointLightPos - WorldPos.xyz;
+   float ToLightDistance = length(LightDirection);
    LightDirection = normalize(LightDirection) ;
 
    // 这几个参数都用来计算光照衰减的  目前我们只有AO衰减
@@ -216,11 +357,12 @@ void main()
    LobeRoughness[1] = Roughness;
    LobeEnergy = vec3(1.0);
    
-   vec3 VoxelPos = WorldPos.xyz / ((SceneSizeMax - SceneSizeMin)/2.0);
-   VoxelPos = VoxelPos * 0.5 + vec3(0.5);
-   vec4 VoxelDiffuseColor = textureLod(VoxelScene, VoxelPos, 0);
+   
+   //vec3 VoxelPos = WorldPos.xyz / ((SceneSizeMax - SceneSizeMin)/2.0);
+   //VoxelPos = VoxelPos * 0.5 + vec3(0.5);
+   //vec4 VoxelDiffuseColor = textureLod(VoxelScene, VoxelPos, 3);
 
-
+  
    vec3 DirectLightShading ;
    float NoL = max(dot(Normal , LightDirection) , 0.0) ;
    //Unreal Shading 在Fresnel现象上表现更出色 在视线掠过物体表面时 能产生更亮的光斑 Bloom效果更好
@@ -228,9 +370,13 @@ void main()
    //DirectLightShading = StandarSahding(DiffuseColor, SpecularColor, LobeRoughness , LobeEnergy, LightDirection, ViewDirection , Normal);
    DirectLightShading = DirectLightShading * PointLightColor * NoL;
 
-   
-  
 
-   ShadingReslut.xyz = VoxelDiffuseColor.xyz;
-   ShadingReslut.a = DirectLightShading.x;
+   vec3 InDirectDiffuseLighting;
+   InDirectDiffuseLighting = indirectDiffuseLight(Normal, WorldPos.xyz) ;
+   
+   float ShadowFactor  ;
+   ShadowFactor = traceShadowCone(WorldPos.xyz, LightDirection, Normal,  ToLightDistance);
+
+   ShadingReslut.xyz = InDirectDiffuseLighting.xyz * 0.2 + DirectLightShading * 0.8 * ShadowFactor;
+   ShadingReslut.a = 1.0;
 }

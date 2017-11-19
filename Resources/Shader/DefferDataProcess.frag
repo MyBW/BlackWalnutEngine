@@ -31,7 +31,7 @@ void main()
    // 正确的情况
    // BaseColor  And Specular
    //vec4  TexColor  = vec4(1.0 ,0.79 ,0.21 , 0.0) ;
-   vec4  TexColor  = vec4(1.0 ,1.0 ,1.0 , 0.0) ;
+   vec4  TexColor  = vec4(1.0 ,0.0 ,0.0 , 0.0) ;
    ABuffer = TexColor ;
    ABuffer.a = 0.5;
    

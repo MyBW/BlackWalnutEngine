@@ -19,7 +19,6 @@ void main(void)
    const vec4 E1 = GSWorldPostion[1] - GSWorldPostion[0];
    const vec4 E2 = GSWorldPostion[2] - GSWorldPostion[0];
    vec3 FaceNormal = abs(cross(E1.xyz, E2.xyz));
-   FaceNormal = normalize(FaceNormal); 
    for(int i = 0; i < gl_in.length(); ++i)  
    {  
        gl_Position = gl_in[i].gl_Position;

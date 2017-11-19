@@ -49,7 +49,7 @@ void main()
  // 正确的情况
    // BaseColor  And Specular
    //ABuffer = vec4(1.0 ,0.79 ,0.21 , 0.0);
-   ABuffer = vec4(1.0 , 0.0, 0.0 , 0.0);
+   ABuffer = vec4(1.0 , 0., 0.0 , 0.0);
    ABuffer.a = 0.5;
    
     //Normal Map
@@ -85,8 +85,7 @@ void main()
    vec3 DiffuseColor = ComputeDiffuseColor(ABuffer.xyz, CBuffer.g);
    const float DistanceToLight = distance(FSWorldPosition.xyz, PointLightPos);
    const float SurfaceAttenuation = attenuate(DistanceToLight);
-   vec3 Diffuse = DiffuseColor / PI * PointLightColor * NoL * SurfaceAttenuation;
-   Diffuse = ABuffer.xyz;
+   vec3 Diffuse = DiffuseColor / PI * PointLightColor * NoL * 5;
    imageStore(VoxelizationSceneA, ivec3(StoredPos), vec4(Diffuse, 1.0));
 
 
