@@ -17,6 +17,7 @@ public:
 	GLuint GetHIID(){ return mTextureID; }
 	void Resize(int Width, int Height, int Depth = 1) override;
 	void GenerateMipmapForTest(int MipmapNum) override;
+	void UpdateMipmap() override;
 	FORCEINLINE void SetHIID(GLuint NewHIID) { mTextureID = NewHIID; }
 	virtual void attachToRenderTarget(BWRenderTarget* renderTarget ,int Index , int MipLevel = 0) override;
 	static void do_image_io(std::string &name, std::string &groupName, std::string &ext, ImageVectorPtr &images, BWTexture *texture);
