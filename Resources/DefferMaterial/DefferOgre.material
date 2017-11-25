@@ -1,45 +1,3 @@
-material Ogre/Earring
-{
-	technique
-	{
-		pass
-		{
-			texture_unit
-			{
-				texture spheremap.png
-			}
-			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
-			{
-			   param_named tex1 int 0
-			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
-			}
-		}
-	}
-}
-
-material Ogre/Skin
-{
-	technique
-	{
-		pass
-		{
-			texture_unit
-			{
-				texture GreenSkin.jpg
-			}
-			gpu_program_ref   Ogre/Earring/deffer_gpu_program    GLSL
-			{
-			   param_named tex1 int 0
-			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
-			}
-		}
-	}
-}
-
 
 
 material Ogre/Sphere
@@ -256,6 +214,46 @@ material SphereWithTextureInput
 		}
 	}
 }
+
+
+material UnrealCooperFloor
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture T_Metal_Copper_D.bmp
+			}
+			texture_unit
+			{
+				texture T_MacroVariation.bmp
+			}
+			texture_unit
+			{
+				texture T_Metal_Gold_N.bmp
+			}
+			gpu_program_ref UnrealCooperFloor GLSL
+			{
+			   param_named BaseColor int 0
+			   param_named MacroVariation int 1
+			   param_named Normal int 2
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+
+
+
 
 material ClearDefferDataBuffer
 {

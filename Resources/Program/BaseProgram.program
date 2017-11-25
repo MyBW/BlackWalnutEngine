@@ -236,17 +236,17 @@
 	  vertex_shader_ref DefferDirectLightingVertex
 	  fragment_shader_ref ShadingSceneWithVoxelFragment
 	}
-
-
-	gpu_program Cornell_f_DefferDataProcess GLSL
-	{
-	  vertex_shader_ref    DefferDataProcessVertex
-	  fragment_shader_ref  Cornell_f_DefferDataProcessFragment
-	}
-
 	
-	gpu_program Cornell_r_DefferDataProcess GLSL
+	gpu_program Cornell_DefferDataProcess GLSL
 	{
 	  vertex_shader_ref    DefferDataProcessVertex
-	  fragment_shader_ref  Cornell_r_DefferDataProcessFragment
+	  fragment_shader_ref  Cornell_DefferDataProcessFragment
 	}
+
+
+    gpu_program UnrealCooperFloor GLSL
+	{
+	  vertex_shader_ref    DefferDataProcessVertex
+	  fragment_shader_ref  UnrealCooperFloorFragment
+	}
+	

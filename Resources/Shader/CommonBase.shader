@@ -321,12 +321,13 @@ fragment_shader ShadingSceneWithVoxelFragment glsl
 }
 
 
-fragment_shader  Cornell_r_DefferDataProcessFragment glsl
+fragment_shader  Cornell_DefferDataProcessFragment glsl
 {
-   Source  Cornell_r_DefferDataProcess.frag
+   Source  Cornell_DefferDataProcess.frag
 }
 
-fragment_shader  Cornell_l_DefferDataProcessFragment glsl
+
+fragment_shader  UnrealCooperFloorFragment glsl
 {
-   Source  Cornell_l_DefferDataProcess.frag
+   Source  UnrealCooperFloor.frag
 }

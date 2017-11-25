@@ -1,11 +1,12 @@
-material Cornell_r
+material Cornell_g
 {
 	technique
 	{
 		pass
 		{
-			gpu_program_ref   Cornell_f_DefferDataProcess    GLSL
+			gpu_program_ref   Cornell_DefferDataProcess    GLSL
 			{
+			   param_named CubeColor float3   0 1 0
 			   param_named_auto ModelMatrix    world_matrix
 			   param_named_auto ViewMatrix     view_matrix
 			   param_named_auto ProjectMatrix  projection_matrix
@@ -18,14 +19,56 @@ material Cornell_r
 }
 
 
-material Cornell_l
+material Cornell_b
 {
 	technique
 	{
 		pass
 		{
-			gpu_program_ref   Cornell_r_DefferDataProcess    GLSL
+			gpu_program_ref   Cornell_DefferDataProcess    GLSL
 			{
+			   param_named CubeColor float3   0 0 1
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+
+material Cornell_r
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   Cornell_DefferDataProcess    GLSL
+			{
+			   param_named CubeColor float3   1 0 0
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto ViewMatrix     view_matrix
+			   param_named_auto ProjectMatrix  projection_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_auto PreViewMatrix  pre_view_matrix
+			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			}
+		}
+	}
+}
+
+material Cornell_w
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref   Cornell_DefferDataProcess    GLSL
+			{
+			   param_named CubeColor float3   1 1 1
 			   param_named_auto ModelMatrix    world_matrix
 			   param_named_auto ViewMatrix     view_matrix
 			   param_named_auto ProjectMatrix  projection_matrix

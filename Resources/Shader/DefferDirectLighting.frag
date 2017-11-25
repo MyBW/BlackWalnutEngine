@@ -219,6 +219,7 @@ void main()
    //ShadingReslut = StandarSahding(DiffuseColor, SpecularColor, LobeRoughness , LobeEnergy, LightDirection, ViewDirection , Normal);
 
    vec3 DirectLightColor = ShadingReslut * LightColor * NoL * SurfaceAttenuation;
+
    gl_FragColor.xyz = DirectLightColor;
    gl_FragColor.a = 1.0;
 }

@@ -4,6 +4,8 @@ uniform vec4 VoxelSize;
 uniform vec3 SceneSizeMin;
 uniform vec3 SceneSizeMax;
 uniform mat4 WorldMatrix;
+uniform vec3 CubeColor ;
+
 
 in vec2 FSTexcoordCodrd;
 in vec3 FSNormal;
@@ -49,7 +51,7 @@ void main()
  // 正确的情况
    // BaseColor  And Specular
    //ABuffer = vec4(1.0 ,0.79 ,0.21 , 0.0);
-   ABuffer = vec4(1.0 , 0., 0.0 , 0.0);
+   ABuffer.rgb = CubeColor.rgb;
    ABuffer.a = 0.5;
    
     //Normal Map
