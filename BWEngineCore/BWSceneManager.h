@@ -111,6 +111,7 @@ public:
 private:
 	void _renderScene(BWCamera *camera, BWViewport *viewpotr, bool isShowOverlay);
 	void _updateSceneGraph(BWCamera *camera);
+	void SetupUniformBuffer();
 	void _findVisibleObjects(BWFrustum *camera, VisibleObjectsBoundsInfo *visibelBoundInfor, bool isrenderToTexture);
 	void _renderVisibleObjec();
 	void _renderQueueGroupObject(BWRenderQueueGroup* renderQueueGroup, BWQueueRenderableCollection::OrganisationMode organisationMode);

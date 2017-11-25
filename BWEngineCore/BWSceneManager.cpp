@@ -692,6 +692,11 @@ void BWSceneManager::_updateSceneGraph(BWCamera *camera)
 	}
 }
 
+void BWSceneManager::SetupUniformBuffer()
+{
+	
+}
+
 bool BWSceneManager::getShowBoundingBox()
 {
 	return false;

@@ -131,7 +131,7 @@ public:
 	virtual bool getPolygonModeOverrideable() const;
 	BWTextureUnitState* CreateTextureUnitState();
 	void AddTextureUnitState(BWTextureUnitState *textureUnitState);
-	BWTechnique* GetParent() { return parent; }
+	BWTechnique* GetParent() const { return parent; }
 	void SetParent(BWTechnique *parent);
 	std::string GetGroupName() { return parent->GetGroupName(); }
 	bool IsLoaded();

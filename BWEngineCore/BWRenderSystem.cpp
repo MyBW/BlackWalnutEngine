@@ -1047,10 +1047,10 @@ void BWRenderSystem::DynamicGenerateVoxel()
 	PointLightPos.y = 60;
 	PointLightPos.z = -40;
 
-	//if (IsTransDir) MoveLightZ += 0.8;
-	//else MoveLightZ -= 0.8;
-	//if (MoveLightZ > 80 || MoveLightZ < -80) IsTransDir = !IsTransDir;
-	//PointLightPos.z += MoveLightZ;
+	if (IsTransDir) MoveLightZ += 0.8;
+	else MoveLightZ -= 0.8;
+	if (MoveLightZ > 80 || MoveLightZ < -80) IsTransDir = !IsTransDir;
+	PointLightPos.z += MoveLightZ;
 
 
 	PointLightColor.r = 1.0;  PointLightColor.g = 1.0; PointLightColor.b = 1.0;
@@ -1058,16 +1058,27 @@ void BWRenderSystem::DynamicGenerateVoxel()
 
 	SetGraphicsPipelineState(Pipeline);
 	BWHighLevelGpuProgramPtr HightLevelGpuProgram;
+	std::map<std::string, BWVector3> CubesColor;
+	CubesColor.insert(std::pair<std::string, BWVector3>("Cornell_w" , BWVector3(1, 1, 1)));
+	CubesColor.insert(std::pair<std::string, BWVector3>("Cornell_r", BWVector3(1, 0, 0)));
+	CubesColor.insert(std::pair<std::string, BWVector3>("Cornell_g", BWVector3(0, 1, 0)));
+	CubesColor.insert(std::pair<std::string, BWVector3>("Cornell_b", BWVector3(0, 0, 1)));
+
 	for (int i = 0 ; i < AllRendererdOparation.size(); i++)
 	{
 		BWGpuProgramUsagePtr ActiveGPUProgramUsage = DynamicVoxelSceneWithoutTextureProgramUsage;
-
 		for (int j = 0 ; j < AllPass[i]->getNumTextureUnitStates(); j++)
 		{
 			// Unit 0 1 2 For TextureForVoxelizationA B C Texture
 			_setTextureUnitSetting(j + 3, *(AllPass[i]->getTextureUnitState(j)));
 			ActiveGPUProgramUsage = DynamicVoxelSceneProgramUsage;
 		}
+		std::string Name = AllPass[i]->GetParent()->GetParent()->getName();
+		if (CubesColor.find(Name) != CubesColor.end())
+		{
+			ActiveGPUProgramUsage->GetGpuProgramParameter()->SetNamedConstant("CubeColor", CubesColor[Name].M, 3, 1);
+		}
+		
 		ActiveGPUProgramUsage->GetGpuProgramParameter()->SetNamedConstant("VoxelSize", VoxelSize.M, 4, 1);
 		ActiveGPUProgramUsage->GetGpuProgramParameter()->SetNamedConstant("SceneSizeMax", SceneSizeMax.M, 3, 1);
 		ActiveGPUProgramUsage->GetGpuProgramParameter()->SetNamedConstant("SceneSizeMin", SceneSizeMin.M, 3, 1);

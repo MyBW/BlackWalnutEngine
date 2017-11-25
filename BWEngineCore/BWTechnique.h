@@ -68,7 +68,7 @@ public:
 	void AddGPUDeviceNameRule(const GPUDeviceNameRule&);	
 	int GetPassNum();
 	BWPass* GetPass(int );
-	BWMaterial* GetParent();
+	BWMaterial* GetParent() const { return parent; };
 	bool isLoaded();
 	void SetParent(BWMaterial *Parent);
 	std::string	GetGroupName() { return parent->GetGroupName(); }
