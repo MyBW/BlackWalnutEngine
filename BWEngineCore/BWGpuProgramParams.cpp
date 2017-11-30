@@ -153,9 +153,28 @@ BWGpuProgramParameters::AutoConstantDefinition BWGpuProgramParameters::autoConst
 	AutoConstantDefinition(ACT_TEXTURE_MATRIX, "texture_matrix", 16, ET_REAL, ACDT_INT),
 	AutoConstantDefinition(ACT_LOD_CAMERA_POSITION, "lod_camera_position", 3, ET_REAL, ACDT_NONE),
 	AutoConstantDefinition(ACT_LOD_CAMERA_POSITION_OBJECT_SPACE, "lod_camera_position_object_space", 3, ET_REAL, ACDT_NONE),
-	AutoConstantDefinition(ACT_LIGHT_CUSTOM, "light_custom", 4, ET_REAL, ACDT_INT)
+	AutoConstantDefinition(ACT_LIGHT_CUSTOM, "light_custom", 4, ET_REAL, ACDT_INT),
 };
 
+
+BWGpuProgramParameters::AutoUniformBufferObject BWGpuProgramParameters::AutoUniformBufferObjects[] =
+{
+	AutoUniformBufferObject(AUOT_VIEWPORT_INFORMATION , 
+	"Viewport_Information", 
+	{
+		ACT_VIEW_MATRIX,
+		ACT_PROJECTION_MATRIX,
+		ACT_PRE_VIEW_MATIX,
+		ACT_PRE_PROJECTION_MATRIX,
+		ACT_INVERSE_VIEW_MATRIX,
+		ACT_CAMERA_POSITION,
+		ACT_FOV,
+		ACT_WIDTH_INVERSE_HIGHT_CLIP,
+		ACT_FAR_AND_NEAR_CLIP_DISTANCE,
+		ACT_VIEWPORT_WIDTH_AND_HEIGHT
+	}
+	),
+};
 
 bool GpuNamedConstants::msGenerateAllConstantDefinitionArrayEntries = false;
 
@@ -952,6 +971,16 @@ void BWGpuProgramParameters::ClearNamedAutoConstant(const std::string& name)
 		}
 	}
 }
+
+void BWGpuProgramParameters::AddAutoUniformBufferObject(const AutoUniformBufferObject* InUniformBufferObject)
+{
+	for each (const AutoUniformBufferObject *AutoUniformBufferObject in AutoUniformBufferObjectParam)
+	{
+		if (AutoUniformBufferObject == InUniformBufferObject) return;
+	}
+	AutoUniformBufferObjectParam.push_back(InUniformBufferObject);
+}
+
 void BWGpuProgramParameters::SetLogicalIndexes(const GpuLogicalBufferStructPtr &intLogicalToPhysical, const GpuLogicalBufferStructPtr &floatLogicalToPhysical)
 {
 	//为什么要用这种方式来更改其中的内容呢  
@@ -1026,6 +1055,24 @@ const BWGpuProgramParameters::AutoConstantDefinition* BWGpuProgramParameters::Ge
 	return NULL;
 }
 
+const BWGpuProgramParameters::AutoConstantDefinition* BWGpuProgramParameters::GetAutoConstantDefinition(AutoConstantType InACT)
+{
+	for each (AutoConstantDefinition &ConstantDefinition in autoConstantDictionary)
+	{
+		if (ConstantDefinition.acType == InACT)  return &ConstantDefinition;
+	}
+	return nullptr;
+}
+
+const BWGpuProgramParameters::AutoUniformBufferObject* BWGpuProgramParameters::GetAutoUniformObject(const std::string &InName)
+{
+	for each (AutoUniformBufferObject &UniformObject in AutoUniformBufferObjects )
+	{
+		if (UniformObject.Name == InName) return &UniformObject;
+	}
+	return nullptr;
+}
+
 void BWGpuProgramParameters::CopyMatchingNamedConstantForm(const BWGpuProgramParameters &source)
 {
 
@@ -1096,3 +1143,5 @@ void BWGpuProgramParameters::CopyMatchingNamedConstantForm(const BWGpuProgramPar
 		}
 	}
 }
+
+

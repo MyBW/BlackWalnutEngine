@@ -505,8 +505,10 @@ void Parser::InitPaser()
 	mIds["default_params"] = ID_DEFAULT_PARAMS;
 	mIds["param_indexed"] = ID_PARAM_INDEXED;
 	mIds["param_named"] = ID_PARAM_NAMED;
+	mIds["param_named_uniform_block"]= ID_PARAM_NAMED_UNIFORM_BLOCK,
 	mIds["param_indexed_auto"] = ID_PARAM_INDEXED_AUTO;
 	mIds["param_named_auto"] = ID_PARAM_NAMED_AUTO;
+	mIds["param_named_uniform_block_auto"] = ID_PARAM_NAMED_UNIFORM_BLOCK_AUTO;
 
 	mIds["scheme"] = ID_SCHEME;
 	mIds["lod_index"] = ID_LOD_INDEX;
@@ -1076,8 +1078,6 @@ bool Parser::ParseParameter(BWDataStream &dataStream, BWGpuProgramParametersPtr 
 		}
 		case ID_PARAM_NAMED_AUTO:
 		{           
-
-						      
 						     if (parem.size() >= 3)
 						     {
 						     	size_t index = 0;
@@ -1195,6 +1195,14 @@ bool Parser::ParseParameter(BWDataStream &dataStream, BWGpuProgramParametersPtr 
 						     	}
 						     }
 						 	break;
+		}
+		case ID_PARAM_NAMED_UNIFORM_BLOCK_AUTO:
+		{
+			const BWGpuProgramParameters::AutoUniformBufferObject *UniformBufferObjectDef =
+				BWGpuProgramParameters::GetAutoUniformObject(parem[2]);
+			if (!UniformBufferObjectDef) assert(0);
+			parameter->AddAutoUniformBufferObject(UniformBufferObjectDef);
+			break;
 		}
 		}
 	}

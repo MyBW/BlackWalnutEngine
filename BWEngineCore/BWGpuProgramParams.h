@@ -841,7 +841,9 @@ public:
 		*/
 		ACT_LOD_CAMERA_POSITION_OBJECT_SPACE,
 		/** Binds custom per-light constants to the shaders. */
-		ACT_LIGHT_CUSTOM
+		ACT_LIGHT_CUSTOM,
+
+		ACT_VIEW_PORT_INFORMATION
 	};
 	enum ACDataType {
 		/// no data is required
@@ -884,7 +886,24 @@ public:
 	};
 	// Auto parameter storage
 	typedef std::vector<AutoConstantEntry> AutoConstantList;
-
+	enum AutoUniformObjectType
+	{
+		AUOT_VIEWPORT_INFORMATION,
+		AUOT_LIHGT_INFORMATION
+	}; 
+	struct AutoUniformBufferObject
+	{
+		AutoUniformObjectType UniformObjectType;
+		std::string Name;
+		std::vector<AutoConstantType> AutoConstantTypeList;
+		AutoUniformBufferObject(AutoUniformObjectType InUniformObjectType, const std::string& InName, const std::vector<AutoConstantType>& InAutoConstantTypeList)
+		{
+			UniformObjectType = InUniformObjectType;
+			Name = InName;
+			AutoConstantTypeList = InAutoConstantTypeList;
+		}
+	};
+	
 	struct AutoConstantDefinition
 	{
 		AutoConstantType acType;
@@ -925,6 +944,7 @@ public:
 	void SetRawAutoConstant(int physicalIndex, AutoConstantType type, int extraInfor, unsigned short ability, int elementsize);
 	void ClearNamedAutoConstant(const std::string&);
 
+	void AddAutoUniformBufferObject(const AutoUniformBufferObject* InUniformBufferObject);
 	void SetLogicalIndexes(const GpuLogicalBufferStructPtr& intLogicalToPhysical, const GpuLogicalBufferStructPtr &floatLogicalToPhysical);
     const FloatConstantList& GetFlotConstantList() const { return floatConstants; }
 	const IntConstantList& GetIntConstantList() const { return intConstants; }
@@ -947,6 +967,8 @@ public:
 	const GpuConstantDefinition* FindNamedConstantDefinition(const std::string & name, bool throwExceptionIfNotFound);
     static const AutoConstantDefinition* GetAutoConstantDefinition(const std::string&);
 	static const AutoConstantDefinition* GetAutoConstantDefinition(const int idx);
+	static const AutoConstantDefinition* GetAutoConstantDefinition(AutoConstantType InACT);
+	static const AutoUniformBufferObject* GetAutoUniformObject(const std::string &InName);
 	static int  GetNumAutoConstantDefinition();
 	unsigned short deriveVariability(AutoConstantType act);
 	const GpuNamedConstantsPtr getNamedConstants() const;
@@ -955,6 +977,9 @@ private:
 	//GPU程序中参数的数据存放的地址 也就是下面各种intConstants , intConstants等中的位置   
 	 
 	 static AutoConstantDefinition autoConstantDictionary[];// 所有自动常量的信息
+	 static AutoUniformBufferObject AutoUniformBufferObjects[];
+
+	 std::vector<const AutoUniformBufferObject*> AutoUniformBufferObjectParam;
 	 unsigned short combinVariability;
 	 bool ignoreMissingParams;
 	 BWGpuSharedParameterUsageList gpuSharedParametersSet; //共享参数的信息

@@ -236,7 +236,7 @@ private:
 	TextureUnitStates mTextureUnitStates;
 
 	BWHighLevelGpuProgramPtr mHeightLevelProgram;
-	BWGpuProgramUsagePtr mGPUProgram;
+	BWGpuProgramUsagePtr mGPUProgramUsage;
 };
 
 
