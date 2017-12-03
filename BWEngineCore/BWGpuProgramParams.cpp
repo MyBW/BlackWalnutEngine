@@ -156,11 +156,12 @@ BWGpuProgramParameters::AutoConstantDefinition BWGpuProgramParameters::autoConst
 	AutoConstantDefinition(ACT_LIGHT_CUSTOM, "light_custom", 4, ET_REAL, ACDT_INT),
 };
 
+IMPLEMEN_UNIFORM_BUFFER_STRUCT(ViewportInforUniformBufferStruct)
 
-BWGpuProgramParameters::AutoUniformBufferObject BWGpuProgramParameters::AutoUniformBufferObjects[] =
-{
-	AutoUniformBufferObject(AUOT_VIEWPORT_INFORMATION , 
-	"Viewport_Information", 
+BWGpuProgramParameters::AutoUniformBufferObject<ViewportInforUniformBufferStruct> BWGpuProgramParameters::GlobalViewportInformation =
+BWGpuProgramParameters::AutoUniformBufferObject<ViewportInforUniformBufferStruct>(
+	AUOT_VIEWPORT_INFORMATION ,
+	"viewport_information", 
 	{
 		ACT_VIEW_MATRIX,
 		ACT_PROJECTION_MATRIX,
@@ -173,8 +174,52 @@ BWGpuProgramParameters::AutoUniformBufferObject BWGpuProgramParameters::AutoUnif
 		ACT_FAR_AND_NEAR_CLIP_DISTANCE,
 		ACT_VIEWPORT_WIDTH_AND_HEIGHT
 	}
-	),
-};
+);
+
+void BWGpuProgramParameters::UpdateViewportInformationBuffer(const ViewportInforUniformBufferStruct& InViewportInformation)
+{
+	auto TansToGLMatrix = [](BWMatrix4 ToTrans)
+	{
+		float *tmpData = (float*)(ToTrans.M);
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = i; j < 4; j++)
+			{
+				float a = tmpData[i * 4 + j];
+				tmpData[i * 4 + j] = tmpData[j * 4 + i];
+				tmpData[j * 4 + i] = a;
+			}
+		}
+	};
+	TansToGLMatrix(InViewportInformation.PreProjectMatrix);
+	TansToGLMatrix(InViewportInformation.PreViewMatrix);
+	TansToGLMatrix(InViewportInformation.ViewMatrix);
+	TansToGLMatrix(InViewportInformation.ProjectMatrix);
+	TansToGLMatrix(InViewportInformation.ViewInversMatrix);
+	BWGpuProgramParameters::GlobalViewportInformation.UniforBufferObjectPtr->SetContent(InViewportInformation);
+	BWGpuProgramParameters::GlobalViewportInformation.UniforBufferObjectPtr->UploadData();
+}
+
+bool BWGpuProgramParameters::IsHaveGlobalUniformBufferObject() const
+{
+	return GlobalViewportInformationPtr != nullptr;
+}
+
+bool BWGpuProgramParameters::IsGlobalUniformBufferHaveTheMember(const std::string &Name) const
+{
+	return ViewportInforUniformBufferStruct::StaticStruct.IsHaveMember(Name);
+}
+
+void BWGpuProgramParameters::SetGlobalViewportInformation(const std::string &InShaderViewportInformationStructName)
+{
+	GlobalViewportInformationPtr = &GlobalViewportInformation; 
+	ShaderViewportInformationStructName = InShaderViewportInformationStructName;
+}
+
+const std::string& BWGpuProgramParameters::GetGlobalViewportInformatioinStructName()
+{
+	return ShaderViewportInformationStructName;
+}
 
 bool GpuNamedConstants::msGenerateAllConstantDefinitionArrayEntries = false;
 
@@ -972,14 +1017,14 @@ void BWGpuProgramParameters::ClearNamedAutoConstant(const std::string& name)
 	}
 }
 
-void BWGpuProgramParameters::AddAutoUniformBufferObject(const AutoUniformBufferObject* InUniformBufferObject)
-{
-	for each (const AutoUniformBufferObject *AutoUniformBufferObject in AutoUniformBufferObjectParam)
-	{
-		if (AutoUniformBufferObject == InUniformBufferObject) return;
-	}
-	AutoUniformBufferObjectParam.push_back(InUniformBufferObject);
-}
+//void BWGpuProgramParameters::AddAutoUniformBufferObject(const AutoUniformBufferObject* InUniformBufferObject)
+//{
+//	for each (const AutoUniformBufferObject *AutoUniformBufferObject in AutoUniformBufferObjectParam)
+//	{
+//		if (AutoUniformBufferObject == InUniformBufferObject) return;
+//	}
+//	AutoUniformBufferObjectParam.push_back(InUniformBufferObject);
+//}
 
 void BWGpuProgramParameters::SetLogicalIndexes(const GpuLogicalBufferStructPtr &intLogicalToPhysical, const GpuLogicalBufferStructPtr &floatLogicalToPhysical)
 {
@@ -1064,14 +1109,14 @@ const BWGpuProgramParameters::AutoConstantDefinition* BWGpuProgramParameters::Ge
 	return nullptr;
 }
 
-const BWGpuProgramParameters::AutoUniformBufferObject* BWGpuProgramParameters::GetAutoUniformObject(const std::string &InName)
-{
-	for each (AutoUniformBufferObject &UniformObject in AutoUniformBufferObjects )
-	{
-		if (UniformObject.Name == InName) return &UniformObject;
-	}
-	return nullptr;
-}
+//const BWGpuProgramParameters::AutoUniformBufferObject* BWGpuProgramParameters::GetAutoUniformObject(const std::string &InName)
+//{
+//	for each (AutoUniformBufferObject &UniformObject in AutoUniformBufferObjects )
+//	{
+//		if (UniformObject.Name == InName) return &UniformObject;
+//	}
+//	return nullptr;
+//}
 
 void BWGpuProgramParameters::CopyMatchingNamedConstantForm(const BWGpuProgramParameters &source)
 {

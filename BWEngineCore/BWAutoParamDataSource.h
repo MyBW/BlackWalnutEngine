@@ -7,10 +7,10 @@
 #include "BWRenderTarget.h"
 #include "BWSceneManager.h"
 #include "BWPass.h"
+#include "BWUniformBufferObject.h"
 class BWFrustum;
 class BWCamera;
 class BWRenderable;
-
 
 class BWAutoParamDataSource
 {
@@ -120,6 +120,7 @@ public:
 
 	FORCEINLINE ObjectsQueneWithInLightMap* GetObjectesQueueInLight() { return ObjectsQuenesWithInLight; }
 
+	TBWUniformBufferObjectPtr<ViewportInforUniformBufferStruct>  ViewportInfoUniform;
 	BWAutoParamDataSource();
 	virtual ~BWAutoParamDataSource();
 	virtual void EndFrame();
@@ -259,7 +260,7 @@ public:
 	virtual void updateLightCustomGpuParameter(const BWGpuProgramParameters::AutoConstantEntry& constantEntry, BWGpuProgramParameters *params) const;
 	virtual void updateActivePass();
 	void SetGPUAutoParameter(BWGpuProgramParametersPtr GPUProgramParameter);
-
+	void UpdateAllGlobalParameter();
 };
 
 #endif

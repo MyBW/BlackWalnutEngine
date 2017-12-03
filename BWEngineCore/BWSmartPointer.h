@@ -2,6 +2,7 @@
 #define SMARTPOINTER_H_
 #include <assert.h>
 #include <stdlib.h>
+class BWResource;
 //尽量保证两个只能指针之间赋值  避免诸如 smarpoint<t> tmp = new t ;  smartpoint<t> tmp1 = tmp.Get() ; 这样就导致smartpoint 的计数失效
 //也就是在使用过程避免使用将get得到后的指针赋值给另一个只能指针   那么 在应用程序中只要使用指针指向get得到的指针就可以了 不用delete掉 也不存在new
 template<class T>
@@ -22,6 +23,7 @@ public:
 	//这里还有一种情况 如果多个空的smartepointer相互赋值 怎么办？
 	SmartPointer(const SmartPointer &sP) :mPointer(NULL), counter(NULL)
 	{
+
 		if (&sP == this)
 		{
 			return;
@@ -34,7 +36,6 @@ public:
 		}
 	}
 
-
 	SmartPointer<T>& operator=(const SmartPointer& sP)
 	{
 		if (&sP == this)
@@ -46,12 +47,28 @@ public:
 		swap(tmp);
 		return *this;
 	}
-
+	/*const SmartPointer<T>& operator=(SmartPointer<BWResource> resource)
+	{
+		if (mPointer == dynamic_cast<T*> (resource.Get()))
+		{
+			return *this;
+		}
+		if (mPointer)
+		{
+			(*counter)--;
+			if ((*counter) == 0)
+			{
+				delete mPointer;
+			}
+		}
+		mPointer = dynamic_cast<T*>(resource.Get());
+		counter = resource.GetCounterPointer();
+	}*/
 	// ??为什么使用模板？？ 如果类型转换出错怎么办
 	template<class Y>
 	SmartPointer(const SmartPointer<Y> &r) :mPointer(NULL), counter(NULL)
 	{
-		mPointer = r.Get();
+		mPointer = dynamic_cast<T*>(r.Get());
 		counter = r.GetCounterPointer();
 		if (counter)
 		{
@@ -61,6 +78,10 @@ public:
 	template<class Y>
 	SmartPointer& operator=(const SmartPointer<Y> &r)
 	{
+		if (dynamic_cast<T*> (r.Get()) == nullptr)
+		{
+			assert(0);
+		}
 		if (mPointer == r.Get())
 		{
 			return *this;
@@ -68,7 +89,11 @@ public:
 		SmartPointer<T> tmp(r);
 		swap(tmp);
 		return *this;
-	}/**/
+	}
+	
+
+
+
 	~SmartPointer()
 	{
 		if (counter)
@@ -155,6 +180,7 @@ public:
 	{
 		return mPointer != _Ref.mPointer;
 	}
+
 protected:
 	T* mPointer;
     unsigned int *counter;

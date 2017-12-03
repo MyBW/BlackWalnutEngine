@@ -60,7 +60,7 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 			mCurrentTextureProjector[i] = 0;
 			mShadowCamDepthRangesDirty[i] = false;
 		}
-
+		ViewportInfoUniform = ViewportInforUniformBufferStruct::CreateUniformBufferObject();
 	}
 	//-----------------------------------------------------------------------------
 	BWAutoParamDataSource::~BWAutoParamDataSource()
@@ -1176,7 +1176,7 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 		if (mCurrentLightList && lightIndex < mCurrentLightList->size())
 		{
 			const BWLight &light = getLight(lightIndex);
-			light._updateCustomGpuParameter(paramIndex, constantEntry, params);
+			//light._updateCustomGpuParameter(paramIndex, constantEntry, params);
 		}
 	}
 	void BWAutoParamDataSource::updateActivePass()
@@ -1282,5 +1282,23 @@ PointLightMap* BWAutoParamDataSource::TActiveLightMap<PointLightMap>::ActiveLigh
 				itor++;
 			}
 		}
+	}
+
+	void BWAutoParamDataSource::UpdateAllGlobalParameter()
+	{
+		ViewportInforUniformBufferStruct ViewportInformation;
+		ViewportInformation.FoV = GetActiveCamera()->getFOVy().mRad;
+		ViewportInformation.NearFar.x = GetActiveCamera()->getNearClipDistance();
+		ViewportInformation.NearFar.y = GetActiveCamera()->getFarClipDistance();
+		ViewportInformation.PrjPlaneWInverseH = GetActiveCamera()->GetAspect();
+		ViewportInformation.ScreenWH.x = 1024;
+		ViewportInformation.ScreenWH.y = 768;
+		ViewportInformation.ViewMatrix = getViewMatrix();
+		ViewportInformation.ProjectMatrix = getProjectionMatrix();
+		ViewportInformation.PreProjectMatrix = getPreProjectionMatrix();
+		ViewportInformation.PreViewMatrix = getPreViewMatrix();
+		ViewportInformation.ViewInversMatrix = getViewMatrix().inverse();
+		ViewportInformation.ViewPositionWorldSpace = GetActiveCamera()->getPosition();
+		BWGpuProgramParameters::UpdateViewportInformationBuffer(ViewportInformation) ;
 	}
 

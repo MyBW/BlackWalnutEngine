@@ -1,6 +1,8 @@
 #include "BWHighLevelGpuProgram.h"
 #include "BWGpuProgramManager.h"
 #include "BWLog.h"
+#include "AllSmartPointRef.h"
+#include "BWGpuProgramUsage.h"
 BWGpuProgramParametersPtr BWHighLevelGpuProgram::CreateParameter()
 {
 	BWGpuProgramParametersPtr programParam = BWGpuProgramManager::GetInstance()->CreateParameters();
@@ -38,10 +40,16 @@ void BWHighLevelGpuProgram::SetGPUProgramParameters(BWGpuProgramParametersPtr Pr
 	{
 		namedConstant = GetDefaultParameters()->getNamedConstants();
 	}
+	SetGlobalUniformBufferObject(ProgramParameters);
 	//设置各种unifomr参数
 	GpuConstantDefinitionMap::iterator itor = namedConstant->map.begin();
 	while (itor != namedConstant->map.end())
 	{
+		if (ProgramParameters->IsHaveGlobalUniformBufferObject() 
+			&& ProgramParameters->IsGlobalUniformBufferHaveTheMember(itor->first))
+		{
+			continue;
+		}
 		GpuConstantDefinition *def = &(itor->second);
 		int size = def->arraySize * itor->second.getElementSize(def->constType, false);
 		void *data = NULL;
@@ -57,6 +65,11 @@ void BWHighLevelGpuProgram::SetGPUProgramParameters(BWGpuProgramParametersPtr Pr
 		SetParameter(itor->first, data, def->constType);
 		itor++;
 	}
+
+}
+
+void BWHighLevelGpuProgram::SetGlobalUniformBufferObject(BWGpuProgramParametersPtr ProgramParameters)
+{
 
 }
 

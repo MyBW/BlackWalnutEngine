@@ -1198,10 +1198,10 @@ bool Parser::ParseParameter(BWDataStream &dataStream, BWGpuProgramParametersPtr 
 		}
 		case ID_PARAM_NAMED_UNIFORM_BLOCK_AUTO:
 		{
-			const BWGpuProgramParameters::AutoUniformBufferObject *UniformBufferObjectDef =
-				BWGpuProgramParameters::GetAutoUniformObject(parem[2]);
-			if (!UniformBufferObjectDef) assert(0);
-			parameter->AddAutoUniformBufferObject(UniformBufferObjectDef);
+			if (BWGpuProgramParameters::GlobalViewportInformation.Name == parem[2])
+			{
+				parameter->SetGlobalViewportInformation(parem[1]);
+			}
 			break;
 		}
 		}

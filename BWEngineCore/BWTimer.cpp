@@ -1,5 +1,5 @@
-#include "BWRoot.h"
-
+//#include "BWRoot.h"
+#include "BWTimer.h"
 unsigned long BWTimer::getMilliseconds()
 {
 	return 100;

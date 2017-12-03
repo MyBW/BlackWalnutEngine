@@ -2,7 +2,7 @@
 #include "BWLight.h"
 
 
-
+	
 class BWDirectionalLight : public BWLight
 {
 public:

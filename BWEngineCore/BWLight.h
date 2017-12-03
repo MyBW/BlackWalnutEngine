@@ -2,9 +2,9 @@
 #define LIGHT_H_
 #include"BWTexture.h"
 #include"BWFrustum.h"
-#include "BWGpuProgramParams.h"
 #include"BWHardwareDepthBuffer.h"
 #include"BWMovableObject.h"
+
 struct ShadowMapProjectInfo
 {
 	BWMatrix4 ViewMatrix;
@@ -38,7 +38,7 @@ public:
 	bool getCastShadows() const;
 	void SetIsCastShadow(bool IsCast);
 	size_t _getIndexInFrame() const { return mIndexInFrame; }
-	void _updateCustomGpuParameter(unsigned short index, const BWGpuProgramParameters::AutoConstantEntry& constEntry, BWGpuProgramParameters *params) const ;
+	//void _updateCustomGpuParameter(unsigned short index, const BWGpuProgramParameters::AutoConstantEntry& constEntry, BWGpuProgramParameters *params) const ;
 
 	//只是利用这个函数来把需要渲染的光源挑选出来
 	virtual void updateRenderQueue(BWRenderQueue *renderQueue) override;

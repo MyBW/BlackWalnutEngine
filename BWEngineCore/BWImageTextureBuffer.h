@@ -22,39 +22,39 @@ protected:
 };
 
 
-class BWImageTexturebufferPtr : public SmartPointer<BWImageTextureBuffer>
-{
-public:
-	BWImageTexturebufferPtr() :SmartPointer<BWImageTextureBuffer>()
-	{
-
-	}
-	BWImageTexturebufferPtr(const BWResourcePtr & resource)
-	{
-		mPointer = dynamic_cast<BWImageTextureBuffer*>(resource.Get());
-		counter = resource.GetCounterPointer();
-		if (counter)
-		{
-			(*counter)++;
-		}
-	}
-	const BWImageTexturebufferPtr& operator=(const BWResourcePtr &resource)
-	{
-		if (mPointer == dynamic_cast<BWImageTextureBuffer*>(resource.Get()))
-		{
-			return *this;
-		}
-		if (mPointer != NULL)
-		{
-			(*counter)--;
-			if ((*counter) == 0)
-			{
-				delete mPointer;
-			}
-		}
-		mPointer = dynamic_cast<BWImageTextureBuffer*>(resource.Get());
-		counter = resource.GetCounterPointer();
-		(*counter)++;
-		return *this;
-	}
-};
+//class BWImageTexturebufferPtr : public SmartPointer<BWImageTextureBuffer>
+//{
+//public:
+//	BWImageTexturebufferPtr() :SmartPointer<BWImageTextureBuffer>()
+//	{
+//
+//	}
+//	BWImageTexturebufferPtr(const BWResourcePtr & resource)
+//	{
+//		mPointer = dynamic_cast<BWImageTextureBuffer*>(resource.Get());
+//		counter = resource.GetCounterPointer();
+//		if (counter)
+//		{
+//			(*counter)++;
+//		}
+//	}
+//	const BWImageTexturebufferPtr& operator=(const BWResourcePtr &resource)
+//	{
+//		if (mPointer == dynamic_cast<BWImageTextureBuffer*>(resource.Get()))
+//		{
+//			return *this;
+//		}
+//		if (mPointer != NULL)
+//		{
+//			(*counter)--;
+//			if ((*counter) == 0)
+//			{
+//				delete mPointer;
+//			}
+//		}
+//		mPointer = dynamic_cast<BWImageTextureBuffer*>(resource.Get());
+//		counter = resource.GetCounterPointer();
+//		(*counter)++;
+//		return *this;
+//	}
+//};

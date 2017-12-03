@@ -1,20 +1,20 @@
 #ifndef RENDERSYSTEM_H_
 #define RENDERSYSTEM_H_
-#include "BWTexture.h"
+#include "AllSmartPointRef.h"
 #include "BWTextureManager.h"
 #include "BWRenderTarget.h"
 #include "BWTextureUnitState.h"
 #include "BWRenderOperation.h"
-#include "BWGpuProgram.h"
-#include "BWGpuProgramUsage.h"
+#include "AllSmartPointRef.h"
 #include "BWDirectionalLight.h"
 #include"BWMesh.h"
 #include "BWRenderState.h"
 #include "BWImageTextureBuffer.h"
+#include "GPUProgramType.h"
 /////////////////////////// New Interface
 struct RSShaderTexture
 {
-	BWGpuProgramUsagePtr GPUProgramUsage;
+	BWHighLevelGpuProgramPtr GPUProgramUsage;
 	BWTexturePtr Texture;
 	SamplerStateHIRef Sampler;
 };
@@ -49,6 +49,7 @@ struct RSGraphicPipelineState
 ///////////////////////////////New Interface End
 class BWRenderWindow;
 class BWViewport;
+class BWUniformBufferObject;
 enum TexCoordCalcMethod
 {
 	TEXCALC_NONE ,
@@ -110,11 +111,13 @@ public:
 	virtual void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget, BWHardwareDepthBufferPtr DepthBuffer) { };
 	virtual void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget){ }
 	virtual void SetRenderTargets(RSRenderTargets& InRenderTargets) {};
-
+	virtual BWUniformBufferObject* CreateUniformBufferObject(const std::string &Name) { return NULL; }
+	virtual void SetUniformBufferObejct(BWUniformBufferObject* UniformBufferObject, int BindPoint);
 	virtual void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState);
 	virtual void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler);
 	virtual void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format);
 	virtual void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, int Miplevel, PixelFormat Format);
+	
 	virtual void ClearRenderTarget(unsigned int buffers, const ColourValue &color = ColourValue::Black, float depth = 1.0, unsigned short stencil = 0);
 	virtual void ReadSurfaceData(BWTexturePtr SourceInterface, int Index, int MipLevel, BWPixelBox& Destination) { };
 	virtual void CopyTextureToTexture(BWTexturePtr SourceTexture, int SourceIndex, int SourceMipmipLevel, BWTexturePtr DestinationTexture, int DestinationIndex, int DestinationMipmapLevel) { }

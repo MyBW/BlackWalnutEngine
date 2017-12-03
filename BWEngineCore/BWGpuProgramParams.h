@@ -4,10 +4,11 @@
 #include "BWDataStream.h"
 #include "OgreAny.h"
 #include "BWPrimitive.h"
-#include "BWSmartPointer.h"
+#include "AllSmartPointRef.h"
 #include <vector>
 #include <map>
 #include <limits>
+#include "BWUniformBufferObject.h"
 enum GpuConstantType
 {
 	GCT_FLOAT1 = 1,
@@ -278,7 +279,7 @@ protected:
 	*/
 	static bool msGenerateAllConstantDefinitionArrayEntries;
 };
-typedef SmartPointer<GpuNamedConstants> GpuNamedConstantsPtr;
+
 
 
 /** Structure recording the use of a physical buffer by a logical parameter
@@ -308,7 +309,7 @@ struct  GpuLogicalBufferStruct
 	size_t bufferSize;
 	GpuLogicalBufferStruct() : bufferSize(0) {}
 };
-typedef SmartPointer<GpuLogicalBufferStruct> GpuLogicalBufferStructPtr;
+
 
 /** Definition of container that holds the current float constants.
 @note Not necessarily in direct index order to constant indexes, logical
@@ -349,7 +350,7 @@ private:
 	std::string  name;
 	int version;
 };
-typedef SmartPointer<BWGpuSharedParameters> BWGpuSharedParametersPtr;
+
 
 class BWGpuProgramParameters;
 class BWGpuSharedParametersUsage
@@ -378,6 +379,23 @@ public:
 	const Any& GetRenderSystemData() const { return renderSystemData; }
 };
 typedef std::vector<BWGpuSharedParametersUsage> BWGpuSharedParameterUsageList;
+
+
+//Global Uniform Buffer Object
+BEGIN_UNIFORM_BUFFER_STRUCT(ViewportInforUniformBufferStruct)
+UNIFORM_BUFFER_STRUCT_MEMBER(BWMatrix4, ViewMatrix)
+UNIFORM_BUFFER_STRUCT_MEMBER(BWMatrix4, ProjectMatrix)
+UNIFORM_BUFFER_STRUCT_MEMBER(BWMatrix4, PreViewMatrix)
+UNIFORM_BUFFER_STRUCT_MEMBER(BWMatrix4, PreProjectMatrix)
+UNIFORM_BUFFER_STRUCT_MEMBER(BWMatrix4, ViewInversMatrix)
+UNIFORM_BUFFER_STRUCT_MEMBER(BWVector3, ViewPositionWorldSpace)
+UNIFORM_BUFFER_STRUCT_MEMBER(float, FoV)
+UNIFORM_BUFFER_STRUCT_MEMBER(float, PrjPlaneWInverseH)
+UNIFORM_BUFFER_STRUCT_MEMBER(BWPoint2DD, NearFar)
+UNIFORM_BUFFER_STRUCT_MEMBER(BWPoint2DD, ScreenWH)
+END_UNIFORM_BUFFER_STRUCT(ViewportInforUniformBufferStruct)
+
+
 class BWGpuProgramParameters 
 {
 public: 
@@ -891,19 +909,24 @@ public:
 		AUOT_VIEWPORT_INFORMATION,
 		AUOT_LIHGT_INFORMATION
 	}; 
+	template<typename UniformBufferStruct>
 	struct AutoUniformBufferObject
 	{
 		AutoUniformObjectType UniformObjectType;
 		std::string Name;
 		std::vector<AutoConstantType> AutoConstantTypeList;
+		typedef UniformBufferStruct UniformBufferStructType;
+		TBWUniformBufferObjectPtr<UniformBufferStructType> UniforBufferObjectPtr;
 		AutoUniformBufferObject(AutoUniformObjectType InUniformObjectType, const std::string& InName, const std::vector<AutoConstantType>& InAutoConstantTypeList)
 		{
 			UniformObjectType = InUniformObjectType;
 			Name = InName;
 			AutoConstantTypeList = InAutoConstantTypeList;
+			UniforBufferObjectPtr = UniformBufferStructType::CreateUniformBufferObject();
 		}
+
 	};
-	
+
 	struct AutoConstantDefinition
 	{
 		AutoConstantType acType;
@@ -944,7 +967,7 @@ public:
 	void SetRawAutoConstant(int physicalIndex, AutoConstantType type, int extraInfor, unsigned short ability, int elementsize);
 	void ClearNamedAutoConstant(const std::string&);
 
-	void AddAutoUniformBufferObject(const AutoUniformBufferObject* InUniformBufferObject);
+	//void AddAutoUniformBufferObject(const AutoUniformBufferObject* InUniformBufferObject);
 	void SetLogicalIndexes(const GpuLogicalBufferStructPtr& intLogicalToPhysical, const GpuLogicalBufferStructPtr &floatLogicalToPhysical);
     const FloatConstantList& GetFlotConstantList() const { return floatConstants; }
 	const IntConstantList& GetIntConstantList() const { return intConstants; }
@@ -968,24 +991,34 @@ public:
     static const AutoConstantDefinition* GetAutoConstantDefinition(const std::string&);
 	static const AutoConstantDefinition* GetAutoConstantDefinition(const int idx);
 	static const AutoConstantDefinition* GetAutoConstantDefinition(AutoConstantType InACT);
-	static const AutoUniformBufferObject* GetAutoUniformObject(const std::string &InName);
+	//static const AutoUniformBufferObject* GetAutoUniformObject(const std::string &InName);
 	static int  GetNumAutoConstantDefinition();
 	unsigned short deriveVariability(AutoConstantType act);
 	const GpuNamedConstantsPtr getNamedConstants() const;
+
+	//If There Have A Lot Of Global Uniform Buffer , We Can Use TempleteList To Manager All Of Them
+	static AutoUniformBufferObject<ViewportInforUniformBufferStruct> GlobalViewportInformation;
+	static void UpdateViewportInformationBuffer(const ViewportInforUniformBufferStruct& InViewportInformation);
+	bool IsHaveGlobalUniformBufferObject() const;
+	bool IsGlobalUniformBufferHaveTheMember(const std::string &Name) const;
+	void SetGlobalViewportInformation(const std::string &ShaderViewportInformationStructName);
+	const std::string& GetGlobalViewportInformatioinStructName();
+	const AutoUniformBufferObject<ViewportInforUniformBufferStruct>* GetGlobalViewportInformation() const { return GlobalViewportInformationPtr; }
 private:
 	//logicalIndex指的是 GPU程序中的数据的索引  比如 layout(loaction = 8) vec4 position, 其中8 就是逻辑索引  而物理索引指的是传入
 	//GPU程序中参数的数据存放的地址 也就是下面各种intConstants , intConstants等中的位置   
 	 
 	 static AutoConstantDefinition autoConstantDictionary[];// 所有自动常量的信息
-	 static AutoUniformBufferObject AutoUniformBufferObjects[];
+	 
 
-	 std::vector<const AutoUniformBufferObject*> AutoUniformBufferObjectParam;
+	 AutoUniformBufferObject<ViewportInforUniformBufferStruct>* GlobalViewportInformationPtr{NULL};
+	 std::string ShaderViewportInformationStructName;
 	 unsigned short combinVariability;
 	 bool ignoreMissingParams;
 	 BWGpuSharedParameterUsageList gpuSharedParametersSet; //共享参数的信息
 
 	 GpuNamedConstantsPtr namedConstantSet;              //负责将所有命名常量(包括自动常量)的名字和其物理索引 ，逻辑索引等等定义联系起来 这是一个指针 指向的是GPUprogram中的namedconstant
-
+	 
 	 AutoConstantList autoConstantSet;                   //负责记录使用了那些自动常量 主要包含其物理索引 其逻辑索引放在namedConstantSet
 	 GpuLogicalBufferStructPtr intLogicalToPhysical;     //负责 将int类型的数据 从逻辑索引转换到物理索引
 	 GpuLogicalBufferStructPtr floatLogicalToPhysical;   //负责 将float类型的数据 从逻辑索引转换到物理索引
@@ -994,6 +1027,4 @@ private:
 	 IntList intConstants;
 	 FloatList floatConstants;
 };
-typedef SmartPointer<BWGpuProgramParameters> BWGpuProgramParametersPtr;
-
 #endif

@@ -1,14 +1,15 @@
 #ifndef ROOT_H_
 #define ROOT_H_
-#include "BWSingleton.h"
-#include "BWRenderSystem.h"
-#include "BWRenderTarget.h"
 #include <time.h>
+#include "BWSingleton.h"
+#include "BWStringOperation.h"
+class BWRenderSystem;
+class BWRenderWindow;
+class BWSceneManager;
 class BWRoot : public BWSingleton<BWRoot>
 {
 	
 public:
-
 	BWRoot();
 	~BWRoot();
 	BWRenderWindow* initialise(bool autoCreateWindow, const std::string &windowTitile = "Black Walnut Render Window",

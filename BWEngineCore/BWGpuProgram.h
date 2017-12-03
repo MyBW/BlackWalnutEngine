@@ -1,26 +1,14 @@
 #ifndef GPUPROGRAM_H_
 #define GPUPROGRAM_H_
-
-#include "BWSmartPointer.h"
-#include "BWGpuProgramParams.h"
+#include <vector>
+#include "AllSmartPointRef.h"
 #include "BWResource.h"
-enum GpuProgramType
-{
-	GPT_VERTEX_PROGRAM,
-	GPT_FRAGMENT_PROGRAM,
-	GPT_GEOMETRY_PROGRAM,
-	GPT_COMPUTE_PROGRAM,
-	GPT_GPU_PROGRAM
-};
-class BWGpuProgram;
+#include "GPUProgramType.h"
 class BWGpuProgram : public BWResource
 {
 public:
 	BWGpuProgram();
-	BWGpuProgram(const std::string &name, const std::string &groupName, BWResourceManager* creator) : BWResource(creator, name, groupName), isInitNamedConstantes(false), namedConstantes(new GpuNamedConstants)
-	{
-
-	}
+	BWGpuProgram(const std::string &name, const std::string &groupName, BWResourceManager* creator);
 	virtual ~BWGpuProgram();
 	//返回当前的渲染系统和硬件是否支持该program
 	bool IsSupported();
@@ -126,8 +114,9 @@ protected:
 	bool isInitNamedConstantes;
 
 	GpuNamedConstantsPtr namedConstantes;
-	BWGpuProgramParameters::IntList mIntList;
-	BWGpuProgramParameters::FloatList mFloatList;
+	
+	std::vector<int> mIntList;
+	std::vector<float> mFloatList;
 	GpuLogicalBufferStructPtr floatLogicalToPhysical;
 	GpuLogicalBufferStructPtr intLogicalToPhysical;
     
@@ -149,38 +138,4 @@ private:
 
 	bool loadManualNameConstant;
 };
-
-
-
-class BWGpuProgramPtr : public SmartPointer<BWGpuProgram>
-{
-public:
-	BWGpuProgramPtr() :SmartPointer<BWGpuProgram>(){}
-	BWGpuProgramPtr(BWGpuProgram* ptr) :SmartPointer<BWGpuProgram>(ptr){}
-	BWGpuProgramPtr(const BWResourcePtr& resource)
-	{
-		mPointer = dynamic_cast<BWGpuProgram*>(resource.Get());
-		counter = resource.GetCounterPointer();
-		(*counter)++;
-
-	}
-	const BWGpuProgramPtr& operator=(BWResourcePtr resource)
-	{
-		if (mPointer == dynamic_cast<BWGpuProgram*> (resource.Get()))
-		{
-			return *this;
-		}
-		if (mPointer)
-		{
-			(*counter)--;
-			if ((*counter) == 0)
-			{
-				delete mPointer;
-			}
-		}
-		mPointer = dynamic_cast<BWGpuProgram*>(resource.Get());
-		counter = resource.GetCounterPointer();
-	}
-};
-
 #endif

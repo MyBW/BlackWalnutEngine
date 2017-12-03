@@ -2,6 +2,7 @@
 #include "BWRoot.h"
 #include "BWViewport.h"
 #include "BWLog.h"
+#include "BWRenderSystem.h"
 BWRenderTarget::BWRenderTarget() :renderTargetDes(BW_BUFFER_RENDERTARGET) ,
 mIsHardwareGammaEnable(false),
 mPriority(0)

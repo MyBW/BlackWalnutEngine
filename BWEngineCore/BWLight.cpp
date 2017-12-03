@@ -53,10 +53,10 @@ float BWLight::getAttenuationRange() const
 	return 0;
 }
 
-void BWLight::_updateCustomGpuParameter(unsigned short index, const BWGpuProgramParameters::AutoConstantEntry& constEntry, BWGpuProgramParameters *params) const
-{
-
-}
+//void BWLight::_updateCustomGpuParameter(unsigned short index, const BWGpuProgramParameters::AutoConstantEntry& constEntry, BWGpuProgramParameters *params) const
+//{
+//
+//}
 
 void BWLight::setAttenuation(float rang, float constant, float linear, float quadratic)
 {

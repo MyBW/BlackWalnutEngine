@@ -3,6 +3,7 @@
 
 #include <list>
 #include <map>
+#include "AllSmartPointRef.h"
 #include "BWSmartPointer.h"
 #include "BWResource.h"
 #include "BWArchive.h"

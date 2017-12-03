@@ -839,6 +839,11 @@ void BWRenderSystem::SetScissor(bool IsEnable, int ScissorX, int ScissorY, int S
 
 }
 
+void BWRenderSystem::SetUniformBufferObejct(BWUniformBufferObject* UniformBufferObject, int BindPoint)
+{
+
+}
+
 ///////////////////New Interface
 
 void BWRenderSystem::SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState)

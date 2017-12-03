@@ -2,26 +2,64 @@
 
 #include "BWHardwareBuffer.h"
 #include "BWPrimitive.h"
+#include "BWTexture.h"
+#include "BWRoot.h"
+#include "BWRenderSystem.h"
+class BWUniformBufferObject :public BWHardwareBuffer
+{
+public:
+	BWUniformBufferObject(const std::string &Name) :BWHardwareBuffer(Name, BWHardwareBuffer::HBU_DYNAMIC, false, false)
+	{
+	}
+	virtual ~BWUniformBufferObject()
+	{
+
+	}
+	virtual void UploadData(char* Content, int Size){ }
+
+};
 
  template<typename TUniformBufferStruct>
- class TBWUniformBufferObject : public BWHardwareBuffer
+ class TBWUniformBufferObject
  {
  public:
-	 TBWUniformBufferObject(const std::string &Name):BWHardwareBuffer(Name, BWHardwareBuffer::HBU_DYNAMIC, false, false)
+	 TBWUniformBufferObject(const std::string &Name)
 	 {
+		 // Because Use The Template, The Size Is Constant
 		 Content = NULL;
+		 mSizeInBytes = sizeof(TUniformBufferStruct);
+		 Content = new char[sizeof(TUniformBufferStruct)];
+		 memset(Content, mSizeInBytes, 0);
+		 UniformBufferObject = NULL;
+		 StructName = Name;
 	 }
+	 void UploadData();
 	 void SetContent(const TUniformBufferStruct& SourceContent);
- private:
+	 BWUniformBufferObject* GetUniformBufferObject() { return UniformBufferObject; }
+	 ~TBWUniformBufferObject()
+	 {
+		 if (Content) delete Content;
+		 delete UniformBufferObject;
+	 }
+ protected:
 	 char* Content;
+	 int mSizeInBytes;
+	 std::string StructName;
+	 BWUniformBufferObject* UniformBufferObject;
  };
 
+ 
  template<typename T>
  class TBWUniformBufferObjectPtr : public SmartPointer<TBWUniformBufferObject<T>>
  {
  public:
 	 TBWUniformBufferObjectPtr() :SmartPointer<TBWUniformBufferObject<T>>()
 	 {
+	 }
+	 TBWUniformBufferObjectPtr(TBWUniformBufferObject<T>* TUniformBufferObject)
+		 :SmartPointer<TBWUniformBufferObject<T>>(TUniformBufferObject)
+	 {
+
 	 }
  };
 
@@ -47,15 +85,35 @@
 		 int NumRows;
 		 int NumColums;
 		 int NumElement;
+		 const UniformBufferStructLayout* Layout;
+		 Member(const std::string &InMemberName, const std::string &InMemberShaderType, EUniformBufferMemberBaseType InBaseType,int InOffset,int InNumRows,int InNumColums,int InNumElement,const UniformBufferStructLayout* InLayout):
+			 MemberName(InMemberName), 
+			 MemberShaderType(InMemberShaderType),
+			 BaseType(InBaseType),
+			 Offset(InOffset),
+			 NumRows(InNumRows),
+			 NumColums(InNumColums),
+			 NumElement(InNumElement),
+			 Layout(InLayout)
+		 { }
 	 };
-
-
 	 UniformBufferStructLayout(const std::string& Name, int AllStructSize, const std::vector<Member>& Members):
 		 StrucName(Name),
 		 AllMembers(Members),
 		 AllSize(AllStructSize)
 	 {
 		 
+	 }
+	 bool IsHaveMember(const std::string& Name)
+	 {
+		 for each (const Member& MemberEle in AllMembers)
+		 {
+			 if (MemberEle.MemberName == Name)
+			 {
+				 return true;
+			 }
+		 }
+		 return false;
 	 }
 	 std::vector<Member> AllMembers;
 	 int AllSize;
@@ -74,7 +132,7 @@
  };
 
  template<>
- class UniformBufferMemberType<int>
+ struct UniformBufferMemberType<int>
  {
 	 enum { BaseType = UBMBT_INT32};
 	 enum { NumRows = 1 };
@@ -85,7 +143,7 @@
 	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
  };
  template<>
- class UniformBufferMemberType<float>
+ struct UniformBufferMemberType<float>
  {
 	 enum { BaseType = UBMBT_FLOAT32 };
 	 enum { NumRows = 1 };
@@ -96,7 +154,7 @@
 	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
  };
  template<>
- class UniformBufferMemberType<BWVector3>
+ struct UniformBufferMemberType<BWVector3>
  {
 	 enum { BaseType = UBMBT_FLOAT32 };
 	 enum { NumRows = 1 };
@@ -108,7 +166,7 @@
  };
 
  template<>
- class UniformBufferMemberType<BWVector4>
+ struct UniformBufferMemberType<BWVector4>
  {
 	 enum { BaseType = UBMBT_FLOAT32 };
 	 enum { NumRows = 1 };
@@ -119,7 +177,7 @@
 	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
  };
  template<>
- class UniformBufferMemberType<BWMatrix4>
+ struct UniformBufferMemberType<BWMatrix4>
  {
 	 enum { BaseType = UBMBT_FLOAT32 };
 	 enum { NumRows = 4 };
@@ -131,8 +189,8 @@
  };
 
 #define IMPLEMEN_UNIFORM_BUFFER_STRUCT(StructTypeName)\
-	UniformBufferStructLayout StructTypeName::StaticSruct(\
-	std::string(##StructTypeName),\
+	UniformBufferStructLayout StructTypeName::StaticStruct(\
+	std::string(#StructTypeName),\
     sizeof(StructTypeName),\
 	StructTypeName::GetStructMember()\
 );
@@ -141,12 +199,12 @@
 class StructTypeName \
 {\
 public:\
-	StructTypeName(); \
+	StructTypeName(){ } \
 	static UniformBufferStructLayout StaticStruct; \
 	static std::string CreateShaderUniformBlock(){ return std::string("");} \
-    static TBWUniformBufferObjectPtr<StructTypeName> CreateUniformBufferObject(const StructTypeName& InUniformBufferStruct) \
+    static TBWUniformBufferObjectPtr<StructTypeName> CreateUniformBufferObject() \
 	{\
-      return TBWUniformBufferObjectPtr<StructTypeName>(); \
+      return new TBWUniformBufferObject<StructTypeName>(#StructTypeName); \
     }\
 private:\
 	 typedef StructTypeName zzThisStruct; \
@@ -169,12 +227,11 @@ private:\
 		Outer.push_back(UniformBufferStructLayout::Member(\
 	#StructMemberName, \
 	#StructMemberType, \
-	EUniformBufferMemberBaseType(\
-		UniformBufferMemberType<StructMemberType>::BaseType), \
-	offsetof(zzThisStruct, StructMemberName), \
-	UniformBufferMemberType<StructMemberType>::NumRows, \
-	UniformBufferMemberType<StructMemberType>::NumColums, \
-	UniformBufferMemberType<StructMemberType>::NumElements, \
+	EUniformBufferMemberBaseType(UniformBufferMemberType<StructMemberType>::BaseType), \
+	(int)offsetof(zzThisStruct, StructMemberName), \
+	(int)UniformBufferMemberType<StructMemberType>::NumRows, \
+	(int)UniformBufferMemberType<StructMemberType>::NumColums, \
+	(int)UniformBufferMemberType<StructMemberType>::NumElements, \
 	UniformBufferMemberType<StructMemberType>::GetStruct()\
 	)); \
 	 return Outer;\

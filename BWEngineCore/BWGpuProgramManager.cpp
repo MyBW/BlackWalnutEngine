@@ -1,4 +1,5 @@
 #include"BWGpuProgramManager.h"
+#include "BWGpuProgramParams.h"
 
 
 BWGpuProgramPtr BWGpuProgramManager::Create(const std::string& name, const std::string &groupName, GpuProgramType type, const std::string& syntax)

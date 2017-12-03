@@ -2,6 +2,7 @@
 #include "BWDataStream.h"
 #include "BWStringConverter.h"
 #include "BWGpuProgramManager.h"
+#include "BWGpuProgramParams.h"
 BWGpuProgram::BWGpuProgram()
 {
 	/*if (CreateStringInterface("BWGpuProgram"))
@@ -9,6 +10,13 @@ BWGpuProgram::BWGpuProgram()
 		SetBaseParamDirection();
 	}*/
 }
+
+BWGpuProgram::BWGpuProgram(const std::string &name, const std::string &groupName, BWResourceManager* creator) : BWResource(creator, name, groupName), isInitNamedConstantes(false), namedConstantes(new GpuNamedConstants)
+{
+
+}
+
+
 BWGpuProgram::~BWGpuProgram()
 {
 

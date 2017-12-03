@@ -5,6 +5,7 @@
 #include "BWImage.h"
 #include "BWHardwarePixelBuffer.h"
 #include "BWCommon.h"
+#include "AllSmartPointRef.h"
 enum TextureUsage
 {
 	/// @copydoc HardwareBuffer::Usage
@@ -50,8 +51,6 @@ enum TextureMipmap
 	MIP_DEFAULT = -1
 };
 
-
-class BWTexturePtr;
 
 class BWTexture : public BWResource
 {
@@ -331,40 +330,4 @@ protected:
 
 };
 
-class BWTexturePtr : public SmartPointer<BWTexture>
-{
-public:
-	BWTexturePtr() :SmartPointer<BWTexture>()
-	{
-
-	}
-	BWTexturePtr(const BWResourcePtr & resource)
-	{
-		mPointer = dynamic_cast<BWTexture*>(resource.Get());
-		counter = resource.GetCounterPointer();
-		if (counter)
-		{
-			(*counter)++;
-		}
-	}
-	const BWTexturePtr& operator=(const BWResourcePtr &resource)
-	{
-		if (mPointer == dynamic_cast<BWTexture*>(resource.Get()))
-		{
-			return *this;
-		}
-		if (mPointer != NULL)
-		{
-			(*counter)--;
-			if ((*counter) == 0)
-			{
-				delete mPointer;
-			}
-		}
-		mPointer = dynamic_cast<BWTexture*>(resource.Get());
-		counter = resource.GetCounterPointer();
-		(*counter)++;
-		return *this;
-	}
-};
 #endif // !TEXTURE_H_

@@ -69,7 +69,5 @@ protected:
 	unsigned short mStateCount; // 资源被load的次数
 
 };
-typedef SmartPointer<BWResource> BWResourcePtr;
-
 
 #endif

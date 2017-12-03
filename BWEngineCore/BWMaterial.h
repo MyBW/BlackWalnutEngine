@@ -1,9 +1,10 @@
 #ifndef	MATERIAL_H_
 #define MATERIAL_H_
 
-#include "BWResource.h"
+#include "AllSmartPointRef.h"
 #include <vector>
 #include "BWCommon.h"
+#include "BWResource.h"
 class BWTechnique;
 class BWMaterial : public BWResource 
 {

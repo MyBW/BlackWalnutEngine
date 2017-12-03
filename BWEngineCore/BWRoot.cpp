@@ -8,11 +8,10 @@ BWRoot *BWRoot::GetInstance()
 	return instance;
 }
 
-BWRoot::BWRoot() :mActiveRenderSystem(NULL)
+BWRoot::BWRoot() : BWSingleton()
+,mActiveRenderSystem(NULL)
 , mQuit(false)
 {
-	mActiveRenderSystem = new GLRenderSystem();
-	mSceneManager = new BWSceneManager();
 	mIsInitialised = false;
 }
 BWRoot::~BWRoot()
@@ -21,17 +20,17 @@ BWRoot::~BWRoot()
 }
 BWRenderWindow* BWRoot::initialise(bool autoCreateWindow, const std::string &windowTitile /* = "Black Walnut Render Window" */, const std::string &customCapabilitiesConfig /* = StringUtil::BLANK */)
 {
-	if (!mActiveRenderSystem)
-	{
-		assert(0);
-	}
 	if (customCapabilitiesConfig != StringUtil::BLANK)
 	{
 		assert(0);
 	}
+	// Init Render System
+	mActiveRenderSystem = new GLRenderSystem();
 	mRenderWindow = mActiveRenderSystem->_initialise(autoCreateWindow, windowTitile);
 	mRenderWindow->_setPrimary();
 	mIsInitialised = true;
+	//Init SceneManaget
+	mSceneManager = new BWSceneManager();
 	return mRenderWindow;
 }
 BWRenderWindow* BWRoot::getFinalWindow()

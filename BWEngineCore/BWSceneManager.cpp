@@ -127,6 +127,7 @@ void BWSceneManager::_renderScene(BWCamera *camera, BWViewport *viewport, bool i
 	mActiveRenderSystem->_setTextureProjectionRelativeTo(mCameraRelativeRendering, camera->getDerivedPosition());
 	setViewMatrix(mCachedViewMatrix);
 
+	mAutoParamDataSource->UpdateAllGlobalParameter();
 	_renderVisibleObjec();
 
 	mActiveRenderSystem->_endFrame();
