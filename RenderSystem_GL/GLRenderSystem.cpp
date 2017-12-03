@@ -34,6 +34,7 @@
 #include "GLPixelUtil.h"
 #include "../BWEngineCore/BWRenderSystem.h"
 #include "GLImageTextureBuffer.h"
+#include "GLUniformBufferObject.h"
 
 
 #define  VBO_BUFFER_OFFSET(i) ((char*)NULL + (i))
@@ -1788,7 +1789,7 @@ void GLRenderSystem::SetRenderTargets(RSRenderTargets& InRenderTargets)
 	static GLuint TmpFrameBuffer = 0;
 	GLuint NewFrameBuffer = 0;
 	glDeleteFramebuffers(1, &TmpFrameBuffer);
-	glGenFramebuffers(1, &NewFrameBuffer);
+	CHECK_GL_ERROR(glGenFramebuffers(1, &NewFrameBuffer));
 	TmpFrameBuffer = NewFrameBuffer;
 	CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, NewFrameBuffer));
 
@@ -1833,6 +1834,23 @@ void GLRenderSystem::SetRenderTargets(RSRenderTargets& InRenderTargets)
 	if (statues != GL_FRAMEBUFFER_COMPLETE)//某个绑定到attachment上的元素无效
 	{
 		Log::GetInstance()->logMessage("GLTexture::attachToRenderTarget() : Error");
+	}
+}
+
+BWUniformBufferObject* GLRenderSystem::CreateUniformBufferObject(const std::string& Name)
+{
+	NewGLUniformBufferObject* UniformBuffer = new NewGLUniformBufferObject(Name);
+	return UniformBuffer;
+}
+
+void GLRenderSystem::SetUniformBufferObejct(BWUniformBufferObject* UniformBufferObject, int BindPoint)
+{
+	if (UniformBufferObject)
+	{
+		NewGLUniformBufferObject* NewUniformBuffer = dynamic_cast<NewGLUniformBufferObject*>(UniformBufferObject);
+		CHECK_GL_ERROR(glBindBuffer(GL_UNIFORM_BUFFER, NewUniformBuffer->GetBufferID()));
+		CHECK_GL_ERROR(glBindBufferBase(GL_UNIFORM_BUFFER, BindPoint, NewUniformBuffer->GetBufferID()));
+		CHECK_GL_ERROR(glBindBuffer(GL_UNIFORM_BUFFER, NewUniformBuffer->GetBufferID()));
 	}
 }
 

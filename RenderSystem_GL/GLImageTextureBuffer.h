@@ -30,33 +30,33 @@ private:
 };
 
 
-class GLImageTextureBufferPtr : public SmartPointer<GLImageTextureBuffer>
-{
-public:
-	GLImageTextureBufferPtr()
-	{
-
-	}
-	GLImageTextureBufferPtr(GLImageTextureBuffer* ImageTextureBuffer)
-	{
-		counter = 0;
-		mPointer = ImageTextureBuffer;
-	}
-	GLImageTextureBufferPtr(const BWImageTexturebufferPtr& texture)
-	{
-		if (texture.IsNull() || texture.Get() == dynamic_cast<BWImageTextureBuffer*>(Get()))
-		{
-			return;
-		}
-		if (texture.GetCounterPointer())
-		{
-			counter = texture.GetCounterPointer();
-			(*counter)++;
-			mPointer = dynamic_cast<GLImageTextureBuffer*>(texture.Get());
-		}
-	}
-	~GLImageTextureBufferPtr() { }
-
-private:
-
-};
+//class GLImageTextureBufferPtr : public SmartPointer<GLImageTextureBuffer>
+//{
+//public:
+//	GLImageTextureBufferPtr()
+//	{
+//
+//	}
+//	GLImageTextureBufferPtr(GLImageTextureBuffer* ImageTextureBuffer)
+//	{
+//		counter = 0;
+//		mPointer = ImageTextureBuffer;
+//	}
+//	GLImageTextureBufferPtr(const BWImageTexturebufferPtr& texture)
+//	{
+//		if (texture.IsNull() || texture.Get() == dynamic_cast<BWImageTextureBuffer*>(Get()))
+//		{
+//			return;
+//		}
+//		if (texture.GetCounterPointer())
+//		{
+//			counter = texture.GetCounterPointer();
+//			(*counter)++;
+//			mPointer = dynamic_cast<GLImageTextureBuffer*>(texture.Get());
+//		}
+//	}
+//	~GLImageTextureBufferPtr() { }
+//
+//private:
+//
+//};

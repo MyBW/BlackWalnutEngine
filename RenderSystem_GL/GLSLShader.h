@@ -17,6 +17,8 @@ public:
 	GLenum  shaderGLType() const;
 	void    createNamedConstant();
 	GpuNamedConstantsPtr  getNamedConstant() const;
+	void InitUiformBlockInformation(GLuint GLSLProgram);
+	void SetUniformBlckBindPoint(const std::string &BlockName, GLuint BindPoint);
 	UBOInforMap  getUBOInfor()  ;
     NameLocation getInConstant() ;
 	NameLocation GetFragmentOutConstant();

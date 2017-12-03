@@ -358,6 +358,32 @@ bool GLSLGpuProgram::SetParameter(const std::string &name, void *value, GpuConst
 	return false;
 }
 
+void GLSLGpuProgram::SetGlobalUniformBufferObject(BWGpuProgramParametersPtr ProgramParameters)
+{
+	if (ProgramParameters->GetGlobalViewportInformation())
+	{
+		ShaderList::iterator itor = mShaderList.begin();
+		while (itor != mShaderList.end())
+		{
+			GLSLShader *shader = dynamic_cast<GLSLShader*>(itor->Get());
+			UBOInforMap inforMap = shader->getUBOInfor();
+			UBOInforMap::iterator Itor = inforMap.begin();
+			for each (auto UBO in inforMap)
+			{
+				if (UBO.first == ProgramParameters->GetGlobalViewportInformatioinStructName())
+				{
+					// Uniform Block~!!!!!!!
+					BWRoot::GetInstance()->
+					getRenderSystem()->
+					SetUniformBufferObejct(BWGpuProgramParameters::GlobalViewportInformation.UniforBufferObjectPtr->GetUniformBufferObject(), UBO.second.mBinding);
+				}
+			}
+			itor++;
+		}
+	}
+	
+}
+
 void GLSLGpuProgram::Load()
 {
 	BWHighLevelGpuProgram::Load();
@@ -571,23 +597,21 @@ void GLSLGpuProgram::loadImpl()
 		}
 		mFloatList.resize(namedConstantes->floatBufferSize);
 		mIntList.resize(namedConstantes->intBufferSize);
-		// 设置UBO
-		UBOMap::iterator  ubo = mUBOMap.begin();
-		static GLint binding = 0; // UBO的绑定序号要求是全局唯一的 否则出现错误
-		while (ubo != mUBOMap.end())
+
+
+		// 设置UBO 
+		for each (auto UniformBufferObject in mUBOMap)
 		{
-			if (ubo->second->getBindPoint() ==-1)
-			{
-				ubo->second->setBindPoint(binding);
-				binding++;
-			}
-			else
-			{
-				binding = ubo->second->getBindPoint();
-			}
-			ubo->second->initUBO(mID);
-			ubo++;
+			UniformBufferObject.second->initUBO(mID);
 		}
+		//UniformBufferBlock
+		for each (auto Shader in mShaderList)
+		{
+			GLSLShader *shader = dynamic_cast<GLSLShader*>(Shader.Get());
+			shader->InitUiformBlockInformation(mID);
+		}
+
+
 		NameLocation::iterator  itor = mNameLoaction.begin();
 		while (itor != mNameLoaction.end())
 		{

@@ -10,7 +10,11 @@ struct UBOInfor
 {
 	std::string mUBOName;
 	GLuint  mBinding;
+	GLuint UniformBlockID;
+	GLuint GLSLProgram;
 	ContentMember mContentMember;
+	void InitUniformBufferBlock(GLuint InGLSLProgram);
+	void SetBindPoint(GLuint InBindPoint);
 	UBOInfor() :mBinding(-1){}
 	UBOInfor(const UBOInfor &uboInfo) :mUBOName(uboInfo.mUBOName),mBinding(uboInfo.mBinding),mContentMember(uboInfo.mContentMember)
 	{

@@ -45,6 +45,7 @@ void GLUniformBufferObject::initUBO(GLuint program)
 void GLUniformBufferObject::bind()
 {
 	CHECK_GL_ERROR(glBindBuffer(GL_UNIFORM_BUFFER, mID));
+	CHECK_GL_ERROR(glBindBufferBase(GL_UNIFORM_BUFFER, mBinding, mID));
 }
 
 void GLUniformBufferObject::setBindPoint(GLint binding)
@@ -105,4 +106,17 @@ void* GLUniformBufferObject::lockImp(size_t offset, size_t length, BWHardwareBuf
 void GLUniformBufferObject::unLockImp()
 {
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
+void UBOInfor::InitUniformBufferBlock(GLuint InGLSLProgram)
+{
+	GLSLProgram = InGLSLProgram;
+	UniformBlockID = glGetUniformBlockIndex(GLSLProgram, mUBOName.c_str());
+	CHECK_GL_ERROR(glUniformBlockBinding(GLSLProgram, UniformBlockID, mBinding));
+}
+
+void UBOInfor::SetBindPoint(GLuint InBindPoint)
+{
+	mBinding = InBindPoint;
+	CHECK_GL_ERROR(glUniformBlockBinding(GLSLProgram, UniformBlockID, mBinding));
 }

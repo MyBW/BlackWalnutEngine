@@ -7,6 +7,7 @@
 #include "GLUBO.h"
 #include "../BWEngineCore/BWVertexIndexData.h"
 #include "GLVAO.h"
+#include "../BWEngineCore/BWGpuProgramParams.h"
 class GLSLGpuProgram : public BWHighLevelGpuProgram
 {
 public:
@@ -19,6 +20,7 @@ public:
 	size_t calculateSize() { return 0; }
 	bool getPassTransformStates(){ return true; }
 	virtual bool SetParameter(const std::string &name, void *value, GpuConstantType ConstantType) override;
+	void SetGlobalUniformBufferObject(BWGpuProgramParametersPtr ProgramParameters) override;
 	virtual void Load() override;
 	void bind();
 	void bindingBuffer(IndexDataPrt indexData, VertexDataPrt vertexData);

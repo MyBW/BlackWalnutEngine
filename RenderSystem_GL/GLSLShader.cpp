@@ -136,6 +136,31 @@ GpuNamedConstantsPtr GLSLShader::getNamedConstant() const
 	}
 	return tmp;
 }
+
+void GLSLShader::InitUiformBlockInformation(GLuint GLSLProgram)
+{
+	BWShaderList::const_iterator shader = mShaderList.begin();
+	while (shader != mShaderList.end())
+	{
+		dynamic_cast<GLSLShader*>(shader->Get())->InitUiformBlockInformation(GLSLProgram);
+		shader++;
+	}
+	std::for_each(mUBOInfor.begin(), mUBOInfor.end(), [GLSLProgram](UBOInforMap::reference UniformBufferBlock) {
+		UniformBufferBlock.second.InitUniformBufferBlock(GLSLProgram);
+	});
+}
+
+void GLSLShader::SetUniformBlckBindPoint(const std::string &BlockName, GLuint BindPoint)
+{
+	for each (auto SubShader in mShaderList)
+	{
+		dynamic_cast<GLSLShader*>(SubShader.Get())->SetUniformBlckBindPoint(BlockName, BindPoint);
+	}
+	std::for_each(mUBOInfor.begin(), mUBOInfor.end(), [BlockName, BindPoint](UBOInforMap::reference UniformBlock) {
+		if (UniformBlock.first == BlockName) UniformBlock.second.SetBindPoint(BindPoint);
+	});
+}
+
 UBOInforMap GLSLShader::getUBOInfor() 
 {
 	UBOInforMap UBOInfor;
@@ -324,8 +349,11 @@ void GLSLShader::createNamedConstant()
 			std::string sentence = mShaderSource.substr(currPos, mShaderSource.find_first_of(';', currPos) - currPos);
 			if (sentence.find("{") != std::string::npos)
 			{
+				int LayoutBegin = mShaderSource.substr(0, currPos).find_last_of(';');
+				std::string SubString = mShaderSource.substr(LayoutBegin + 1,
+					mShaderSource.find_first_of("}", LayoutBegin) - LayoutBegin );
 				sentence = mShaderSource.substr(currPos, mShaderSource.find_first_of("}", currPos) - currPos + 1);
-				createUniformBuffer(sentence);
+				createUniformBuffer(SubString);
 			}
 			else
 			{
@@ -355,8 +383,8 @@ void GLSLShader::createUniformBuffer(std::string &uniformBuffer)
 	StringUtil::DeleteChar(uniformBuffer, '\r');
 	StringUtil::DeleteChar(uniformBuffer, '\n');
 
-	size_t uniformBeging = uniformBuffer.find_first_of("uniform");
-	std::string layout = uniformBuffer.substr(0, uniformBeging);
+	size_t uniformBeging = uniformBuffer.find_last_of(')');
+	std::string layout = uniformBuffer.substr(0, uniformBeging + 1);
 	if (!layout.empty())
 	{
 		size_t bindingPos = layout.find("binding");
@@ -366,6 +394,7 @@ void GLSLShader::createUniformBuffer(std::string &uniformBuffer)
 			mUbo.mBinding = StringConverter::ParseInt(layout.substr(numBegin, layout.find_first_not_of(" ", numBegin)));
 		}
 	}
+	uniformBeging = uniformBuffer.find("uniform");
 	mUbo.mUBOName = uniformBuffer.substr(uniformBeging + 7, uniformBuffer.find_first_of("{") - uniformBeging - 7);
 	StringUtil::DeleteChar(mUbo.mUBOName, ' ');
 	size_t endPos = uniformBuffer.find_last_of(';');

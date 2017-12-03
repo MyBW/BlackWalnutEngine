@@ -8,6 +8,7 @@
 #include "GLWin32Support.h"
 #include "GLSLGpuProgram.h"
 class GLContext;
+class BWUniformBufferObject;
 class GLRenderSystem : public BWSingleton<GLRenderSystem> , public BWRenderSystem
 {
 	
@@ -67,6 +68,8 @@ public:
 	void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget, BWHardwareDepthBufferPtr DepthBuffer) override;
 	void SetRenderTarget(BWGpuProgramUsagePtr GPUProgramUsage, RSRenderTarget& InRenderTarget) override;
 	void SetRenderTargets(RSRenderTargets& InRenderTargets) override;
+	BWUniformBufferObject* CreateUniformBufferObject(const std::string &Name) override;
+	void SetUniformBufferObejct(BWUniformBufferObject* UniformBufferObject, int BindPoint) override;
 	void SetGraphicsPipelineState(RSGraphicPipelineState& InPipelineState) override;
 	void SetShaderTexture(BWHighLevelGpuProgramPtr GPUProgram, BWTexturePtr Texture, SamplerStateHIRef Sampler) override;
 	void SetShaderImageTexture(BWHighLevelGpuProgramPtr GPUProgram, BWImageTexturebufferPtr ImageTexture, int MipLevel, PixelFormat Format) override;
