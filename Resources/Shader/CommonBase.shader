@@ -331,3 +331,14 @@ fragment_shader  UnrealCooperFloorFragment glsl
 {
    Source  UnrealCooperFloor.frag
 }
+
+vertex_shader UniformBufferObjectTestVertex glsl
+{
+  Source UniformBufferObjectTest.vert
+}
+fragment_shader UniformBufferObjectTestFragment glsl
+{
+   Source  UniformBufferObjectTest.frag
+}
+
+

@@ -13,7 +13,7 @@ layout(binding = 0,std140) uniform CameraInfo
   vec2 NearFar;
   vec2 ScreenWH ;
 };
-layout(binding = 0,std140) uniform UBO1
+layout(binding = 1,std140) uniform UBO1
 {
   mat4  ModelMatrix;
   mat4  ViewMatrix;

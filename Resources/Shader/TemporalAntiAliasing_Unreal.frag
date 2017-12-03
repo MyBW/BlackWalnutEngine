@@ -18,7 +18,7 @@ layout(binding = 0,std140) uniform UBO1
   mat4  PreViewMatrix;
   mat4  PreProjectMatrix;
 };
-layout(binding = 0,std140) uniform CameraInfo
+layout(binding = 1,std140) uniform CameraInfo
 {
   mat4 ViewInversMatrix;
   vec3 ViewPositionWorldSpace;

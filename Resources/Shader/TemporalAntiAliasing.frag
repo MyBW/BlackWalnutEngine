@@ -9,7 +9,7 @@ uniform int Height ;
 uniform float InExposureScale; 
 uniform float PlusWeights[5] ;
 layout(location = 0) out vec4 FinalAAResult;
-layout(binding = 0,std140) uniform UBO1
+layout(binding = 1,std140) uniform UBO1
 {
   mat4  ModelMatrix;
   mat4  ViewMatrix;
