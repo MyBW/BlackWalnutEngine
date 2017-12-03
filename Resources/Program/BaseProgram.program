@@ -250,3 +250,8 @@
 	  fragment_shader_ref  UnrealCooperFloorFragment
 	}
 	
+	gpu_program UniformBufferObjectTest GLSL
+	{
+	  vertex_shader_ref UniformBufferObjectTestVertex
+	  fragment_shader_ref UniformBufferObjectTestFragment
+	}

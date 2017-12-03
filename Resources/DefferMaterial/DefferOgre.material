@@ -675,6 +675,7 @@ material ScreenSpaceReflection
 			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
 			   param_named_auto NearFar far_and_near_clip_distance
 			   param_named_auto ScreenWH viewport_width_and_height
+			   param_named_uniform_block_auto ViewprotInfo Viewport_Information
 			}
 		}
 	}
@@ -789,6 +790,24 @@ material ShadingSceneWithVoxel
 			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
 			   param_named_auto NearFar far_and_near_clip_distance
 			   param_named_auto ScreenWH viewport_width_and_height
+			}
+		}
+	}
+}
+
+material UniformBufferObjectTest
+{
+	technique
+	{
+		pass
+		{
+			gpu_program_ref UniformBufferObjectTest GLSL
+			{
+			   param_named TestRoughness float 0.51
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
+			   
 			}
 		}
 	}
