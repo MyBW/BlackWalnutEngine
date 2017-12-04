@@ -675,7 +675,6 @@ material ScreenSpaceReflection
 			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
 			   param_named_auto NearFar far_and_near_clip_distance
 			   param_named_auto ScreenWH viewport_width_and_height
-			   param_named_uniform_block_auto ViewprotInfo Viewport_Information
 			}
 		}
 	}
