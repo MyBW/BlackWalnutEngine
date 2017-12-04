@@ -1850,7 +1850,6 @@ void GLRenderSystem::SetUniformBufferObejct(BWUniformBufferObject* UniformBuffer
 		NewGLUniformBufferObject* NewUniformBuffer = dynamic_cast<NewGLUniformBufferObject*>(UniformBufferObject);
 		CHECK_GL_ERROR(glBindBuffer(GL_UNIFORM_BUFFER, NewUniformBuffer->GetBufferID()));
 		CHECK_GL_ERROR(glBindBufferBase(GL_UNIFORM_BUFFER, BindPoint, NewUniformBuffer->GetBufferID()));
-		CHECK_GL_ERROR(glBindBuffer(GL_UNIFORM_BUFFER, NewUniformBuffer->GetBufferID()));
 	}
 }
 

@@ -598,7 +598,6 @@ void GLSLGpuProgram::loadImpl()
 		mFloatList.resize(namedConstantes->floatBufferSize);
 		mIntList.resize(namedConstantes->intBufferSize);
 
-
 		// …Ë÷√UBO 
 		for each (auto UniformBufferObject in mUBOMap)
 		{
@@ -610,8 +609,6 @@ void GLSLGpuProgram::loadImpl()
 			GLSLShader *shader = dynamic_cast<GLSLShader*>(Shader.Get());
 			shader->InitUiformBlockInformation(mID);
 		}
-
-
 		NameLocation::iterator  itor = mNameLoaction.begin();
 		while (itor != mNameLoaction.end())
 		{
