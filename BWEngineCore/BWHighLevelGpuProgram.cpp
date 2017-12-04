@@ -42,29 +42,24 @@ void BWHighLevelGpuProgram::SetGPUProgramParameters(BWGpuProgramParametersPtr Pr
 	}
 	SetGlobalUniformBufferObject(ProgramParameters);
 	//设置各种unifomr参数
-	GpuConstantDefinitionMap::iterator itor = namedConstant->map.begin();
-	while (itor != namedConstant->map.end())
-	{
-		if (ProgramParameters->IsHaveGlobalUniformBufferObject() 
-			&& ProgramParameters->IsGlobalUniformBufferHaveTheMember(itor->first))
+	std::for_each(namedConstant->map.begin(), namedConstant->map.end(),[this ,ProgramParameters](GpuConstantDefinitionMap::reference NamedConstant) {
+
+		if (!(ProgramParameters->IsHaveGlobalUniformBufferObject()
+			&& ProgramParameters->IsGlobalUniformBufferHaveTheMember(NamedConstant.first)))
 		{
-			continue;
+			GpuConstantDefinition *def = &(NamedConstant.second);
+			void *data = NULL;
+			if (def->isFloat())
+			{
+				data = ProgramParameters->GetFloatPointer(def->physicalIndex);
+			}
+			else
+			{
+				data = ProgramParameters->GetIntPointer(def->physicalIndex);
+			}
+			SetParameter(NamedConstant.first, data, def->constType);
 		}
-		GpuConstantDefinition *def = &(itor->second);
-		int size = def->arraySize * itor->second.getElementSize(def->constType, false);
-		void *data = NULL;
-		int index = def->physicalIndex;
-		if (def->isFloat())
-		{
-			data = ProgramParameters->GetFloatPointer(def->physicalIndex);
-		}
-		else
-		{
-			data = ProgramParameters->GetIntPointer(def->physicalIndex);
-		}
-		SetParameter(itor->first, data, def->constType);
-		itor++;
-	}
+	});
 
 }
 

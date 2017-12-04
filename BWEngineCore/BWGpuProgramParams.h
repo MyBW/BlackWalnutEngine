@@ -998,7 +998,7 @@ public:
 
 	//If There Have A Lot Of Global Uniform Buffer , We Can Use TempleteList To Manager All Of Them
 	static AutoUniformBufferObject<ViewportInforUniformBufferStruct> GlobalViewportInformation;
-	static void UpdateViewportInformationBuffer(const ViewportInforUniformBufferStruct& InViewportInformation);
+	static void UpdateViewportInformationBuffer(ViewportInforUniformBufferStruct& InViewportInformation);
 	bool IsHaveGlobalUniformBufferObject() const;
 	bool IsGlobalUniformBufferHaveTheMember(const std::string &Name) const;
 	void SetGlobalViewportInformation(const std::string &ShaderViewportInformationStructName);

@@ -176,9 +176,9 @@ BWGpuProgramParameters::AutoUniformBufferObject<ViewportInforUniformBufferStruct
 	}
 );
 
-void BWGpuProgramParameters::UpdateViewportInformationBuffer(const ViewportInforUniformBufferStruct& InViewportInformation)
+void BWGpuProgramParameters::UpdateViewportInformationBuffer(ViewportInforUniformBufferStruct& InViewportInformation)
 {
-	auto TansToGLMatrix = [](BWMatrix4 ToTrans)
+	auto TansToGLMatrix = [](BWMatrix4& ToTrans)
 	{
 		float *tmpData = (float*)(ToTrans.M);
 		for (int i = 0; i < 4; i++)
