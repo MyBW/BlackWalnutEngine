@@ -9,7 +9,7 @@ uniform int Height ;
 uniform float InExposureScale; 
 uniform float PlusWeights[5] ;
 layout(location = 0) out vec4 FinalAAResult;
-layout(binding = 0,std140) uniform UBO1
+layout(binding = 0,shared) uniform UBO1
 {
   mat4  ModelMatrix;
   mat4  ViewMatrix;
@@ -18,7 +18,7 @@ layout(binding = 0,std140) uniform UBO1
   mat4  PreViewMatrix;
   mat4  PreProjectMatrix;
 };
-layout(binding = 1,std140) uniform CameraInfo
+layout(binding = 1,shared) uniform CameraInfo
 {
   mat4 ViewInversMatrix;
   vec3 ViewPositionWorldSpace;

@@ -4,21 +4,22 @@ uniform sampler2D BBufer ;
 uniform sampler2D Noise ;
 uniform vec3 SampleDirection[64];
 layout(location = 0) out vec4 AmbientOcclusion ;
-layout(binding = 0,std140) uniform CameraInfo
+uniform mat4  ModelMatrix;
+uniform mat4  PreModelMatrix;
+layout(binding = 0,shared) uniform ViewportInformation
 {
-  mat4 ViewInversMatrix;
-  vec3 ViewPositionWorldSpace;
-  float FoV ;
-  float PrjPlaneWInverseH;
-  vec2 NearFar;
-  vec2 ScreenWH ;
-};
-layout(binding = 1,std140) uniform UBO1
-{
-  mat4  ModelMatrix;
   mat4  ViewMatrix;
   mat4  ProjectMatrix;
+  mat4  PreViewMatrix;
+  mat4  PreProjectMatrix;
+  mat4  ViewInversMatrix;
+  vec3  ViewPositionWorldSpace;
+  float FoV ;
+  float PrjPlaneWInverseH;
+  vec2  NearFar;
+  vec2  ScreenWH ;
 };
+
 
 
 vec3 ComputerNormal(vec2 InNormalXY)

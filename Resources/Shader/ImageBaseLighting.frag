@@ -6,14 +6,18 @@ uniform sampler2D CBuffer;
 uniform samplerCube IBL_Specular_Light;
 uniform sampler2D  IBL_LUT;
 layout(location = 0) out vec4 OutColor;
-layout(binding = 0,std140) uniform CameraInfo
+layout(binding = 0,shared) uniform ViewportInformation
 {
-  mat4 ViewInversMatrix;
-  vec3 ViewPositionWorldSpace;
+  mat4  ViewMatrix;
+  mat4  ProjectMatrix;
+  mat4  PreViewMatrix;
+  mat4  PreProjectMatrix;
+  mat4  ViewInversMatrix;
+  vec3  ViewPositionWorldSpace;
   float FoV ;
   float PrjPlaneWInverseH;
-  vec2 NearFar;
-  vec2 ScreenWH ;
+  vec2  NearFar;
+  vec2  ScreenWH ;
 };
 uniform float SHCoefficient[36];
 uniform float CubemapMaxMip;

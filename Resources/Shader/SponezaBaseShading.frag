@@ -22,7 +22,7 @@ layout(location = 1) out vec4 BBuffer;
 layout(location = 2) out vec4 CBuffer;
 layout(location = 3) out vec4 VelocityRT;
 
-layout(binding = 0,std140) uniform UBO1
+layout(binding = 0,shared) uniform UBO1
 {
   mat4  ModelMatrix;
   mat4  ViewMatrix;

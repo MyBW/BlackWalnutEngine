@@ -12,23 +12,20 @@ uniform float MaxStepCount;
 
 
 layout(location = 0) out vec4 HitInformation;
-layout(binding = 1,std140) uniform UBO1
+uniform mat4  ModelMatrix;
+uniform mat4  PreModelMatrix;
+layout(binding = 0,shared) uniform ViewportInformation
 {
-  mat4  ModelMatrix;
   mat4  ViewMatrix;
   mat4  ProjectMatrix;
-  mat4  PreModelMatix;
   mat4  PreViewMatrix;
   mat4  PreProjectMatrix;
-};
-layout(binding = 0,std140) uniform CameraInfo
-{
-  mat4 ViewInversMatrix;
-  vec3 ViewPositionWorldSpace;
+  mat4  ViewInversMatrix;
+  vec3  ViewPositionWorldSpace;
   float FoV ;
   float PrjPlaneWInverseH;
-  vec2 NearFar;
-  vec2 ScreenWH ;
+  vec2  NearFar;
+  vec2  ScreenWH ;
 };
 vec3 ComputerNormal(vec2 InNormalXY)
 {

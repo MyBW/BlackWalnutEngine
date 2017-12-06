@@ -4,14 +4,20 @@ layout(location = 0) in vec3 Position;
 layout(location = 1) in vec3 Normal;
 layout(location = 2) in vec3 Tangent;
 in vec2 Texture_Coordinates ;
-layout(binding = 0,std140) uniform UBO1
+uniform mat4  ModelMatrix;
+uniform mat4  PreModelMatrix;
+layout(binding = 0,shared) uniform ViewportInformation
 {
-  mat4  ModelMatrix;
   mat4  ViewMatrix;
   mat4  ProjectMatrix;
-  mat4  PreModelMatrix;
   mat4  PreViewMatrix;
   mat4  PreProjectMatrix;
+  mat4  ViewInversMatrix;
+  vec3  ViewPositionWorldSpace;
+  float FoV ;
+  float PrjPlaneWInverseH;
+  vec2  NearFar;
+  vec2  ScreenWH ;
 };
 
 out vec2 TextureCoord ;

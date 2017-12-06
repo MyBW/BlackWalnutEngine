@@ -165,11 +165,9 @@ material Ogre/BaseMaterial
 			{
 			   param_named TestRoughness float 0.51
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
+
 			}
 		}
 	}
@@ -205,11 +203,8 @@ material SphereWithTextureInput
 			   param_named Normal int 2
 			   param_named Roughness int 3
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -240,11 +235,8 @@ material UnrealCooperFloor
 			   param_named MacroVariation int 1
 			   param_named Normal int 2
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -264,11 +256,8 @@ material ClearDefferDataBuffer
 			gpu_program_ref RenderSystem_ClearDefferBufferData GLSL
 			{
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -286,12 +275,9 @@ material Ogre/BaseDirectLightingMaterial
 			   param_named ABuffer int 0
 			   param_named BBuffer int 1
 			   param_named CBuffer int 2
-			   param_named_auto ViewInversMatrix inverse_view_matrix
-			   param_named_auto ViewPositionWorldSpace camera_position
-			   param_named_auto FoV fov
-			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
-			   param_named_auto NearFar far_and_near_clip_distance
-			   param_named_auto ScreenWH viewport_width_and_height
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -423,12 +409,9 @@ material ImageBaseLighting
 			   param_named CBuffer int 2
 			   param_named IBL_Specular_Light int 3
 			   param_named IBL_LUT int 4
-			   param_named_auto ViewInversMatrix inverse_view_matrix
-			   param_named_auto ViewPositionWorldSpace camera_position
-			   param_named_auto FoV fov
-			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
-			   param_named_auto NearFar far_and_near_clip_distance
-			   param_named_auto ScreenWH viewport_width_and_height
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -448,14 +431,8 @@ material AmbientOcclusion
 			   param_named BBuffer int 0
 			   param_named Noise int 1
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
-			   param_named_auto ViewInversMatrix inverse_view_matrix
-			   param_named_auto ViewPositionWorldSpace camera_position
-			   param_named_auto FoV fov
-			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
-			   param_named_auto NearFar far_and_near_clip_distance
-			   param_named_auto ScreenWH viewport_width_and_height
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -471,14 +448,10 @@ material AmbientOcclusionFilter
 		
 			gpu_program_ref   RenderSystem_AmbientOcclusionFilter  GLSL
 			{
-			   
 			   param_named AmbientOcclusion int 0
-			   param_named_auto ViewInversMatrix inverse_view_matrix
-			   param_named_auto ViewPositionWorldSpace camera_position
-			   param_named_auto FoV fov
-			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
-			   param_named_auto NearFar far_and_near_clip_distance
-			   param_named_auto ScreenWH viewport_width_and_height
+			   param_named_auto ModelMatrix    world_matrix
+			   param_named_auto PreModelMatrix pre_world_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -611,11 +584,8 @@ material TemporalAntiAliasing
 			   param_named HistoryRT int 2
 			   param_named FinalRenderResult int 3
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -633,17 +603,8 @@ material ScreenSpaceRayTrack
 			   param_named BBuffer int 0
 			   param_named FinalRenderResult int 1
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
-			   param_named_auto ViewInversMatrix inverse_view_matrix
-			   param_named_auto ViewPositionWorldSpace camera_position
-			   param_named_auto FoV fov
-			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
-			   param_named_auto NearFar far_and_near_clip_distance
-			   param_named_auto ScreenWH viewport_width_and_height
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -664,17 +625,8 @@ material ScreenSpaceReflection
 			   param_named RayTrackBuffer int 4
 			   param_named IBL_LUT int 5
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
-			   param_named_auto ViewInversMatrix inverse_view_matrix
-			   param_named_auto ViewPositionWorldSpace camera_position
-			   param_named_auto FoV fov
-			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
-			   param_named_auto NearFar far_and_near_clip_distance
-			   param_named_auto ScreenWH viewport_width_and_height
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -778,17 +730,8 @@ material ShadingSceneWithVoxel
 			   param_named CBuffer int 2
 			   param_named VoxelScene int 3
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
-			   param_named_auto ViewInversMatrix inverse_view_matrix
-			   param_named_auto ViewPositionWorldSpace camera_position
-			   param_named_auto FoV fov
-			   param_named_auto PrjPlaneWInverseH width_inverse_hight_clip
-			   param_named_auto NearFar far_and_near_clip_distance
-			   param_named_auto ScreenWH viewport_width_and_height
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}

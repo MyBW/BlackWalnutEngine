@@ -7,12 +7,9 @@ material Cornell_g
 			gpu_program_ref   Cornell_DefferDataProcess    GLSL
 			{
 			   param_named CubeColor float3   0 1 0
-			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
+			    param_named_auto ModelMatrix    world_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -29,11 +26,8 @@ material Cornell_b
 			{
 			   param_named CubeColor float3   0 0 1
 			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -49,12 +43,9 @@ material Cornell_r
 			gpu_program_ref   Cornell_DefferDataProcess    GLSL
 			{
 			   param_named CubeColor float3   1 0 0
-			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
+			    param_named_auto ModelMatrix    world_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}
@@ -69,12 +60,9 @@ material Cornell_w
 			gpu_program_ref   Cornell_DefferDataProcess    GLSL
 			{
 			   param_named CubeColor float3   1 1 1
-			   param_named_auto ModelMatrix    world_matrix
-			   param_named_auto ViewMatrix     view_matrix
-			   param_named_auto ProjectMatrix  projection_matrix
+			    param_named_auto ModelMatrix    world_matrix
 			   param_named_auto PreModelMatrix pre_world_matrix
-			   param_named_auto PreViewMatrix  pre_view_matrix
-			   param_named_auto PreProjectMatrix  pre_projection_matrix
+			   param_named_uniform_block_auto ViewportInformation viewport_information
 			}
 		}
 	}

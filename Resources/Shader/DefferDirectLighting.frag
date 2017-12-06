@@ -5,15 +5,22 @@ uniform sampler2D BBuffer ;
 uniform sampler2D CBuffer;
 uniform vec3 LightDirection ;
 uniform vec3 LightColor;
-layout(binding = 0,std140) uniform CameraInfo
+uniform mat4  ModelMatrix;
+uniform mat4  PreModelMatrix;
+layout(binding = 0,shared) uniform ViewportInformation
 {
-  mat4 ViewInversMatrix;
-  vec3 ViewPositionWorldSpace;
+  mat4  ViewMatrix;
+  mat4  ProjectMatrix;
+  mat4  PreViewMatrix;
+  mat4  PreProjectMatrix;
+  mat4  ViewInversMatrix;
+  vec3  ViewPositionWorldSpace;
   float FoV ;
   float PrjPlaneWInverseH;
-  vec2 NearFar;
-  vec2 ScreenWH ;
+  vec2  NearFar;
+  vec2  ScreenWH ;
 };
+
 const float PI = 3.1415926 ;
 vec3 ComputeDiffuseColor(vec3 BaseColor , float Metalic)
 {

@@ -14,7 +14,7 @@ layout(location = 3) out vec4 VelocityRT;
 
 uniform mat4  ModelMatrix;
 uniform mat4  PreModelMatrix;
-layout(binding = 0,std140) uniform ViewportInformation
+layout(binding = 0,shared) uniform ViewportInformation
 {
   mat4  ViewMatrix;
   mat4  ProjectMatrix;

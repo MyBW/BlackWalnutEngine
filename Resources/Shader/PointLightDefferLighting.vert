@@ -3,7 +3,7 @@
 layout(location = 0) in vec3 Position;
 uniform float RadiusScale;
 uniform mat4  tmpModelMatrix ;
-layout(binding = 0,std140) uniform UBO1
+layout(binding = 0,shared) uniform UBO1
 {
   mat4  ModelMatrix;
   mat4  ViewMatrix;

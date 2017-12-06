@@ -21,15 +21,22 @@ layout(location = 1) out vec4 BBuffer;
 layout(location = 2) out vec4 CBuffer;
 layout(location = 3) out vec4 VelocityRT;
 
-layout(binding = 0,std140) uniform UBO1
+uniform mat4  ModelMatrix;
+uniform mat4  PreModelMatrix;
+layout(binding = 0,shared) uniform ViewportInformation
 {
-  mat4  ModelMatrix;
   mat4  ViewMatrix;
   mat4  ProjectMatrix;
-  mat4  PreModelMatrix;
   mat4  PreViewMatrix;
   mat4  PreProjectMatrix;
+  mat4  ViewInversMatrix;
+  vec3  ViewPositionWorldSpace;
+  float FoV ;
+  float PrjPlaneWInverseH;
+  vec2  NearFar;
+  vec2  ScreenWH ;
 };
+
 
 void GetBaseColorAndRoughness(vec2 UVCoord, out vec3 FinalBaseColor, out float FinalRoughness)
 {
