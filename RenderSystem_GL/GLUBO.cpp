@@ -37,6 +37,12 @@ void GLUniformBufferObject::initUBO(GLuint program)
 	glGetActiveUniformsiv(program, mData.mContentMember.size(), mData.mIndex, GL_UNIFORM_SIZE, mData.mSize);
 	glGetActiveUniformsiv(program, mData.mContentMember.size(), mData.mIndex, GL_UNIFORM_TYPE, mData.mType);
 	
+	for (int i = 0 ; i < mData.mContentMember.size() ; i++)
+	{
+		int Offset = mData.mOffset[i];
+		int Size = mData.mSize[i];
+		int c = 0;
+	}
 	CHECK_GL_ERROR(glBindBuffer(GL_UNIFORM_BUFFER, mID));
 	CHECK_GL_ERROR(glBufferData(GL_UNIFORM_BUFFER, size, NULL, GL_DYNAMIC_DRAW));
 	CHECK_GL_ERROR(glBindBufferBase(GL_UNIFORM_BUFFER, mBinding, mID));

@@ -233,17 +233,14 @@ void GLSLGpuProgram::mergeNamedConstants(GpuNamedConstantsPtr src)
 }
 void GLSLGpuProgram::mergeUBOInforMap(const UBOInforMap &UBOInfoMap)
 {
-	UBOInforMap::const_iterator itor = UBOInfoMap.begin();
-	
-	while (itor != UBOInfoMap.end())
-	{
-		if (mUBOMap[itor->first] == NULL)
+	std::for_each(UBOInfoMap.begin(), UBOInfoMap.end(), [this](UBOInforMap::const_reference UBO) {
+		if (UBO.first == std::string("ViewportInformation")) return;
+		if (mUBOMap[UBO.first] == NULL)
 		{
-			GLUniformBufferObject *ubo = new GLUniformBufferObject(itor->second, BWHardwareBuffer::HBU_DYNAMIC);
-			mUBOMap[itor->first] = ubo;
+			GLUniformBufferObject *ubo = new GLUniformBufferObject(UBO.second, BWHardwareBuffer::HBU_DYNAMIC);
+			mUBOMap[UBO.first] = ubo;
 		}
-		itor++; 
-	}
+	});
 }
 void GLSLGpuProgram::preLoadImpl()
 {
