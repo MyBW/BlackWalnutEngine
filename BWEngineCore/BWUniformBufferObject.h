@@ -19,6 +19,22 @@ public:
 
 };
 
+template<typename T,unsigned int Alignment>
+class TAlignmentdef;
+
+#define IMPLEMENT_ALIGNED_TYPE(Alignment)\
+template<typename T>\
+class TAlignmentdef<T, Alignment>\
+{\
+public:\
+	typedef __declspec(align(Alignment)) T TAlignedType ; \
+};
+IMPLEMENT_ALIGNED_TYPE(1)
+IMPLEMENT_ALIGNED_TYPE(2)
+IMPLEMENT_ALIGNED_TYPE(4)
+IMPLEMENT_ALIGNED_TYPE(8)
+IMPLEMENT_ALIGNED_TYPE(16)
+
  template<typename TUniformBufferStruct>
  class TBWUniformBufferObject
  {
@@ -140,6 +156,7 @@ public:
 	 enum { NumElements = 0 };
 	 enum { Alignment = 4 };
 	 enum { IsResource = 0 };
+	 typedef int TAlignedType;
 	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
  };
  template<>
@@ -151,8 +168,22 @@ public:
 	 enum { NumElements = 0 };
 	 enum { Alignment = 4 };
 	 enum { IsResource = 0 };
+	 typedef float TAlignedType;
 	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
  };
+ template<>
+ struct UniformBufferMemberType<BWPoint2DD>
+ {
+	 enum { BaseType = UBMBT_FLOAT32 };
+	 enum { NumRows = 1 };
+	 enum { NumColums = 2 };
+	 enum { NumElements = 0 };
+	 enum { Alignment = 8 };
+	 enum { IsResource = 0 };
+	 typedef TAlignmentdef<BWPoint2DD, Alignment>::TAlignedType TAlignedType;
+	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
+ };
+ 
  template<>
  struct UniformBufferMemberType<BWVector3>
  {
@@ -162,6 +193,7 @@ public:
 	 enum { NumElements = 0 };
 	 enum { Alignment = 16 };
 	 enum { IsResource = 0 };
+	 typedef TAlignmentdef<BWVector3, Alignment>::TAlignedType TAlignedType;
 	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
  };
 
@@ -174,6 +206,7 @@ public:
 	 enum { NumElements = 0 };
 	 enum { Alignment = 16 };
 	 enum { IsResource = 0 };
+	 typedef TAlignmentdef<BWVector3, Alignment>::TAlignedType TAlignedType;
 	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
  };
  template<>
@@ -185,6 +218,7 @@ public:
 	 enum { NumElements = 0 };
 	 enum { Alignment = 16 };
 	 enum { IsResource = 0 };
+	 typedef TAlignmentdef<BWMatrix4, Alignment>::TAlignedType TAlignedType;
 	 static const UniformBufferStructLayout* GetStruct() { return NULL; }
  };
 
@@ -218,7 +252,8 @@ private:\
 #define UNIFORM_BUFFER_STRUCT_MEMBER(StructMemberType, StructMemberName)\
 	MemberID##StructMemberName;\
 public:\
-	StructMemberType StructMemberName;\
+	typedef UniformBufferMemberType<StructMemberType>::TAlignedType Aligned##StructMemberName;\
+	Aligned##StructMemberName StructMemberName ;\
 private:\
    struct NextMemberID##StructMemberName{ enum { IsResource = 0 }; }; \
 	static std::vector<UniformBufferStructLayout::Member> GetBeforeStructMember(NextMemberID##StructMemberName)\

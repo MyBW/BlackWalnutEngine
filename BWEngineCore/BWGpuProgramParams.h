@@ -382,6 +382,7 @@ typedef std::vector<BWGpuSharedParametersUsage> BWGpuSharedParameterUsageList;
 
 
 //Global Uniform Buffer Object
+#pragma pack(push, 8)
 BEGIN_UNIFORM_BUFFER_STRUCT(ViewportInforUniformBufferStruct)
 UNIFORM_BUFFER_STRUCT_MEMBER(BWMatrix4, ViewMatrix)
 UNIFORM_BUFFER_STRUCT_MEMBER(BWMatrix4, ProjectMatrix)
@@ -394,7 +395,7 @@ UNIFORM_BUFFER_STRUCT_MEMBER(float, PrjPlaneWInverseH)
 UNIFORM_BUFFER_STRUCT_MEMBER(BWPoint2DD, NearFar)
 UNIFORM_BUFFER_STRUCT_MEMBER(BWPoint2DD, ScreenWH)
 END_UNIFORM_BUFFER_STRUCT(ViewportInforUniformBufferStruct)
-
+#pragma pack(pop)
 
 class BWGpuProgramParameters 
 {

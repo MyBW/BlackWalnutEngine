@@ -129,7 +129,7 @@ void BWSceneManager::_renderScene(BWCamera *camera, BWViewport *viewport, bool i
 
 	mAutoParamDataSource->UpdateAllGlobalParameter();
 	_renderVisibleObjec();
-
+	return;
 	mActiveRenderSystem->_endFrame();
 	camera->_notifyRenderedFaces(mActiveRenderSystem->_getFaceNum());
 	camera->_notifyRenderedBathces(mActiveRenderSystem->_getBathcesNum());
